@@ -1,32 +1,39 @@
-# wificom-python
+# wificom-lib (Using dmcomm-python)
 
-[![](https://dcbadge.vercel.app/api/server/yJ4Ub64zrP)](https://discord.gg/yJ4Ub64zrP)
+<p align="center">
+    <a href="https://discord.gg/yJ4Ub64zrP">
+        <img src="https://dcbadge.vercel.app/api/server/yJ4Ub64zrP">
+    </a>
+</p>
 
 This library enables an RP2040 device using dmcomm-python (CircuitPython 8.x/7.3.x) to connect to https://wificom.dev to enable DigiRom reading and writing via HTTP API calls and MQTT for device interactions.
 
-### Credits
+## Credits
 
 This project was enabled by the great work, help, and input from BladeSabre.  Find the repo this one is built on top of at https://github.com/dmcomm/dmcomm-python.
 
 Credits to the other great developers on the WiFiCom Discord.
 
-A list of contributors will come soon
+A list of contributors will come as pull requests appear
 
-<hr/>
+## RP2040 Board Support
 
-### Currently Supported Boards
+### Supported Boards
 - Arduino Nano Connect
 
 ### Planned Supported Boards
 - Pi Pico with Airlift co-processor module
 
-### Tested but found unsupported
+### Unsupported Boards
 - RP2040 Challenger with WiFi Chip
-    - Issues with SSL with onboard chip; doesn't allow for secure API calls
-    - This should be tested again with MQTT, we no longer use API calls for device interactions
+    - Issues with SSL with onboard chip; doesn't allow for secure requests
+
+## Building a (WiFi) Pico-Com
+- Visit https://dmcomm.github.io/guide/pi-pico/ for more information on this topic
+- Ensure you match pins on your supported board with those found in the example code.py file.  This has been optimized by BladeSabre for the Arduino Nano Connect.  If you have a different board, you will need to adjust the pins in the code.py file.
+- Be careful to use the correct version of CircuitPython, this impacts your choice of library downloads.  See Installation for more details.
 
 ## Installation
-<hr/>
 
 1. Drag and drop the wificom folder in this repository to your lib folder in your CIRCUITPY drive
 1. Drag and drop the code.py file to your CIRCUITPY drive, replace existing code.py
