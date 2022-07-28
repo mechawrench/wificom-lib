@@ -91,7 +91,10 @@ while True:
 		time.sleep(1)
 	replacementDigirom = PlatformIO.getSubscribedOutput()
 	if(replacementDigirom is not None):
-		print("New digirom:", replacementDigirom)
+		if not PlatformIO.getIsOutputHidden():	
+			print("New digirom:", replacementDigirom)
+		else:
+			serial_print("Received digirom input, check the App\n")
 	last_output = None
 	if replacementDigirom is not None:
 		digirom = dmcomm.protocol.parse_command(replacementDigirom)
@@ -104,7 +107,10 @@ while True:
 			error = repr(e)
 			result_end = " "
 		led.value = True
-		serial_print(str(digirom.result) + result_end)
+		if not PlatformIO.getIsOutputHidden():
+			serial_print(str(digirom.result) + result_end)
+		else:
+			serial_print("Received output, check the App\n")
 		if error != "":
 			serial_print(error + "\n")
 		if len(str(digirom.result)) >= 1:

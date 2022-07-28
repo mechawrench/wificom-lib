@@ -22,6 +22,7 @@ mqtt_topic_input = secrets_user_uuid + '-' + secrets_device_uuid + '/wificom-inp
 mqtt_topic_output = secrets_mqtt_username + "/f/" + secrets_user_uuid + "-" + secrets_device_uuid + "/wificom-output"
 
 last_application_id = None
+is_output_hidden = None
 
 class PlatformIO:
 	def loop():
@@ -36,6 +37,11 @@ class PlatformIO:
 			newDigirom = None
 		
 		return returnedDigirom
+
+	def getIsOutputHidden():
+
+		global is_output_hidden
+		return is_output_hidden
 	
 	def connect_to_mqtt(esp):
 		# Initialize MQTT interface with the esp interface
@@ -92,7 +98,9 @@ def on_feed_callback(client, topic, message):
 	# parse message as json
 	message_json = json.loads(message)
 
-	global newDigirom, last_application_id
+	global newDigirom, last_application_id, is_output_hidden
 	
 	last_application_id = message_json['application_id']
-	newDigirom = message_json['digirom'] 
+	newDigirom = message_json['digirom']
+	is_output_hidden = message_json['hide_output']
+
