@@ -6,10 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2022-07-28
+### Added
+- Added ability for app users to hide output on the serial console for WebApp interactions
+
 ## [0.0.1] - 2022-07-28
 ### Added
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.0.1...HEAD
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/mechawrench/wificom-libreleases/tag/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/mechawrench/wificom-libreleases/tag/v0.0.1
