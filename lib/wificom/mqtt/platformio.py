@@ -7,26 +7,25 @@ from adafruit_io.adafruit_io import IO_MQTT
 
 newDigirom = None
 
-# Initialize a new MQTT Client object
+ # Initialize a new MQTT Client object
 mqtt_client = MQTT.MQTT(
-	broker=secrets_mqtt_broker,
+	broker=secrets_mqtt_broker, 
 	port=1883,
 	username=secrets_mqtt_username,
 	password=secrets_mqtt_password
 )
 
 # Initialize an IO MQTT Client
-io = IO_MQTT(mqtt_client)
+io = IO_MQTT(mqtt_client) 
 
-mqtt_topic_input = secrets_user_uuid + '-' + \
-	secrets_device_uuid + '/wificom-input'
-mqtt_topic_output = secrets_mqtt_username + "/f/" + \
-	secrets_user_uuid + "-" + secrets_device_uuid + "/wificom-output"
+mqtt_topic_input = secrets_user_uuid + '-' + secrets_device_uuid + '/wificom-input'
+mqtt_topic_output = secrets_mqtt_username + "/f/" + secrets_user_uuid + "-" + secrets_device_uuid + "/wificom-output"
 
+last_application_id = None
 
 class PlatformIO:
 	def loop():
-		io.loop()
+		io.loop() 
 
 	def getSubscribedOutput(clear_rom=True):
 		global newDigirom
@@ -35,9 +34,9 @@ class PlatformIO:
 
 		if(clear_rom):
 			newDigirom = None
-
+		
 		return returnedDigirom
-
+	
 	def connect_to_mqtt(esp):
 		# Initialize MQTT interface with the esp interface
 		MQTT.set_socket(socket, esp)
@@ -58,9 +57,11 @@ class PlatformIO:
 		io.subscribe(mqtt_topic_input)
 
 	def on_digirom_output(output):
+		global last_application_id
 		# create json object containing output and device_uuid
 		mqtt_message = {
-			"device_uuid": secrets_device_uuid,
+			"application_uuid": last_application_id,
+			"device_uuid": secrets['device_uuid'],
 			"output": str(output)
 		}
 
@@ -69,8 +70,6 @@ class PlatformIO:
 		mqtt_client.publish(mqtt_topic_output, mqtt_message_json)
 
 # Define callback functions which will be called when certain events happen.
-
-
 def connected(client):
 	# Connected function will be called when the client is connected to the MQTT Broker
 	print("Connected to MQTT Broker! ")
@@ -80,7 +79,7 @@ def subscribe(client, userdata, topic, granted_qos):
 	# This method is called when the client subscribes to a new feed.
 	print("Subscribed to {0} with QOS level {1}".format(topic, granted_qos))
 
-
+ 
 # pylint: disable=unused-argument
 def disconnected(client):
 	# Disconnected function will be called when the client disconnects.
@@ -92,5 +91,8 @@ def on_feed_callback(client, topic, message):
 	print("New message on topic {0}: {1} ".format(topic, message))
 	# parse message as json
 	message_json = json.loads(message)
-	global newDigirom
-	newDigirom = message_json['digirom']
+
+	global newDigirom, last_application_id
+	
+	last_application_id = message_json['application_id']
+	newDigirom = message_json['digirom'] 
