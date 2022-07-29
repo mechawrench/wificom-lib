@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Initial groundwork laid for Realtime battles (Digimon/Legendz)
 - Shared topics added for Realtime battles
+- Usernames are now lowercase, if put into the file as mixed case it will correct itself
+- Usernames are now the "name" you picked when siging up, i.e. brassbolt (in lowercase)
+
 ## [0.2.0] - 2022-07-28
 ### Added
 - Added Pylint GitHub action to ensure code meets standards on PR, and other pushes
