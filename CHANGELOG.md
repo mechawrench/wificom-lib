@@ -5,7 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-
+- Initial groundwork laid for Realtime battles (Digimon/Legendz)
+- Shared topics added for Realtime battles
 ## [0.2.0] - 2022-07-28
 ### Added
 - Added Pylint GitHub action to ensure code meets standards on PR, and other pushes
