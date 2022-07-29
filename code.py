@@ -1,18 +1,19 @@
-# This file is part of the DMComm project by BladeSabre. License: MIT.
-# WiFiCom on Arduino Nano RP2040 Connect, with BladeSabre's pin assignments.
-
-import board
-import busio
-import digitalio
+'''
+This file is part of the DMComm project by BladeSabre. License: MIT.
+WiFiCom on Arduino Nano RP2040 Connect, with BladeSabre's pin assignments.
+'''
 import time
+import board
+# import busio
+import digitalio
 import usb_cdc
 
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
 import dmcomm.protocol.auto
-from wificom.hardware.RP2040ArduinoNanoConnect import RP2040ArduinoNanoConnect, esp
-from wificom.mqtt.platformio import PlatformIO
+from wificom.hardware.rp2040_arduino_nano_connect import RP2040ArduinoNanoConnect, esp
+from wificom.mqtt.platform_io import PlatformIO
 
 pins_extra_power = [
 	(board.D6, False), (board.D7, True),
@@ -56,15 +57,23 @@ digirom = None  # disable
 last_output = None
 
 serial.timeout = 1
-def serial_print(s):
-	serial.write(s.encode("utf-8"))
+
+def serial_print(contents):
+	'''
+	Print output to the serial console
+	'''
+	serial.write(contents.encode("utf-8"))
+
 serial_print("dmcomm-python starting\n")
 
 # Connect to WiFi
-RP2040ArduinoNanoConnect.connectToSsid()
+device = RP2040ArduinoNanoConnect()
+device.connect_to_ssid()
 
 # Connect to MQTT
-PlatformIO.connect_to_mqtt(esp) 
+platform_io = PlatformIO()
+platform_io.connect_to_mqtt(esp)
+
 
 while True:
 	time_start = time.monotonic()
@@ -89,9 +98,9 @@ while True:
 		except (CommandError, NotImplementedError) as e:
 			serial_print(repr(e) + "\n")
 		time.sleep(1)
-	replacementDigirom = PlatformIO.getSubscribedOutput()
-	if(replacementDigirom is not None):
-		if not PlatformIO.getIsOutputHidden():	
+	replacementDigirom = platform_io.get_subscribed_output()
+	if replacementDigirom is not None:
+		if not platform_io.get_is_output_hidden():
 			print("New digirom:", replacementDigirom)
 		else:
 			serial_print("Received digirom input, check the App\n")
@@ -107,7 +116,7 @@ while True:
 			error = repr(e)
 			result_end = " "
 		led.value = True
-		if not PlatformIO.getIsOutputHidden():
+		if not platform_io.get_is_output_hidden():
 			serial_print(str(digirom.result) + result_end)
 		else:
 			serial_print("Received output, check the App\n")
@@ -118,11 +127,11 @@ while True:
 		led.value = False
 
 	# Send to MQTT topic (acts as a ping also)
-	PlatformIO.on_digirom_output(last_output)
+	platform_io.on_digirom_output(last_output)
 
 	# seconds_passed = t
 	while (time.monotonic() - time_start) < 5:
-		PlatformIO.loop()
-		if (PlatformIO.getSubscribedOutput(False) != None):
+		platform_io.loop()
+		if platform_io.get_subscribed_output(False) is not None:
 			break
 		time.sleep(0.1)
