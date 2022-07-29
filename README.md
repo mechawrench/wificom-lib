@@ -6,6 +6,8 @@
     </a>
 </p>
 
+[![Pylint](https://github.com/mechawrench/wificom-lib/actions/workflows/pylint.yml/badge.svg)](https://github.com/mechawrench/wificom-lib/actions/workflows/pylint.yml)
+
 This library enables an RP2040 device using dmcomm-python (CircuitPython 8.x/7.3.x) to connect to https://wificom.dev to enable DigiRom reading and writing via HTTP API calls and MQTT for device interactions.
 
 ## Credits
