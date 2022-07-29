@@ -1,10 +1,14 @@
+'''
+boot.py
+'''
+
 # import usb_cdc
 # usb_cdc.enable(console=False, data=True)
 
 import board
 import digitalio
 import storage
-import usb_cdc
+# import usb_cdc
 import usb_hid
 
 usb_hid.disable()

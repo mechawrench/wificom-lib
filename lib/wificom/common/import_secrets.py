@@ -1,3 +1,7 @@
+'''
+import_secrets.py
+Import secrets into variables
+'''
 try:
 	from secrets import secrets
 
@@ -9,7 +13,7 @@ try:
 	secrets_mqtt_broker = secrets["broker"]
 	secrets_mqtt_username = secrets["mqtt_username"]
 	secrets_mqtt_password = secrets["mqtt_password"]
-	
+
 
 except ImportError:
 	print("WiFi/MQTT secrets are kept in secrets.py, please add them there!")
