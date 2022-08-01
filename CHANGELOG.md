@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shared topics added for Realtime battles
 - Usernames are now lowercase, if put into the file as mixed case it will correct itself
 - Usernames are now the "name" you picked when siging up, i.e. brassbolt (in lowercase)
+- Realtime battles now has it's own callback
+- Realtime battles output now goes to a separate function, this is for future work
+- Added function get_is_rtb_active to PlatformIO that allows us to determine if a RTB is active or not
 
 ## [0.2.0] - 2022-07-28
 ### Added
