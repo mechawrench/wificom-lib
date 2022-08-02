@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Pico with Airlift module support for WiFi
+- Autodetect board and connect to WiFi using proper library (Supports raspberry_pi_pico, arduino_nano_rp2040_connect)
 
 ## [0.2.0] - 2022-07-28
 ### Added
