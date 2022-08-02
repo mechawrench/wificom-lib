@@ -22,9 +22,7 @@ A list of contributors will come as pull requests appear
 
 ### Supported Boards
 - Arduino Nano Connect
-
-### Planned Supported Boards
-- Pi Pico with Airlift co-processor module
+- Pi Pico with Airlift co-processor module (Requires pin assignments and code.py changes, stay tuned for more details)
 
 ### Unsupported Boards
 - RP2040 Challenger with WiFi Chip

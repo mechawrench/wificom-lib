@@ -12,7 +12,7 @@ from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
 import dmcomm.protocol.auto
-from wificom.hardware.rp2040_arduino_nano_connect import RP2040ArduinoNanoConnect, esp
+from wificom.hardware.connect import connect_to_wifi, esp
 from wificom.mqtt.platform_io import PlatformIO
 
 pins_extra_power = [
@@ -67,8 +67,7 @@ def serial_print(contents):
 serial_print("dmcomm-python starting\n")
 
 # Connect to WiFi
-device = RP2040ArduinoNanoConnect()
-device.connect_to_ssid()
+connect_to_wifi()
 
 # Connect to MQTT
 platform_io = PlatformIO()
