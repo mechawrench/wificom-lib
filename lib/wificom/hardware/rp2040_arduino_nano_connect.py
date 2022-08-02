@@ -20,17 +20,17 @@ esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset)
 
 socket.set_interface(esp)
 
-
 class RP2040ArduinoNanoConnect:
 	'''
 	Handles WiFi connection for Arduino Nano Connect board
 	'''
+	# pylint: disable=no-method-argument
 	def connect_to_ssid():
 		'''
 		Connect to the RP2040 Arduino Nano WiFi Network
 		'''
 		print("Connecting to WiFi network [" + secrets_wifi_ssid + "]...")
-		
+
 		secrets_payload = {'ssid': secrets_wifi_ssid, 'password': secrets_wifi_password}
 		wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(esp, secrets_payload)
 		wifi.connect()
