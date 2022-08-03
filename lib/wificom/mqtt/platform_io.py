@@ -17,7 +17,7 @@ from adafruit_io.adafruit_io import IO_MQTT
 mqtt_client = MQTT.MQTT(
 	broker=secrets_mqtt_broker,
 	port=1883,
-	username=secrets_mqtt_username,
+	username=secrets_mqtt_username.lower(),
 	password=secrets_mqtt_password
 )
 
@@ -33,7 +33,7 @@ class PlatformIO:
 	Handles WiFi connection for Arduino Nano Connect board
 	'''
 	def __init__(self):
-		self.mqtt_io_prefix = secrets_mqtt_username + "/f/"
+		self.mqtt_io_prefix = secrets_mqtt_username.lower() + "/f/"
 		self.mqtt_topic_identifier = secrets_user_uuid + '-' + secrets_device_uuid
 		self.mqtt_topic_input = self.mqtt_topic_identifier + '/wificom-input'
 		self.mqtt_topic_output =  self.mqtt_io_prefix + self.mqtt_topic_identifier + "/wificom-output"
