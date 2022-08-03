@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 - Pico with Airlift module support for WiFi
 - Autodetect board and connect to WiFi using proper library (Supports raspberry_pi_pico, arduino_nano_rp2040_connect)
+- Fixes for develop to work when subscribing to it's topic
 
 ## [0.2.0] - 2022-07-28
 ### Added
