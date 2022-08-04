@@ -55,5 +55,5 @@ A list of contributors will come as pull requests appear
     10:59:46.387 -> Connected!
     10:59:46.423 -> Connecting to MQTT Broker...
     10:59:47.046 -> Connected to MQTT Broker! 
-    10:59:47.481 -> Subscribed to USER@EMAIL.com/f/1111111111111111-2222222222222222/wificom-input with QOS level 0
+    10:59:47.481 -> Subscribed to USERNAME/f/1111111111111111-2222222222222222/wificom-input with QOS level 0
     ```
