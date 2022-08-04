@@ -8,13 +8,13 @@ import board
 import digitalio
 import usb_cdc
 
-import board_config
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
 import dmcomm.protocol.auto
 from wificom.hardware.connect import connect_to_wifi, esp
 from wificom.mqtt.platform_io import PlatformIO
+import board_config
 
 outputs_extra_power = []
 for (pin, value) in board_config.extra_power_pins:
