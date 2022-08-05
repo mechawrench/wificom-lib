@@ -13,6 +13,8 @@ board_id = board.board_id
 print("Board ID: ", board_id)
 
 if board_id == "arduino_nano_rp2040_connect":
+	from wificom.hardware.nina_wifi import NinaWifi
+	wifi_cls = NinaWifi
 	controller_pins = [
 		hw.ProngOutput(board.A0, board.A2),
 		hw.ProngInput(board.A3),
@@ -37,6 +39,8 @@ if board_id == "arduino_nano_rp2040_connect":
 		"esp32_reset": board.ESP_RESET,
 	}
 elif board_id == "raspberry_pi_pico":
+	from wificom.hardware.nina_wifi import NinaWifi
+	wifi_cls = NinaWifi
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
 		hw.ProngInput(board.GP26),
@@ -58,5 +62,15 @@ elif board_id == "raspberry_pi_pico":
 		"esp32_busy": board.GP8,
 		"esp32_reset": board.GP9,
 	}
+elif board_id == "challenger_rp2040_wifi":
+	controller_pins = []
+	extra_power_pins = []
+	wifi_pins = {
+		"uart_rx": board.ESP_RX,
+		"uart_tx": board.ESP_TX,
+		"reset_pin": board.WIFI_RESET,
+		"boot_pin": board.WIFI_MODE,
+	}
+	raise NotImplementedError("This board is in progress.")
 else:
 	raise ValueError("Your board is not supported.")

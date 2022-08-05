@@ -1,6 +1,6 @@
 '''
-wifi.py
-Handles the WiFi connnection for supported boards.
+nina_wifi.py
+Handles the WiFi connection for boards using ESP32 NINA modules.
 Currently supported boards:
 	- Arduino Nano RP2040 Connect,
 	- AirLift co-processor module with RP2040 Board (tested with Pi Pico)
@@ -13,7 +13,7 @@ from adafruit_esp32spi import adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 
 
-class Wifi:
+class NinaWifi:
 	'''
 	Handles WiFi connection for supported boards
 	'''

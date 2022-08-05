@@ -12,7 +12,6 @@ from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
 import dmcomm.protocol.auto
-from wificom.hardware.wifi import Wifi
 from wificom.mqtt.platform_io import PlatformIO
 import board_config
 
@@ -59,7 +58,7 @@ def serial_print(contents):
 serial_print("dmcomm-python starting\n")
 
 # Connect to WiFi
-wifi = Wifi(**board_config.wifi_pins)
+wifi = board_config.wifi_cls(**board_config.wifi_pins)
 esp = wifi.connect()
 
 # Connect to MQTT
