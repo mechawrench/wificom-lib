@@ -4,8 +4,7 @@ Handles differences between boards.
 
 Arduino Nano RP2040 Connect, with BladeSabre's pin assignments.
 
-Pi Pico + AirLift with initial pin assignments.
-Currently prongs and modulated IR only, to make room for temporary AirLift positioning.
+Pi Pico + AirLift, with BladeSabre's pin assignments.
 '''
 import board
 import dmcomm.hardware as hw
