@@ -13,8 +13,8 @@ import usb_hid
 
 usb_hid.disable()
 
-# push-to-close button between GP3 and GND
-button = digitalio.DigitalInOut(board.A0)
+# push-to-close button between D3 and GND
+button = digitalio.DigitalInOut(board.D3)
 button.pull = digitalio.Pull.UP
 if button.value:
 	# button is not pressed
