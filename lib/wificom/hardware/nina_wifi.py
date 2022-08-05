@@ -51,4 +51,4 @@ class NinaWifi:
 		print("Connected to WiFi network!")
 
 		# Return esp to use with mqtt client
-		return self.esp
+		return self.esp, socket

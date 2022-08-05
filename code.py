@@ -58,13 +58,12 @@ def serial_print(contents):
 serial_print("dmcomm-python starting\n")
 
 # Connect to WiFi
-wifi = board_config.wifi_cls(**board_config.wifi_pins)
-esp = wifi.connect()
+wifi = board_config.WifiCls(**board_config.wifi_pins)
+esp,socket = wifi.connect()
 
 # Connect to MQTT
 platform_io = PlatformIO()
-platform_io.connect_to_mqtt(esp)
-
+platform_io.connect_to_mqtt(esp, socket)
 
 while True:
 	time_start = time.monotonic()

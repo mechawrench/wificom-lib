@@ -8,17 +8,15 @@ secrets_mqtt_username, \
 secrets_mqtt_password, \
 secrets_device_uuid, \
 secrets_user_uuid
-import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 from adafruit_io.adafruit_io import IO_MQTT
-
 
  # Initialize a new MQTT Client object
 mqtt_client = MQTT.MQTT(
 	broker=secrets_mqtt_broker,
 	port=1883,
 	username=secrets_mqtt_username.lower(),
-	password=secrets_mqtt_password
+	password=secrets_mqtt_password,
 )
 
 # Initialize an IO MQTT Client
@@ -66,7 +64,7 @@ class PlatformIO:
 
 		return is_output_hidden
 
-	def connect_to_mqtt(self, esp):
+	def connect_to_mqtt(self, esp, socket):
 		'''
 		Connect to the MQTT broker
 		'''
@@ -83,7 +81,8 @@ class PlatformIO:
 
 		# Connect to MQTT Broker
 		print("Connecting to MQTT Broker...")
-		io.connect()
+		# io.connect()
+		mqtt_client.connect()
 
 		# Subscribe to all messages on the mqtt_topic_input feed
 		io.subscribe(self.mqtt_topic_input)
