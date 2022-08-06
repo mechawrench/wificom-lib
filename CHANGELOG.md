@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 
+## [0.3.1] - 2022-08-06
+### Removed
+- Custom MQTT port in favor of default SSL port, now required for mqtt access
+
 ## [0.3.0] - 2022-08-05
 ### Added
 - Added lowercase checks to fix mixed case bug for topic subscriptions
@@ -18,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update topic to use username instead of email
 ### Removed
 - Removed timezone from secrets.py.example
+
+## [0.2.1] - 2022-07-28
+### Removed
+- Added Pylint GitHub action to ensure code meets standards on PR, and other pushes
+- Refactored all .py files to meet Pylint standards set out
+- Added .pylintrc file for CI
 
 ## [0.2.0] - 2022-07-28
 ### Added
@@ -34,7 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.3.1...develop
+[0.3.1]: https://github.com/mechawrench/wificom-libreleases/tag/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/mechawrench/wificom-libreleases/tag/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/mechawrench/wificom-libreleases/tag/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/mechawrench/wificom-libreleases/tag/v0.0.1...v0.1.0
