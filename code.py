@@ -119,7 +119,10 @@ while True:
 		led.value = False
 
 	# Send to MQTT topic (acts as a ping also)
-	platform_io.on_digirom_output(last_output)
+	if platform_io.get_is_rtb_active():
+		platform_io.on_rtb_digirom_output(last_output)
+	else:
+		platform_io.on_digirom_output(last_output)
 
 	# seconds_passed = t
 	while (time.monotonic() - time_start) < 5:
