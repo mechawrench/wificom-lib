@@ -5,12 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Initial groundwork laid for Realtime battles (Digimon/Legendz)
+
+- Realtime battles for Digimon Pendulum X
+- Initial groundwork laid for Realtime battles (Legendz)
 - Shared topics added for Realtime battles
-- Usernames are now lowercase, if put into the file as mixed case it will correct itself
-- Usernames are now the "name" you picked when siging up, i.e. brassbolt (in lowercase)
 - Realtime battles now has it's own callback
-- Realtime battles output now goes to a separate function, this is for future work
+- Realtime battles output now goes to a separate function
 - Added function get_is_rtb_active to PlatformIO that allows us to determine if a RTB is active or not
 
 ## [0.3.1] - 2022-08-06
