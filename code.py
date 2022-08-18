@@ -41,7 +41,7 @@ def rtb_send_callback(message):
 	'''
 	Called when a RTB object sends a message.
 	'''
-	platform_io_obj.on_rtb_digirom_output(message)
+	platform_io.send_rtb_digirom_output(message)
 	print("RTB sent message:", message)
 def rtb_receive_callback():
 	'''
@@ -85,13 +85,10 @@ def serial_print(contents):
 
 serial_print("dmcomm-python starting\n")
 
-# Connect to WiFi
+# Connect to WiFi and MQTT
 wifi = Wifi(**board_config.wifi_pins)
 esp = wifi.connect()
-
-# Connect to MQTT
-platform_io_obj = platform_io.PlatformIO()
-platform_io_obj.connect_to_mqtt(esp)
+platform_io.connect_to_mqtt(esp)
 
 def execute_digirom(rom):
 	'''
@@ -104,7 +101,7 @@ def execute_digirom(rom):
 	except (CommandError, ReceiveError) as ex:
 		error = repr(ex)
 		result_end = " "
-	if not platform_io_obj.get_is_output_hidden():
+	if not platform_io.is_output_hidden:
 		serial_print(str(rom.result) + result_end)
 	else:
 		serial_print("Received output, check the App\n")
@@ -134,9 +131,9 @@ while True:
 		except (CommandError, NotImplementedError) as e:
 			serial_print(repr(e) + "\n")
 		time.sleep(1)
-	replacementDigirom = platform_io_obj.get_subscribed_output()
+	replacementDigirom = platform_io.get_subscribed_output()
 	if replacementDigirom is not None:
-		if not platform_io_obj.get_is_output_hidden():
+		if not platform_io.is_output_hidden:
 			print("New digirom:", replacementDigirom)
 		else:
 			serial_print("Received digirom input, check the App\n")
@@ -144,7 +141,7 @@ while True:
 	if replacementDigirom is not None:
 		digirom = dmcomm.protocol.parse_command(replacementDigirom)
 
-	if platform_io_obj.get_is_rtb_active():
+	if platform_io.rtb_active:
 		if not rtb_was_active:
 			rtb_type_id = (platform_io.rtb_battle_type, platform_io.rtb_user_type)
 			if rtb_type_id in rtb_types:
@@ -157,7 +154,7 @@ while True:
 			else:
 				serial_print(platform_io.rtb_battle_type + " not implemented\n")
 		rtb_was_active = True
-		platform_io_obj.loop()
+		platform_io.loop()
 		rtb.loop()
 	else:
 		if rtb_was_active:
@@ -170,10 +167,10 @@ while True:
 				last_output = str(digirom.result)
 
 		# Send to MQTT topic (acts as a ping also)
-		platform_io_obj.on_digirom_output(last_output)
+		platform_io.send_digirom_output(last_output)
 
 		while (time.monotonic() - time_start) < 5:
-			platform_io_obj.loop()
-			if platform_io_obj.get_subscribed_output(False) is not None:
+			platform_io.loop()
+			if platform_io.get_subscribed_output(False) is not None:
 				break
 			time.sleep(0.1)

@@ -12,17 +12,6 @@ import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 from adafruit_io.adafruit_io import IO_MQTT
 
-
- # Initialize a new MQTT Client object
-mqtt_client = MQTT.MQTT(
-	broker=secrets_mqtt_broker,
-	username=secrets_mqtt_username.lower(),
-	password=secrets_mqtt_password
-)
-
-# Initialize an IO MQTT Client
-io = IO_MQTT(mqtt_client)
-
 last_application_id = None
 is_output_hidden = None
 new_digirom = None
@@ -33,117 +22,104 @@ rtb_battle_type = None
 rtb_topic = None
 rtb_digirom = None
 
-class PlatformIO:
+_mqtt_io_prefix = secrets_mqtt_username.lower() + "/f/"
+_mqtt_topic_identifier = secrets_user_uuid + '-' + secrets_device_uuid
+_mqtt_topic_input = _mqtt_topic_identifier + '/wificom-input'
+_mqtt_topic_output =  _mqtt_io_prefix + _mqtt_topic_identifier + "/wificom-output"
+
+ # Initialize a new MQTT Client object
+_mqtt_client = MQTT.MQTT(
+	broker=secrets_mqtt_broker,
+	username=secrets_mqtt_username.lower(),
+	password=secrets_mqtt_password
+)
+
+# Initialize an IO MQTT Client
+_io = IO_MQTT(_mqtt_client)
+
+def connect_to_mqtt(esp):
 	'''
-	Handles WiFi connection for Arduino Nano Connect board
+	Connect to the MQTT broker
 	'''
-	def __init__(self):
-		self.mqtt_io_prefix = secrets_mqtt_username.lower() + "/f/"
-		self.mqtt_topic_identifier = secrets_user_uuid + '-' + secrets_device_uuid
-		self.mqtt_topic_input = self.mqtt_topic_identifier + '/wificom-input'
-		self.mqtt_topic_output =  self.mqtt_io_prefix + self.mqtt_topic_identifier + "/wificom-output"
+	# Initialize MQTT interface with the esp interface
+	MQTT.set_socket(socket, esp)
 
-	def loop(self):
-		'''
-		Loop IO MQTT client
-		'''
-		io.loop()
+	# Connect the callback methods defined below to MQTT Broker
+	_io.on_connect = connected
+	_io.on_disconnect = disconnected
+	_io.on_subscribe =  subscribe
+	_io.on_unsubscribe = unsubscribe
 
-	def get_subscribed_output(self, clear_rom=True):
-		'''
-		Get the output from the MQTT broker, and load in new Digirom (and clear if clear_rom is True)
-		'''
-		# pylint: disable=global-statement,global-variable-not-assigned
-		global new_digirom
-		returned_digirom = new_digirom
+	# Connect to MQTT Broker
+	print("Connecting to MQTT Broker...")
+	_io.connect()
 
-		if clear_rom:
-			new_digirom = None
+	# Subscribe to all messages on the mqtt_topic_input feed
+	_io.subscribe(_mqtt_topic_input)
 
-		return returned_digirom
+	# Set up a callback for the topic/feed
+	_io.add_feed_callback(_mqtt_topic_input, on_app_feed_callback)
 
-	def get_is_output_hidden(self):
-		'''
-		Get the is_output_hidden value
-		'''
-		# pylint: disable=global-statement,global-variable-not-assigned
-		global is_output_hidden
+def loop():
+	'''
+	Loop IO MQTT client
+	'''
+	_io.loop()
 
-		return is_output_hidden
+def get_subscribed_output(clear_rom=True):
+	'''
+	Get the output from the MQTT broker, and load in new Digirom (and clear if clear_rom is True)
+	'''
+	# pylint: disable=global-statement,global-variable-not-assigned
+	global new_digirom
+	returned_digirom = new_digirom
 
-	def get_is_rtb_active(self):
-		'''
-		Get the rtb_active value
-		'''
-		# pylint: disable=global-statement,global-variable-not-assigned
-		global rtb_active
+	if clear_rom:
+		new_digirom = None
 
-		return rtb_active
+	return returned_digirom
 
-	def connect_to_mqtt(self, esp):
-		'''
-		Connect to the MQTT broker
-		'''
-		# Initialize MQTT interface with the esp interface
-		MQTT.set_socket(socket, esp)
+def send_digirom_output(output):
+	'''
+	Send the output to the MQTT broker
+	Set last_application_id for use server side
+	'''
+	# 8 or less characters is the loaded digirom
+	# pylint: disable=global-statement,global-variable-not-assigned
+	global last_application_id, rtb_active, rtb_user_type, rtb_topic
 
-		# Connect the callback methods defined above to MQTT Broker
-		io.on_connect = connected
-		io.on_disconnect = disconnected
-		io.on_subscribe =  subscribe
-		io.on_unsubscribe = unsubscribe
+	# create json object containing output and device_uuid
+	mqtt_message = {
+		"application_uuid": last_application_id,
+		"device_uuid": secrets_device_uuid,
+		"output": str(output)
+	}
 
-		# Connect to MQTT Broker
-		print("Connecting to MQTT Broker...")
-		io.connect()
+	mqtt_message_json = json.dumps(mqtt_message)
+	_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 
-		# Subscribe to all messages on the mqtt_topic_input feed
-		io.subscribe(self.mqtt_topic_input)
-
-		# Set up a callback for the topic/feed
-		io.add_feed_callback(self.mqtt_topic_input, on_app_feed_callback)
-
-	def on_digirom_output(self, output):
-		'''
-		Send the output to the MQTT broker
-		Set last_application_id for use server side
-		'''
-		# 8 or less characters is the loaded digirom
+def send_rtb_digirom_output(output):
+	'''
+	Send the RTB output to the MQTT broker
+	'''
+	# 8 or less characters is the loaded digirom
+	if output is not None and len(str(output)) > 8:
 		# pylint: disable=global-statement,global-variable-not-assigned
 		global last_application_id, rtb_active, rtb_user_type, rtb_topic
-
 		# create json object containing output and device_uuid
 		mqtt_message = {
-			"application_uuid": last_application_id,
+			"application_id": 1,
 			"device_uuid": secrets_device_uuid,
-			"output": str(output)
+			"output": str(output),
+			"user_type": rtb_user_type,
 		}
 
 		mqtt_message_json = json.dumps(mqtt_message)
-		mqtt_client.publish(self.mqtt_topic_output, mqtt_message_json)
 
-	def on_rtb_digirom_output(self, output):
-		'''
-		Send the RTB output to the MQTT broker
-		'''
-		# 8 or less characters is the loaded digirom
-		if output is not None and len(str(output)) > 8:
-			# pylint: disable=global-statement,global-variable-not-assigned
-			global last_application_id, rtb_active, rtb_user_type, rtb_topic
-			# create json object containing output and device_uuid
-			mqtt_message = {
-				"application_id": 1,
-				"device_uuid": secrets_device_uuid,
-				"output": str(output),
-				"user_type": rtb_user_type,
-			}
-
-			mqtt_message_json = json.dumps(mqtt_message)
-
-			if rtb_active:
-				mqtt_client.publish(rtb_host + '/f/' + rtb_topic, mqtt_message_json)
-			else:
-				print("RTB not active, shouldn't be calling this callback while RTB is inactive")
+		if rtb_active:
+			_mqtt_client.publish(rtb_host + '/f/' + rtb_topic, mqtt_message_json)
+		else:
+			print("RTB not active, shouldn't be calling this callback while RTB is inactive")
 
 # Define callback functions which will be called when certain events happen.
 def connected(client):
@@ -216,8 +192,8 @@ def on_app_feed_callback(client, topic, message):
 			rtb_user_type = message_json['user_type']
 			rtb_host = message_json['host']
 			rtb_battle_type = message_json['battle_type']
-			mqtt_client.subscribe(rtb_host + "/f/" + message_json['topic'])
-			mqtt_client.add_topic_callback(
+			_mqtt_client.subscribe(rtb_host + "/f/" + message_json['topic'])
+			_mqtt_client.add_topic_callback(
 				rtb_host + "/f/" + message_json['topic'],
 				on_realtime_battle_feed_callback
 			)
@@ -233,7 +209,7 @@ def on_app_feed_callback(client, topic, message):
 			new_digirom = message_json['digirom']
 
 			try:
-				mqtt_client.unsubscribe(rtb_host + "/f/" + message_json['topic'])
+				_mqtt_client.unsubscribe(rtb_host + "/f/" + message_json['topic'])
 			# pylint: disable=broad-except
 			except (Exception) as error:
 				print(error)
