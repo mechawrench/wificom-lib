@@ -121,6 +121,25 @@ def send_rtb_digirom_output(output):
 		else:
 			print("RTB not active, shouldn't be calling this callback while RTB is inactive")
 
+def quit_rtb():
+	'''
+	Exit from any real-time battle
+	'''
+	# pylint: disable=global-statement
+	global rtb_user_type, rtb_active, rtb_host, rtb_battle_type, rtb_topic, rtb_digirom
+	if rtb_topic is not None:
+		try:
+			_mqtt_client.unsubscribe(rtb_host + "/f/" + rtb_topic)
+		# pylint: disable=broad-except
+		except (Exception) as error:
+			print(error)
+	rtb_user_type = None
+	rtb_active = False
+	rtb_host = None
+	rtb_battle_type = None
+	rtb_topic = None
+	rtb_digirom = None
+
 # Define callback functions which will be called when certain events happen.
 def connected(client):
 	# pylint: disable=unused-argument
@@ -184,41 +203,29 @@ def on_app_feed_callback(client, topic, message):
 	print(message_json)
 
 	# If message_json contains topic_action, then we have a realtime battle request
-	# Handle subscribe/unsubscribe from realtime battle topic(s)
-	if 'topic_action' in message_json:
-		if  message_json['topic_action'] == "subscribe":
-			rtb_topic = message_json['topic']
-			rtb_active = True
-			rtb_user_type = message_json['user_type']
-			rtb_host = message_json['host']
-			rtb_battle_type = message_json['battle_type']
-			_mqtt_client.subscribe(rtb_host + "/f/" + message_json['topic'])
-			_mqtt_client.add_topic_callback(
-				rtb_host + "/f/" + message_json['topic'],
-				on_realtime_battle_feed_callback
-			)
+	topic_action = message_json.get('topic_action', None)
 
-		elif message_json['topic_action'] == "unsubscribe":
+	# Quit RTB before joining a new one or setting a digirom
+	if topic_action is not None or message_json['digirom'] is not None:
+		quit_rtb()
 
-			print('unsubscribe received')
-
-			rtb_active = False
-			rtb_user_type = None
-			last_application_id = message_json['application_id']
-			is_output_hidden = message_json['hide_output']
-			new_digirom = message_json['digirom']
-
-			try:
-				_mqtt_client.unsubscribe(rtb_host + "/f/" + message_json['topic'])
-			# pylint: disable=broad-except
-			except (Exception) as error:
-				print(error)
+	# Subscribe to realtime battle topic
+	if topic_action == "subscribe":
+		rtb_topic = message_json['topic']
+		rtb_active = True
+		rtb_user_type = message_json['user_type']
+		rtb_host = message_json['host']
+		rtb_battle_type = message_json['battle_type']
+		_mqtt_client.subscribe(rtb_host + "/f/" + message_json['topic'])
+		_mqtt_client.add_topic_callback(
+			rtb_host + "/f/" + message_json['topic'],
+			on_realtime_battle_feed_callback
+		)
 	else:
 		# Here we deal with a normal message, one without a topic sub/unsub action
 		is_output_hidden = message_json['hide_output']
 		last_application_id = message_json['application_id']
 		new_digirom = message_json['digirom']
-		print("NewDigiRom loading...")
 
 def on_realtime_battle_feed_callback(client, topic, message):
 	# pylint: disable=unused-argument
