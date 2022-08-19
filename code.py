@@ -58,6 +58,7 @@ def rtb_status_callback(status):
 	'''
 	led.value = status == rt.STATUS_PUSH
 rtb_was_active = False
+rtb_type_id = None
 
 # Serial port selection
 if usb_cdc.data is not None:
@@ -142,8 +143,9 @@ while True:
 		digirom = dmcomm.protocol.parse_command(replacementDigirom)
 
 	if platform_io.rtb_active:
-		if not rtb_was_active:
-			rtb_type_id = (platform_io.rtb_battle_type, platform_io.rtb_user_type)
+		rtb_type_id_new = (platform_io.rtb_battle_type, platform_io.rtb_user_type)
+		if not rtb_was_active or rtb_type_id_new != rtb_type_id:
+			rtb_type_id = rtb_type_id_new
 			if rtb_type_id in rtb_types:
 				rtb = rtb_types[rtb_type_id](
 					execute_digirom,
