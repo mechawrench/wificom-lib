@@ -59,6 +59,7 @@ def rtb_status_callback(status):
 	led.value = status == rt.STATUS_PUSH
 rtb_was_active = False
 rtb_type_id = None
+rtb_last_ping = 0
 
 # Serial port selection
 if usb_cdc.data is not None:
@@ -156,6 +157,10 @@ while True:
 			else:
 				serial_print(platform_io.rtb_battle_type + " not implemented\n")
 		rtb_was_active = True
+		# Heartbeat approx every 10 seconds
+		if time_start - rtb_last_ping > 10:
+			platform_io.send_digirom_output("RTB")
+			rtb_last_ping = time_start
 		platform_io.loop()
 		rtb.loop()
 	else:
