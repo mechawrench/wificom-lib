@@ -6,8 +6,13 @@ import time
 import board
 # import busio
 import digitalio
+import pwmio
 import usb_cdc
 
+# Blink LED while starting up. Doing this here because the following imports are slow.
+led = pwmio.PWMOut(board.LED, duty_cycle=0x8000, frequency=1, variable_frequency=True)
+
+# pylint: disable=wrong-import-position
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
@@ -16,6 +21,9 @@ import dmcomm.protocol.realtime as rt
 from wificom.hardware.wifi import Wifi
 from wificom.mqtt import platform_io
 import board_config
+# pylint: enable=wrong-import-position
+
+LED_DUTY_CYCLE_DIM=0x1000 # pylint: disable=invalid-name
 
 outputs_extra_power = []
 for (pin, value) in board_config.extra_power_pins:
@@ -27,9 +35,6 @@ for (pin, value) in board_config.extra_power_pins:
 controller = hw.Controller()
 for pin_description in board_config.controller_pins:
 	controller.register(pin_description)
-
-led = digitalio.DigitalInOut(board.LED)
-led.direction = digitalio.Direction.OUTPUT
 
 rtb_types = {
 	("legendz", "host"): rt.RealTimeHostTalis,
@@ -56,7 +61,10 @@ def rtb_status_callback(status):
 	'''
 	Called when a RTB object updates the status display.
 	'''
-	led.value = status == rt.STATUS_PUSH
+	if status == rt.STATUS_PUSH:
+		led.duty_cycle = 0xFFFF
+	else:
+		led.duty_cycle = LED_DUTY_CYCLE_DIM
 rtb_was_active = False
 rtb_type_id = None
 rtb_last_ping = 0
@@ -112,6 +120,8 @@ if do_wifi:
 	wifi = Wifi(**board_config.wifi_pins)
 	esp = wifi.connect()
 	platform_io.connect_to_mqtt(esp)
+led.frequency = 1000
+led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 while True:
 	time_start = time.monotonic()
@@ -177,7 +187,7 @@ while True:
 		rtb.loop()
 	else:
 		if rtb_was_active:
-			led.value = False
+			led.duty_cycle = LED_DUTY_CYCLE_DIM
 		rtb_was_active = False
 		last_output = None
 		if digirom is not None:
