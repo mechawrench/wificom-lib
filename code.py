@@ -64,8 +64,10 @@ rtb_last_ping = 0
 # Serial port selection
 if usb_cdc.data is not None:
 	serial = usb_cdc.data
+	do_wifi = False
 else:
 	serial = usb_cdc.console
+	do_wifi = True
 #serial = usb_cdc.console  # same as REPL
 #serial = usb_cdc.data  # alternate USB serial
 #serial = busio.UART(board.TX, board.RX)  # for external UART
@@ -87,11 +89,6 @@ def serial_print(contents):
 
 serial_print("dmcomm-python starting\n")
 
-# Connect to WiFi and MQTT
-wifi = Wifi(**board_config.wifi_pins)
-esp = wifi.connect()
-platform_io.connect_to_mqtt(esp)
-
 def execute_digirom(rom):
 	'''
 	Execute the digirom and report results according to reporting settings.
@@ -109,6 +106,12 @@ def execute_digirom(rom):
 		serial_print("Received output, check the App\n")
 	if error != "":
 		serial_print(error + "\n")
+
+if do_wifi:
+	# Connect to WiFi and MQTT
+	wifi = Wifi(**board_config.wifi_pins)
+	esp = wifi.connect()
+	platform_io.connect_to_mqtt(esp)
 
 while True:
 	time_start = time.monotonic()
@@ -133,6 +136,15 @@ while True:
 		except (CommandError, NotImplementedError) as e:
 			serial_print(repr(e) + "\n")
 		time.sleep(1)
+
+	if not do_wifi:
+		if digirom is not None:
+			execute_digirom(digirom)
+		seconds_passed = time.monotonic() - time_start
+		if seconds_passed < 5:
+			time.sleep(5 - seconds_passed)
+		continue
+
 	replacementDigirom = platform_io.get_subscribed_output()
 	if replacementDigirom is not None:
 		if not platform_io.is_output_hidden:
