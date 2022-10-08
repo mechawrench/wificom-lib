@@ -125,6 +125,12 @@ led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 while True:
 	time_start = time.monotonic()
+	if not platform_io.rtb_active and do_wifi:
+		while (time.monotonic() - time_start) < 5:
+			platform_io.loop()
+			if platform_io.get_subscribed_output(False) is not None:
+				break
+			time.sleep(0.1)
 	if serial.in_waiting != 0:
 		digirom = None
 		serial_bytes = serial.readline()
@@ -197,9 +203,3 @@ while True:
 
 		# Send to MQTT topic (acts as a ping also)
 		platform_io.send_digirom_output(last_output)
-
-		while (time.monotonic() - time_start) < 5:
-			platform_io.loop()
-			if platform_io.get_subscribed_output(False) is not None:
-				break
-			time.sleep(0.1)
