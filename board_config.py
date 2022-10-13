@@ -5,6 +5,9 @@ Handles differences between boards.
 Arduino Nano RP2040 Connect, with BladeSabre's pin assignments.
 
 Pi Pico + AirLift, with BladeSabre's pin assignments.
+
+Pico W (soon) with BladeSabre's pin assignments.
+Temporary pins assigned to Pico W for development, these will change
 '''
 import board
 import dmcomm.hardware as hw
@@ -13,6 +16,8 @@ board_id = board.board_id
 print("Board ID: ", board_id)
 
 if board_id == "arduino_nano_rp2040_connect":
+	from wificom.hardware.wifi import Wifi
+	WifiCls = Wifi
 	controller_pins = [
 		hw.ProngOutput(board.A0, board.A2),
 		hw.ProngInput(board.A3),
@@ -37,6 +42,8 @@ if board_id == "arduino_nano_rp2040_connect":
 		"esp32_reset": board.ESP_RESET,
 	}
 elif board_id == "raspberry_pi_pico":
+	from wificom.hardware.wifi import Wifi
+	WifiCls = Wifi
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
 		hw.ProngInput(board.GP26),
@@ -58,5 +65,21 @@ elif board_id == "raspberry_pi_pico":
 		"esp32_busy": board.GP8,
 		"esp32_reset": board.GP9,
 	}
+elif board_id == "raspberry_pi_pico_w":
+	from wificom.hardware.picow_wifi import Wifi
+	WifiCls = Wifi
+	controller_pins = [
+		hw.ProngOutput(board.GP19, board.GP21),
+		hw.ProngInput(board.GP26),
+		hw.InfraredOutput(board.GP16),
+		hw.InfraredInputModulated(board.GP17),
+		hw.InfraredInputRaw(board.GP14),
+		hw.TalisInputOutput(board.GP15),
+	]
+	extra_power_pins = [
+		(board.GP11, True),
+		(board.GP13, True),
+		(board.GP18, True),
+	]
 else:
 	raise ValueError("Your board is not supported.")

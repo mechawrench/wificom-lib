@@ -9,8 +9,9 @@ import digitalio
 import pwmio
 import usb_cdc
 
-# Blink LED while starting up. Doing this here because the following imports are slow.
-led = pwmio.PWMOut(board.LED, duty_cycle=0x8000, frequency=1, variable_frequency=True)
+if board.board_id == "arduino_nano_rp2040_connect":
+	# Blink LED while starting up. Doing this here because the following imports are slow.
+	led = pwmio.PWMOut(board.LED, duty_cycle=0x8000, frequency=1, variable_frequency=True)
 
 # pylint: disable=wrong-import-position
 from dmcomm import CommandError, ReceiveError
@@ -18,7 +19,6 @@ import dmcomm.hardware as hw
 import dmcomm.protocol
 import dmcomm.protocol.auto
 import dmcomm.protocol.realtime as rt
-from wificom.hardware.wifi import Wifi
 from wificom.mqtt import platform_io
 import board_config
 # pylint: enable=wrong-import-position
@@ -117,11 +117,18 @@ def execute_digirom(rom):
 
 if do_wifi:
 	# Connect to WiFi and MQTT
-	wifi = Wifi(**board_config.wifi_pins)
-	esp = wifi.connect()
-	platform_io.connect_to_mqtt(esp)
-led.frequency = 1000
-led.duty_cycle = LED_DUTY_CYCLE_DIM
+	if hasattr(board_config, "wifi_pins"):
+		wifi = board_config.WifiCls(**board_config.wifi_pins)
+
+	else:
+		wifi = board_config.WifiCls(None, None, None, None, None, None)
+
+	out, mqtt_client = wifi.connect()
+	platform_io.connect_to_mqtt(out, mqtt_client)
+
+if "led" in locals():
+	led.frequency = 1000
+	led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 while True:
 	time_start = time.monotonic()
