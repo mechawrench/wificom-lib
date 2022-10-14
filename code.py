@@ -198,8 +198,10 @@ while True:
 		# Send to MQTT topic (acts as a ping also)
 		platform_io.send_digirom_output(last_output)
 
-		while (time.monotonic() - time_start) < 5:
+		while True:
 			platform_io.loop()
 			if platform_io.get_subscribed_output(False) is not None:
+				break
+			if time.monotonic() - time_start >= 5:
 				break
 			time.sleep(0.1)
