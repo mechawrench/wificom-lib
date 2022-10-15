@@ -61,10 +61,11 @@ def rtb_status_callback(status):
 	'''
 	Called when a RTB object updates the status display.
 	'''
-	if status == rt.STATUS_PUSH:
-		led.duty_cycle = 0xFFFF
-	else:
-		led.duty_cycle = LED_DUTY_CYCLE_DIM
+	if(board.board_id == "arduino_nano_rp2040_connect"):
+		if status == rt.STATUS_PUSH:
+			led.duty_cycle = 0xFFFF
+		else:
+			led.duty_cycle = LED_DUTY_CYCLE_DIM
 rtb_was_active = False
 rtb_type_id = None
 rtb_last_ping = 0
