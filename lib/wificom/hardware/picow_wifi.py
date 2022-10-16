@@ -2,6 +2,7 @@
 wifi.py
 Handles the WiFi connnection for Pico W.
 '''
+import ssl
 from wificom.common.import_secrets import secrets_wifi_ssid, \
 	secrets_wifi_password, \
 	secrets_mqtt_broker, \
@@ -10,7 +11,7 @@ from wificom.common.import_secrets import secrets_wifi_ssid, \
 import wifi
 import socketpool
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
-import ssl
+
 
 class Wifi:
 	'''
