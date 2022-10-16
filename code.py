@@ -9,9 +9,8 @@ import digitalio
 import pwmio
 import usb_cdc
 
-if board.board_id == "arduino_nano_rp2040_connect":
-	# Blink LED while starting up. Doing this here because the following imports are slow.
-	led = pwmio.PWMOut(board.LED, duty_cycle=0x8000, frequency=1, variable_frequency=True)
+# Blink LED while starting up. Doing this here because the following imports are slow.
+led = pwmio.PWMOut(board.LED, duty_cycle=0x8000, frequency=1, variable_frequency=True)
 
 # pylint: disable=wrong-import-position
 from dmcomm import CommandError, ReceiveError
@@ -61,11 +60,10 @@ def rtb_status_callback(status):
 	'''
 	Called when a RTB object updates the status display.
 	'''
-	if(board.board_id == "arduino_nano_rp2040_connect"):
-		if status == rt.STATUS_PUSH:
-			led.duty_cycle = 0xFFFF
-		else:
-			led.duty_cycle = LED_DUTY_CYCLE_DIM
+	if status == rt.STATUS_PUSH:
+		led.duty_cycle = 0xFFFF
+	else:
+		led.duty_cycle = LED_DUTY_CYCLE_DIM
 rtb_was_active = False
 rtb_type_id = None
 rtb_last_ping = 0
@@ -127,9 +125,8 @@ if do_wifi:
 	out, mqtt_client = wifi.connect()
 	platform_io.connect_to_mqtt(out, mqtt_client)
 
-if "led" in locals():
-	led.frequency = 1000
-	led.duty_cycle = LED_DUTY_CYCLE_DIM
+led.frequency = 1000
+led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 while True:
 	time_start = time.monotonic()
