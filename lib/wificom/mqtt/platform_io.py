@@ -41,6 +41,8 @@ def connect_to_mqtt(output, mqtt_client):
 		MQTT.set_socket(socket, output)
 
 	# Initialize an IO MQTT Client
+	# pylint: disable=global-statement
+	global _io
 	_io = IO_MQTT(_mqtt_client)
 
 	# Connect the callback methods defined below to MQTT Broker
@@ -63,8 +65,7 @@ def loop():
 	'''
 	Loop IO MQTT client
 	'''
-	if _io is not None and _mqtt_client.is_connected:
-		_io.loop()
+	_io.loop()
 
 def get_subscribed_output(clear_rom=True):
 	'''
