@@ -18,6 +18,7 @@ print("Board ID: ", board_id)
 if board_id == "arduino_nano_rp2040_connect":
 	from wificom.hardware.wifi import Wifi
 	WifiCls = Wifi
+	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.A0, board.A2),
 		hw.ProngInput(board.A3),
@@ -44,6 +45,7 @@ if board_id == "arduino_nano_rp2040_connect":
 elif board_id == "raspberry_pi_pico":
 	from wificom.hardware.wifi import Wifi
 	WifiCls = Wifi
+	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
 		hw.ProngInput(board.GP26),
@@ -68,6 +70,7 @@ elif board_id == "raspberry_pi_pico":
 elif board_id == "raspberry_pi_pico_w":
 	from wificom.hardware.picow_wifi import Wifi
 	WifiCls = Wifi
+	led_pin = board.GP10
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
 		hw.ProngInput(board.GP26),
@@ -81,5 +84,6 @@ elif board_id == "raspberry_pi_pico_w":
 		(board.GP13, True),
 		(board.GP18, True),
 	]
+	wifi_pins = {}
 else:
 	raise ValueError("Your board is not supported.")

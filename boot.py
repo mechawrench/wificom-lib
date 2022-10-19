@@ -19,13 +19,19 @@ usb_hid.disable()
 
 if board.board_id == "arduino_nano_rp2040_connect":
 	button_pin = board.D3
+	led_pin = board.LED
 elif board.board_id == "raspberry_pi_pico":
 	button_pin = board.GP3
+	led_pin = board.LED
+elif board.board_id == "raspberry_pi_pico_w":
+	button_pin = board.GP3
+	led_pin = board.GP10
 else:
 	button_pin = None
+	led_pin = board.LED
 
 if button_pin is not None:
-	led = digitalio.DigitalInOut(board.LED)
+	led = digitalio.DigitalInOut(led_pin)
 	led.switch_to_output()
 	# push-to-close button between button_pin and GND
 	button = digitalio.DigitalInOut(button_pin)
