@@ -7,10 +7,14 @@ Currently supported boards:
 '''
 import busio
 from digitalio import DigitalInOut
-from wificom.common.import_secrets import secrets_wifi_ssid,secrets_wifi_password
+from wificom.common.import_secrets import secrets_wifi_ssid,secrets_wifi_password, \
+	secrets_mqtt_broker, \
+	secrets_mqtt_username, \
+	secrets_mqtt_password
 from adafruit_esp32spi import adafruit_esp32spi
 from adafruit_esp32spi import adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_socket as socket
+import adafruit_minimqtt.adafruit_minimqtt as MQTT
 
 
 class Wifi:
@@ -50,5 +54,11 @@ class Wifi:
 
 		print("Connected to WiFi network!")
 
+		mqtt_client = MQTT.MQTT(
+			broker=secrets_mqtt_broker,
+			username=secrets_mqtt_username.lower(),
+			password=secrets_mqtt_password,
+		)
+
 		# Return esp to use with mqtt client
-		return self.esp
+		return self.esp, mqtt_client
