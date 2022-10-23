@@ -12,10 +12,11 @@ Pi Pico W, with BladeSabre's pin assignments.
 import board
 import dmcomm.hardware as hw
 
-board_id = board.board_id
-print("Board ID: ", board_id)
+print("Board ID: ", board.board_id)
 
-if board_id == "arduino_nano_rp2040_connect":
+# pylint: disable=unused-import
+
+if board.board_id == "arduino_nano_rp2040_connect":
 	from wificom.hardware.nina_wifi import Wifi as WifiCls
 	led_pin = board.LED
 	controller_pins = [
@@ -41,7 +42,7 @@ if board_id == "arduino_nano_rp2040_connect":
 		"esp32_busy": board.ESP_BUSY,
 		"esp32_reset": board.ESP_RESET,
 	}
-elif board_id == "raspberry_pi_pico":
+elif board.board_id == "raspberry_pi_pico":
 	from wificom.hardware.nina_wifi import Wifi as WifiCls
 	led_pin = board.LED
 	controller_pins = [
@@ -65,7 +66,7 @@ elif board_id == "raspberry_pi_pico":
 		"esp32_busy": board.GP8,
 		"esp32_reset": board.GP9,
 	}
-elif board_id == "raspberry_pi_pico_w":
+elif board.board_id == "raspberry_pi_pico_w":
 	from wificom.hardware.picow_wifi import Wifi as WifiCls
 	led_pin = board.GP10
 	controller_pins = [
