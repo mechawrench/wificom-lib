@@ -22,6 +22,7 @@ A list of contributors will come as pull requests appear
 
 ### Supported Boards
 - Arduino Nano Connect
+- Raspberry Pi Pico W
 - RP2040 with AirLift co-processor module
     - Pi Pico is the only tested board so far but others should work as well
 
@@ -60,12 +61,19 @@ A list of contributors will come as pull requests appear
     10:59:47.046 -> Connected to MQTT Broker! 
     10:59:47.481 -> Subscribed to USERNAME/f/1111111111111111-2222222222222222/wificom-input with QOS level 0
     ```
-## Button usage
-- Do not press the button to use "WiFiCom mode (without drive access)"
-- Hold button until LED comes on, then release provides for "WiFiCom mode (with drive access)"
-- Hold button until LED comes on, keep holding until LED goes off provides for "Serial Only Mode"
+## LED Indicator
+- Arduino Nano RP2040 Connect: on-board orange LED
+- Raspberry Pi Pico: on-board green LED
+- Raspberry Pi Pico W: external LED is required
 
-## LED Indicator (Arduino Nano RP2040 Connect)
+### LED Meanings
 - Blinking indicates connecting to WiFi and MQTT
 - Solid (dimmed) LED indicates connected and no errors
+- Solid (bright) LED indicates waiting for Digimon/Legendz device during real-time battle
 - LED OFF indicates failure, please restart your device
+- During startup, see below
+
+## Button Usage During Startup
+- To use "WiFiCom mode (without drive access)", do not press the button
+- To use "WiFiCom mode (with drive access)", hold button until LED comes on, then release
+- To use "Serial Only Mode", hold button until LED comes on, keep holding until LED starts flashing or goes off
