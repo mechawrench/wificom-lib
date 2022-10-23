@@ -5,9 +5,9 @@ Handles differences between boards.
 Arduino Nano RP2040 Connect, with BladeSabre's pin assignments.
 
 Pi Pico + AirLift, with BladeSabre's pin assignments.
+This was used for development but is no longer recommended.
 
-Pico W (soon) with BladeSabre's pin assignments.
-Temporary pins assigned to Pico W for development, these will change
+Pi Pico W, with BladeSabre's pin assignments.
 '''
 import board
 import dmcomm.hardware as hw
@@ -73,14 +73,13 @@ elif board_id == "raspberry_pi_pico_w":
 	led_pin = board.GP10
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
-		hw.ProngInput(board.GP26),
+		hw.ProngInput(board.GP22),
 		hw.InfraredOutput(board.GP16),
 		hw.InfraredInputModulated(board.GP17),
 		hw.InfraredInputRaw(board.GP14),
 		hw.TalisInputOutput(board.GP15),
 	]
 	extra_power_pins = [
-		(board.GP11, True),
 		(board.GP13, True),
 		(board.GP18, True),
 	]
