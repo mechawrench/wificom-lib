@@ -16,8 +16,7 @@ board_id = board.board_id
 print("Board ID: ", board_id)
 
 if board_id == "arduino_nano_rp2040_connect":
-	from wificom.hardware.wifi import Wifi
-	WifiCls = Wifi
+	from wificom.hardware.nina_wifi import Wifi as WifiCls
 	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.A0, board.A2),
@@ -43,8 +42,7 @@ if board_id == "arduino_nano_rp2040_connect":
 		"esp32_reset": board.ESP_RESET,
 	}
 elif board_id == "raspberry_pi_pico":
-	from wificom.hardware.wifi import Wifi
-	WifiCls = Wifi
+	from wificom.hardware.nina_wifi import Wifi as WifiCls
 	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
@@ -68,8 +66,7 @@ elif board_id == "raspberry_pi_pico":
 		"esp32_reset": board.GP9,
 	}
 elif board_id == "raspberry_pi_pico_w":
-	from wificom.hardware.picow_wifi import Wifi
-	WifiCls = Wifi
+	from wificom.hardware.picow_wifi import Wifi as WifiCls
 	led_pin = board.GP10
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
