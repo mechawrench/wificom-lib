@@ -8,18 +8,18 @@ import digitalio
 import pwmio
 import usb_cdc
 
-# pylint: disable=wrong-import-position
+# Blink LED while starting up. Doing this here because the following imports are slow.
+# pylint: disable=wrong-import-order,wrong-import-position
+import board_config
+led = pwmio.PWMOut(board_config.led_pin, duty_cycle=0x8000, frequency=1, variable_frequency=True)
+# pylint: enable=wrong-import-order,wrong-import-position
+
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
 import dmcomm.protocol.auto
 import dmcomm.protocol.realtime as rt
 from wificom.mqtt import platform_io
-
-import board_config
-
-# Blink LED while starting up. Doing this here because the following imports are slow.
-led = pwmio.PWMOut(board_config.led_pin, duty_cycle=0x8000, frequency=1, variable_frequency=True)
 
 LED_DUTY_CYCLE_DIM=0x1000 # pylint: disable=invalid-name
 
