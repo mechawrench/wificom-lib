@@ -42,6 +42,13 @@ if board.board_id == "arduino_nano_rp2040_connect":
 		"esp32_busy": board.ESP_BUSY,
 		"esp32_reset": board.ESP_RESET,
 	}
+	ui_pins = {
+		"display_scl": board.A5,
+		"display_sda": board.A4,
+		"button_a": board.D1,
+		"button_b": board.D2,
+		"button_c": board.D3,
+	}
 elif board.board_id == "raspberry_pi_pico":
 	from wificom.hardware.nina_wifi import Wifi as WifiCls
 	led_pin = board.LED
@@ -72,9 +79,9 @@ elif board.board_id == "raspberry_pi_pico_w":
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
 		hw.ProngInput(board.GP22),
-		hw.InfraredOutput(board.GP16),
-		hw.InfraredInputModulated(board.GP17),
-		hw.InfraredInputRaw(board.GP14),
+		#hw.InfraredOutput(board.GP16),
+		#hw.InfraredInputModulated(board.GP17),
+		#hw.InfraredInputRaw(board.GP14),
 		hw.TalisInputOutput(board.GP15),
 	]
 	extra_power_pins = [
@@ -82,5 +89,12 @@ elif board.board_id == "raspberry_pi_pico_w":
 		(board.GP18, True),
 	]
 	wifi_pins = {}
+	ui_pins = {
+		"display_scl": board.GP5,
+		"display_sda": board.GP4,
+		"button_a": board.GP9,
+		"button_b": board.GP8,
+		"button_c": board.GP3,
+	}
 else:
 	raise ValueError("Your board is not supported.")

@@ -5,6 +5,7 @@ WiFiCom on supported boards (see board_config.py).
 import time
 # import busio
 import digitalio
+import displayio
 import pwmio
 import usb_cdc
 
@@ -17,8 +18,9 @@ led = pwmio.PWMOut(board_config.led_pin, duty_cycle=0x8000, frequency=1, variabl
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
-import dmcomm.protocol.auto
+#import dmcomm.protocol.auto
 import dmcomm.protocol.realtime as rt
+import wificom.hardware.ui
 from wificom.mqtt import platform_io
 
 LED_DUTY_CYCLE_DIM=0x1000 # pylint: disable=invalid-name
@@ -112,6 +114,16 @@ def execute_digirom(rom):
 		serial_print("Received output, check the App\n")
 	if error != "":
 		serial_print(error + "\n")
+
+displayio.release_displays()
+ui = wificom.hardware.ui.UserInterface(**board_config.ui_pins)
+ui.display_text(["a", "b", "c"])
+time.sleep(0.5)
+ui.display_text(["a", "b"])
+time.sleep(0.5)
+ui.display_text(["a"])
+time.sleep(0.5)
+ui.menu(["WiFi", "Serial", "Punchbag", "Drive"], ["", None, None, None], None)
 
 if do_wifi:
 	# Connect to WiFi and MQTT
