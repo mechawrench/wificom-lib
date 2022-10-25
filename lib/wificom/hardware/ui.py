@@ -3,11 +3,11 @@ ui.py
 Handles the user interface components.
 '''
 
+import time
 import busio
 import digitalio
 import displayio
 import terminalio
-import time
 import adafruit_displayio_ssd1306
 from adafruit_display_text.label import Label
 
@@ -20,16 +20,20 @@ TEXT_MENU_Y_START = 8
 def centre_y_start(num_rows):
 	if num_rows == 1:
 		return 15
-	elif num_rows == 2:
+	if num_rows == 2:
 		return 8
-	else:
-		return 4
+	return 4
 
 class UserInterface:
+	'''
+	Handles the screen, buttons and menus.
+	'''
 	def __init__(self, display_scl, display_sda, button_a, button_b, button_c):
+		# pylint: disable=too-many-arguments
 		i2c = busio.I2C(display_scl, display_sda)
 		display_bus = displayio.I2CDisplay(i2c, device_address=SCREEN_ADDRESS)
-		self._display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
+		self._display = adafruit_displayio_ssd1306.SSD1306(
+			display_bus, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
 		self._buttons = {}
 		self._buttons["A"] = digitalio.DigitalInOut(button_a)
 		self._buttons["B"] = digitalio.DigitalInOut(button_b)
@@ -61,19 +65,22 @@ class UserInterface:
 		selection = 0
 		text_rows = options[:]
 		while True:
+			# pylint: disable=consider-using-enumerate
 			for i in range(len(options)):
 				if i == selection:
 					text_rows[i] = "> " + options[i]
 				else:
 					text_rows[i] = "  " + options[i]
 			self.display_text(text_rows, TEXT_MENU_Y_START - selection * TEXT_ROW_Y_STEP)
-			if self.is_a_pressed():
-				selection += 1
-				selection %= len(options)
-				time.sleep(0.15)
-			elif self.is_b_pressed() and results[selection] is not None:
-				self.clear()
-				return results[selection]
-			elif self.is_c_pressed() and cancel_result is not None:
-				self.clear()
-				return cancel_result
+			while True:
+				if self.is_a_pressed():
+					selection += 1
+					selection %= len(options)
+					time.sleep(0.15)
+					break
+				if self.is_b_pressed() and results[selection] is not None:
+					self.clear()
+					return results[selection]
+				if self.is_c_pressed() and cancel_result is not None:
+					self.clear()
+					return cancel_result

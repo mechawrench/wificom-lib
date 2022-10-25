@@ -538,7 +538,7 @@ const-naming-style=snake_case
 # Regular expression matching correct constant names. Overrides const-naming-
 # style. If left empty, constant names will be checked with the set naming
 # style.
-#const-rgx=
+const-rgx=([a-z_][a-z0-9_]{2,30})|([A-Z_][A-Z0-9_]{2,30})$
 
 # Minimum line length for functions/classes that require docstrings, shorter
 # ones are exempt.
@@ -556,6 +556,8 @@ function-naming-style=snake_case
 good-names=i,
            j,
            k,
+           x,
+           y,
            ex,
            Run,
            _
