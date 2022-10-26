@@ -5,15 +5,16 @@ Handles the non-volatile storage.
 
 import microcontroller
 
-MAGIC = "wificom1"
+MAGIC = "wificom01"
 LENGTH = len(MAGIC) + 1
 
 MODE_WIFI = "w"
 MODE_SERIAL = "s"
 MODE_PUNCHBAG = "p"
 MODE_DRIVE = "d"
+MODE_DEV = "*"
 
-_MODES = "wspd"
+_MODES = "wspd*"
 
 def _nvm_str():
 	return str(microcontroller.nvm[0:LENGTH])
@@ -37,5 +38,5 @@ def set_mode(mode):
 	new_nvm_str = MAGIC + mode
 	if new_nvm_str == _nvm_str():
 		return False
-	microcontroller.nvm[0:LENGTH] = bytes(new_nvm_str)
+	microcontroller.nvm[0:LENGTH] = bytes(new_nvm_str, "ascii")
 	return True

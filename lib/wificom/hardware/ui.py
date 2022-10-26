@@ -18,6 +18,9 @@ TEXT_ROW_Y_STEP = 11
 TEXT_MENU_Y_START = 8
 
 def centre_y_start(num_rows):
+	'''
+	Decide where to place text depending on number of rows.
+	'''
 	if num_rows == 1:
 		return 15
 	if num_rows == 2:
@@ -41,6 +44,9 @@ class UserInterface:
 		for button_id in "ABC":
 			self._buttons[button_id].pull = digitalio.Pull.UP
 	def display_text(self, rows, y_start=None):
+		'''
+		Display rows of text on the screen.
+		'''
 		if y_start is None:
 			y_start = centre_y_start(len(rows))
 		group = displayio.Group()
@@ -51,17 +57,34 @@ class UserInterface:
 			y += TEXT_ROW_Y_STEP
 		self._display.show(group)
 	def clear(self):
+		'''
+		Clear the screen.
+		'''
 		group = displayio.Group()
 		self._display.show(group)
 	def _is_button_pressed(self, button_id):
 		return not self._buttons[button_id].value
 	def is_a_pressed(self):
+		'''
+		Check if button A is pressed.
+		'''
 		return self._is_button_pressed("A")
 	def is_b_pressed(self):
+		'''
+		Check if button B is pressed.
+		'''
 		return self._is_button_pressed("B")
 	def is_c_pressed(self):
+		'''
+		Check if button C is pressed.
+		'''
 		return self._is_button_pressed("C")
 	def menu(self, options, results, cancel_result):
+		'''
+		Display a menu with the specified options and return the corresponding result.
+
+		If a result is None, that option cannot be activated.
+		'''
 		selection = 0
 		text_rows = options[:]
 		while True:
