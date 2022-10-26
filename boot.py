@@ -62,26 +62,32 @@ if button_pin is not None:
 	# button held until LED went off: serial-only without drive or console
 	if button_result == BUTTON_NOT_PRESSED:
 		mode = nvm.get_mode()
-		if mode == nvm.MODE_WIFI:
+		if mode in [nvm.MODE_MENU, nvm.MODE_WIFI, nvm.MODE_PUNCHBAG]:
 			state = STATE_NORMAL
 		elif mode == nvm.MODE_SERIAL:
 			state = STATE_SERIAL
-		elif mode == nvm.MODE_PUNCHBAG:
-			state = STATE_NORMAL
 		elif mode == nvm.MODE_DRIVE:
 			state = STATE_DRIVE
 		elif mode == nvm.MODE_DEV:
 			# this was not requested from software so reset it
-			nvm.set_mode(nvm.MODE_WIFI)
+			nvm.set_mode(nvm.MODE_MENU)
 			state = STATE_NORMAL
 	elif button_result == BUTTON_RELEASED:
 		nvm.set_mode(nvm.MODE_DEV)
 		state = STATE_DRIVE
 	elif button_result == BUTTON_HELD:
+		nvm.set_mode(nvm.MODE_SERIAL)
 		state = STATE_SERIAL
 
-	if state != STATE_DRIVE:
+	print("Mode:", nvm.get_mode())
+	if state == STATE_DRIVE:
+		print("CIRCUITPY drive is writeable")
+	else:
 		#storage.disable_usb_drive()  # trying it read-only instead
-		storage.remount("/", True)
+		storage.remount("/", False)
+		print("CIRCUITPY drive is read-only")
 	if state == STATE_SERIAL:
 		usb_cdc.enable(console=False, data=True)
+		print("Using data serial")
+	else:
+		print("Using console serial")

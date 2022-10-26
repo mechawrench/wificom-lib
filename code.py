@@ -32,12 +32,12 @@ def serial_print(contents, end="\n"):
 	'''
 	serial.write((contents + end).encode("utf-8"))
 
-def display_text(rows):
+def display_text(text):
 	'''
 	Show text on the display if it exists.
 	'''
 	if ui is not None:
-		ui.display_text(rows)
+		ui.display_text(text)
 
 def is_c_pressed():
 	'''
@@ -95,7 +95,54 @@ def rtb_status_callback(status):
 	else:
 		led.duty_cycle = LED_DUTY_CYCLE_DIM
 
-def menu_reboot():
+def main_menu():
+	'''
+	Show the main menu.
+	'''
+	menu_result = ui.menu(
+		["WiFi", "Serial", "Punchbag", "Drive"],
+		[menu_wifi, menu_serial, menu_punchbag, menu_drive],
+		None,
+	)
+	menu_result()
+
+def menu_wifi():
+	'''
+	Chosen WiFi option from the menu.
+	'''
+	if serial == usb_cdc.console and not in_drive_mode:
+		run_wifi()
+	else:
+		menu_reboot(nvm.MODE_WIFI)
+
+def menu_serial():
+	'''
+	Chosen Serial option from the menu.
+	'''
+	if serial == usb_cdc.data or in_dev_mode:
+		run_serial()
+	else:
+		menu_reboot(nvm.MODE_SERIAL)
+
+def menu_punchbag():
+	'''
+	Chosen Punchbag option from the menu.
+	'''
+	if serial == usb_cdc.console and not in_drive_mode:
+		run_punchbag()
+	else:
+		menu_reboot(nvm.MODE_PUNCHBAG)
+
+def menu_drive():
+	'''
+	Chosen Drive option from the menu.
+	'''
+	if in_drive_mode or in_dev_mode:
+		run_drive()
+	else:
+		menu_reboot(nvm.MODE_DRIVE)
+
+def menu_reboot(mode):
 	'''
 	Reset, confirming USB drive ejection if necessary.
 	'''
@@ -103,56 +150,11 @@ def menu_reboot():
 		ui.display_text("Eject + press A")
 		while not ui.is_a_pressed():
 			pass
+	nvm.set_mode(mode)
+	ui.display_text("Rebooting...")
+	time.sleep(0.5)
+	ui.clear()
 	microcontroller.reset()
-
-def menu_wifi():
-	'''
-	Chosen WiFi option from the menu.
-	'''
-	if nvm.set_mode(nvm.MODE_WIFI):
-		serial_print("WiFi mode saved")
-	else:
-		serial_print("WiFi mode already saved")
-	if serial == usb_cdc.console and not in_drive_mode:
-		run_wifi()
-	else:
-		menu_reboot()
-
-def menu_serial():
-	'''
-	Chosen Serial option from the menu.
-	'''
-	if nvm.set_mode(nvm.MODE_SERIAL):
-		serial_print("Serial mode saved")
-	else:
-		serial_print("Serial mode already saved")
-	if (serial == usb_cdc.data and not in_drive_mode) or in_dev_mode:
-		run_serial()
-	else:
-		menu_reboot()
-
-def menu_punchbag():
-	'''
-	Chosen Punchbag option from the menu.
-	'''
-	if nvm.set_mode(nvm.MODE_PUNCHBAG):
-		serial_print("Punchbag mode saved")
-	else:
-		serial_print("Punchbag mode already saved")
-	if serial == usb_cdc.console and not in_drive_mode:
-		run_punchbag()
-	else:
-		menu_reboot()
-
-def menu_drive():
-	'''
-	Chosen Drive option from the menu.
-	'''
-	if nvm.set_mode(nvm.MODE_DRIVE):
-		serial_print("Drive mode saved")
-	else:
-		serial_print("Drive mode already saved")
-	menu_reboot()
 
 def run_wifi():
 	'''
@@ -167,15 +169,15 @@ def run_wifi():
 	# Connect to WiFi and MQTT
 	led.frequency = 1
 	led.duty_cycle = 0x8000
-	display_text(["Connecting to WiFi"])
+	display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	out, mqtt_client = wifi.connect()
-	display_text(["Connecting to MQTT"])
+	display_text("Connecting to MQTT")
 	platform_io.connect_to_mqtt(out, mqtt_client)
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 
-	display_text(["WiFi", "Hold C to return"])
+	display_text("WiFi\nHold C to change")
 	while not is_c_pressed():
 		time_start = time.monotonic()
 		replacement_digirom = platform_io.get_subscribed_output()
@@ -234,7 +236,7 @@ def run_serial():
 	Run in serial mode.
 	'''
 	digirom = None
-	display_text(["Serial", "Hold C to return"])
+	display_text("Serial\nHold C to change")
 	while not is_c_pressed():
 		time_start = time.monotonic()
 		if serial.in_waiting != 0:
@@ -274,7 +276,7 @@ def run_punchbag():
 		rom = ui.menu(names, roms, "")
 		if rom == "":
 			return
-		ui.display_text(["Punchbag", "Hold C to return"])
+		ui.display_text("Punchbag\nHold C to change")
 		while not ui.is_c_pressed():
 			time_start = time.monotonic()
 			execute_digirom(rom)
@@ -291,7 +293,7 @@ def run_drive():
 		while True:
 			pass
 	result = ui.menu(
-		["*DRIVE ENABLED*", "WiFi", "Serial", "Punchbag"],
+		["*Drive enabled*", "WiFi", "Serial", "Punchbag"],
 		[None, menu_wifi, menu_serial, menu_punchbag],
 		None,
 	)
@@ -320,6 +322,7 @@ startup_mode = nvm.get_mode()
 serial_print("Mode: " + startup_mode)
 in_drive_mode = startup_mode == nvm.MODE_DRIVE
 in_dev_mode = startup_mode == nvm.MODE_DEV
+
 displayio.release_displays()
 try:
 	ui = wificom.hardware.ui.UserInterface(**board_config.ui_pins)
@@ -327,26 +330,21 @@ except: #pylint: disable=bare-except
 	ui = None #pylint: disable=invalid-name
 	serial_print("Display not found")
 
-if in_drive_mode:
-	run_drive()
-elif ui is None:
-	serial_print("ui is None")
-	if serial == usb_cdc.data:
-		run_serial()
+branches = {
+	nvm.MODE_MENU: main_menu,
+	nvm.MODE_WIFI: run_wifi,
+	nvm.MODE_SERIAL: run_serial,
+	nvm.MODE_PUNCHBAG: run_punchbag,
+	nvm.MODE_DRIVE: run_drive,
+	nvm.MODE_DEV: main_menu,
+}
+if ui is not None:
+	branches[startup_mode]()
+	main_menu()
+else:
+	if nvm.set_mode(nvm.MODE_MENU):
+		serial_print("Reset to menu mode for next time")
 	else:
-		run_wifi()
-elif microcontroller.cpu.reset_reason == microcontroller.ResetReason.SOFTWARE:
-	serial_print("microcontroller.ResetReason.SOFTWARE")
-	{
-		nvm.MODE_WIFI: run_wifi,
-		nvm.MODE_SERIAL: run_serial,
-		nvm.MODE_PUNCHBAG: run_punchbag,
-	}[startup_mode]()
-while True:
-	serial_print("Do menu")
-	menu_result = ui.menu(
-		["WiFi", "Serial", "Punchbag", "Drive"],
-		[menu_wifi, menu_serial, menu_punchbag, menu_drive],
-		None,
-	)
-	menu_result()
+		serial_print("Menu mode was already saved")
+	branches[nvm.MODE_MENU] = run_wifi
+	branches[startup_mode]()

@@ -43,7 +43,7 @@ class UserInterface:
 		self._buttons["C"] = digitalio.DigitalInOut(button_c)
 		for button_id in "ABC":
 			self._buttons[button_id].pull = digitalio.Pull.UP
-	def display_text(self, rows, y_start=None):
+	def display_rows(self, rows, y_start=None):
 		'''
 		Display rows of text on the screen.
 		'''
@@ -56,6 +56,11 @@ class UserInterface:
 			group.append(label)
 			y += TEXT_ROW_Y_STEP
 		self._display.show(group)
+	def display_text(self, text, y_start=None):
+		'''
+		Display text on the screen, lines divided with linefeeds.
+		'''
+		self.display_rows(text.split("\n"), y_start)
 	def clear(self):
 		'''
 		Clear the screen.
@@ -94,7 +99,7 @@ class UserInterface:
 					text_rows[i] = "> " + options[i]
 				else:
 					text_rows[i] = "  " + options[i]
-			self.display_text(text_rows, TEXT_MENU_Y_START - selection * TEXT_ROW_Y_STEP)
+			self.display_rows(text_rows, TEXT_MENU_Y_START - selection * TEXT_ROW_Y_STEP)
 			while True:
 				if self.is_a_pressed():
 					selection += 1
