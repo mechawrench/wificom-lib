@@ -79,7 +79,7 @@ if button_pin is not None:
 		nvm.set_mode(nvm.MODE_SERIAL)
 		state = STATE_SERIAL
 
-	print("Mode:", nvm.get_mode())
+	print("Mode:", nvm.get_mode_str())
 	if state == STATE_DRIVE:
 		print("CIRCUITPY drive is writeable")
 	else:

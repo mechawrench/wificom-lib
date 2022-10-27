@@ -99,18 +99,20 @@ def main_menu():
 	'''
 	Show the main menu.
 	'''
-	menu_result = ui.menu(
-		["WiFi", "Serial", "Punchbag", "Drive"],
-		[menu_wifi, menu_serial, menu_punchbag, menu_drive],
-		None,
-	)
-	menu_result()
+	serial_print("Main menu")
+	while True:
+		menu_result = ui.menu(
+			["WiFi", "Serial", "Punchbag", "Drive"],
+			[menu_wifi, menu_serial, menu_punchbag, menu_drive],
+			None,
+		)
+		menu_result()
 
 def menu_wifi():
 	'''
 	Chosen WiFi option from the menu.
 	'''
-	if serial == usb_cdc.console and not in_drive_mode:
+	if serial == usb_cdc.console and startup_mode != nvm.MODE_DRIVE:
 		run_wifi()
 	else:
 		menu_reboot(nvm.MODE_WIFI)
@@ -119,7 +121,7 @@ def menu_serial():
 	'''
 	Chosen Serial option from the menu.
 	'''
-	if serial == usb_cdc.data or in_dev_mode:
+	if serial == usb_cdc.data or startup_mode == nvm.MODE_DEV:
 		run_serial()
 	else:
 		menu_reboot(nvm.MODE_SERIAL)
@@ -128,7 +130,7 @@ def menu_punchbag():
 	'''
 	Chosen Punchbag option from the menu.
 	'''
-	if serial == usb_cdc.console and not in_drive_mode:
+	if serial == usb_cdc.console and startup_mode != nvm.MODE_DRIVE:
 		run_punchbag()
 	else:
 		menu_reboot(nvm.MODE_PUNCHBAG)
@@ -137,7 +139,7 @@ def menu_drive():
 	'''
 	Chosen Drive option from the menu.
 	'''
-	if in_drive_mode or in_dev_mode:
+	if startup_mode in [nvm.MODE_DRIVE, nvm.MODE_DEV]:
 		run_drive()
 	else:
 		menu_reboot(nvm.MODE_DRIVE)
@@ -146,7 +148,7 @@ def menu_reboot(mode):
 	'''
 	Reset, confirming USB drive ejection if necessary.
 	'''
-	if in_drive_mode or in_dev_mode:
+	if startup_mode in [nvm.MODE_DRIVE, nvm.MODE_DEV]:
 		ui.display_text("Eject + press A")
 		while not ui.is_a_pressed():
 			pass
@@ -161,6 +163,7 @@ def run_wifi():
 	Do the normal WiFiCom things.
 	'''
 	# pylint: disable=too-many-branches,too-many-statements
+	serial_print("Running WiFi")
 	digirom = None
 	rtb_was_active = False
 	rtb_type_id = None
@@ -235,6 +238,7 @@ def run_serial():
 	'''
 	Run in serial mode.
 	'''
+	serial_print("Running serial")
 	digirom = None
 	display_text("Serial\nHold C to change")
 	while not is_c_pressed():
@@ -270,6 +274,7 @@ def run_punchbag():
 	'''
 	Run in punchbag mode.
 	'''
+	serial_print("Running punchbag")
 	names = [name for (name, rom) in digiroms.items]
 	roms = [dmcomm.protocol.parse_command(rom) for (name, rom) in digiroms.items]
 	while True:
@@ -289,6 +294,7 @@ def run_drive():
 	'''
 	Run in drive mode.
 	'''
+	serial_print("Running drive")
 	if ui is None:
 		while True:
 			pass
@@ -319,9 +325,12 @@ for pin_description in board_config.controller_pins:
 	controller.register(pin_description)
 
 startup_mode = nvm.get_mode()
-serial_print("Mode: " + startup_mode)
-in_drive_mode = startup_mode == nvm.MODE_DRIVE
-in_dev_mode = startup_mode == nvm.MODE_DEV
+mode_was_requested = nvm.was_requested()
+serial_print("Mode: " + nvm.get_mode_str(), end="; ")
+if nvm.clear_request():
+	serial_print("request cleared")
+else:
+	serial_print("not requested")
 
 displayio.release_displays()
 try:
@@ -330,21 +339,20 @@ except: #pylint: disable=bare-except
 	ui = None #pylint: disable=invalid-name
 	serial_print("Display not found")
 
+run_column = 0
+if ui is None:
+	run_column += 2
+if not mode_was_requested:
+	run_column += 1
+serial_print("Run column: " + str(run_column))
 branches = {
-	nvm.MODE_MENU: main_menu,
-	nvm.MODE_WIFI: run_wifi,
-	nvm.MODE_SERIAL: run_serial,
-	nvm.MODE_PUNCHBAG: run_punchbag,
-	nvm.MODE_DRIVE: run_drive,
-	nvm.MODE_DEV: main_menu,
+	# mode:            (ui requested, ui not req, no ui req,  no ui not req)
+	nvm.MODE_MENU:     (main_menu,    main_menu,  run_wifi,   run_wifi),
+	nvm.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
+	nvm.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
+	nvm.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
+	nvm.MODE_DRIVE:    (run_drive,    run_drive,  run_drive,  run_drive), # last 2 unexpected
+	nvm.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
 }
-if ui is not None:
-	branches[startup_mode]()
-	main_menu()
-else:
-	if nvm.set_mode(nvm.MODE_MENU):
-		serial_print("Reset to menu mode for next time")
-	else:
-		serial_print("Menu mode was already saved")
-	branches[nvm.MODE_MENU] = run_wifi
-	branches[startup_mode]()
+branches[startup_mode][run_column]()
+main_menu()
