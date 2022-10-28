@@ -6,7 +6,6 @@ import json
 from wificom.common.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
-import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 from adafruit_io.adafruit_io import IO_MQTT
 
@@ -38,6 +37,8 @@ def connect_to_mqtt(output, mqtt_client):
 	_mqtt_client = mqtt_client
 
 	if type(output).__name__ != "SocketPool":
+		#pylint: disable=import-outside-toplevel
+		import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 		MQTT.set_socket(socket, output)
 
 	# Initialize an IO MQTT Client

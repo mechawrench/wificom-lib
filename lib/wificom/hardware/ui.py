@@ -9,7 +9,7 @@ import digitalio
 import displayio
 import terminalio
 import adafruit_displayio_ssd1306
-from adafruit_display_text.label import Label
+from adafruit_display_text.bitmap_label import Label
 
 SCREEN_WIDTH=128
 SCREEN_HEIGHT=32

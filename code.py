@@ -3,6 +3,7 @@ This file is part of the DMComm project by BladeSabre. License: MIT.
 WiFiCom on supported boards (see board_config.py).
 '''
 import time
+import gc
 import digitalio
 import displayio
 import microcontroller
@@ -11,6 +12,8 @@ import usb_cdc
 
 # Light LED dimly while starting up. Doing this here because the following imports are slow.
 # pylint: disable=wrong-import-order,wrong-import-position
+gc.collect()
+print("Free memory at start:", gc.mem_free())
 LED_DUTY_CYCLE_DIM=0x1000
 import board_config
 led = pwmio.PWMOut(board_config.led_pin,
@@ -25,6 +28,9 @@ import wificom.hardware.ui
 from wificom.hardware import nvm
 from wificom.mqtt import platform_io
 import digiroms
+
+gc.collect()
+print("Free memory after imports:", gc.mem_free())
 
 def serial_print(contents, end="\n"):
 	'''
@@ -164,6 +170,9 @@ def run_wifi():
 	'''
 	# pylint: disable=too-many-branches,too-many-statements
 	serial_print("Running WiFi")
+	gc.collect()
+	print("Free memory before WiFi:", gc.mem_free())
+
 	digirom = None
 	rtb_was_active = False
 	rtb_type_id = None
@@ -320,9 +329,13 @@ for (pin, value) in board_config.extra_power_pins:
 	output.value = value
 	outputs_extra_power.append(output)
 
+gc.collect()
+print("Free memory before dmcomm registrations:", gc.mem_free())
 controller = hw.Controller()
 for pin_description in board_config.controller_pins:
 	controller.register(pin_description)
+gc.collect()
+print("Free memory after dmcomm registrations:", gc.mem_free())
 
 startup_mode = nvm.get_mode()
 mode_was_requested = nvm.was_requested()

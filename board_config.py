@@ -79,9 +79,9 @@ elif board.board_id == "raspberry_pi_pico_w":
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
 		hw.ProngInput(board.GP22),
-		#hw.InfraredOutput(board.GP16),
-		#hw.InfraredInputModulated(board.GP17),
-		#hw.InfraredInputRaw(board.GP14),
+		hw.InfraredOutput(board.GP16),
+		hw.InfraredInputModulated(board.GP17),
+		hw.InfraredInputRaw(board.GP14),
 		hw.TalisInputOutput(board.GP15),
 	]
 	extra_power_pins = [
