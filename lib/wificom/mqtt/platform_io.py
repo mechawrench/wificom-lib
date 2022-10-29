@@ -3,9 +3,7 @@ platform_io.py
 Handle MQTT connections, subscriptions, and callbacks
 '''
 import json
-from wificom.common.import_secrets import secrets_mqtt_broker, \
-secrets_mqtt_username, \
-secrets_mqtt_password, \
+from wificom.common.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
 import adafruit_esp32spi.adafruit_esp32spi_socket as socket
@@ -27,22 +25,25 @@ _mqtt_topic_identifier = secrets_user_uuid + '-' + secrets_device_uuid
 _mqtt_topic_input = _mqtt_topic_identifier + '/wificom-input'
 _mqtt_topic_output =  _mqtt_io_prefix + _mqtt_topic_identifier + "/wificom-output"
 
- # Initialize a new MQTT Client object
-_mqtt_client = MQTT.MQTT(
-	broker=secrets_mqtt_broker,
-	username=secrets_mqtt_username.lower(),
-	password=secrets_mqtt_password
-)
+_io = None
+_mqtt_client = None
 
-# Initialize an IO MQTT Client
-_io = IO_MQTT(_mqtt_client)
-
-def connect_to_mqtt(esp):
+def connect_to_mqtt(output, mqtt_client):
 	'''
 	Connect to the MQTT broker
 	'''
-	# Initialize MQTT interface with the esp interface
-	MQTT.set_socket(socket, esp)
+	# Initialize MQTT interface
+	# pylint: disable=global-statement
+	global _mqtt_client
+	_mqtt_client = mqtt_client
+
+	if type(output).__name__ != "SocketPool":
+		MQTT.set_socket(socket, output)
+
+	# Initialize an IO MQTT Client
+	# pylint: disable=global-statement
+	global _io
+	_io = IO_MQTT(_mqtt_client)
 
 	# Connect the callback methods defined below to MQTT Broker
 	_io.on_connect = connected
@@ -96,7 +97,9 @@ def send_digirom_output(output):
 	}
 
 	mqtt_message_json = json.dumps(mqtt_message)
-	_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
+
+	if _mqtt_client.is_connected:
+		_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 
 def send_rtb_digirom_output(output):
 	'''

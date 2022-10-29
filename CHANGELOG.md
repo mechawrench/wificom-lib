@@ -5,18 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Pico W support
+- Pico W external LED support (dmcomm contribution)
 
 ## [0.4.0] - 2022-08-22
 ### Added
 - Added board detection to boot.py
-- Realtime battles for Digimon Pendulum X
-- Initial groundwork laid for Realtime battles (Legendz)
+- Realtime battles for Legendz and Digimon Pendulum X
 - Shared topics added for Realtime battles
-- Realtime battles now has it's own callback
+- Realtime battles now has its own callback
 - Realtime battles output now goes to a separate function
-- Added function get_is_rtb_active to PlatformIO that allows us to determine if a RTB is active or not
-- Added serial only mode (toggled by pressing the button on the board until LED goes out then releasing)
-- Added WiFiCom mode w/ drive access (toggled by holding the button on the board until you see a orange led, then releasing)
+- Added serial only mode (enabled by holding the button on the board throughout startup until the LED comes on and then starts flashing or goes dim)
+- Added WiFiCom mode w/ drive access (enabled by holding the button on the board on startup, then releasing when the LED comes on)
 - Added LED status indicators 
 
 ### Changed
