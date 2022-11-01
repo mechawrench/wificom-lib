@@ -46,9 +46,11 @@ A list of contributors will come as pull requests appear
     1. Drag and drop the "lib/dmcomm" folder into the lib folder in your "CIRCUITPY" drive
 1. Install the following libs, find all of these in the libs folder of the CircuitPython [AdaFruit bundle](https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases) (8.x mpy archive) (7.x CircuitPython version might work, use the appropriate bundle)
    1. adafruit_bus_device
+   1. adafruit_display_text
    1. adafruit_esp32spi
    1. adafruit_io
    1. adafruit_minimqtt
+   1. adafruit_displayio_ssd1306.mpy
    1. adafruit_requests.mpy
 1. Copy the "secrets.py.example" to "secrets.py" and make changes to match your environment (you can get a prefilled version on the website)
 1. Modify "board_config.py" so that pinouts match your board, we advise using what you find as default but you can modify as needed
