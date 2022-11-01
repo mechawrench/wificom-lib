@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Tested with
 - CircuitPython 8.0.0-beta-3
 - adafruit-circuitpython-bundle-8.x-mpy-20221025
+    - An issue was found later: recommend downgrading `adafruit_minimqtt` to 5.5.1
 - dmcomm-python 2022-10-22 fd8a61a
 
 ## [0.4.0] - 2022-08-22
