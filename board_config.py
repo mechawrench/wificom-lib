@@ -73,6 +73,7 @@ elif board.board_id == "raspberry_pi_pico":
 		"esp32_busy": board.GP8,
 		"esp32_reset": board.GP9,
 	}
+	ui_pins = None
 elif board.board_id == "raspberry_pi_pico_w":
 	from wificom.hardware.picow_wifi import Wifi as WifiCls
 	led_pin = board.GP10

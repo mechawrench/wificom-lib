@@ -106,10 +106,16 @@ def main_menu():
 	Show the main menu.
 	'''
 	serial_print("Main menu")
+	if startup_mode == nvm.MODE_DEV:
+		options_prefix = ["*Dev mode*"]
+		results_prefix = [None]
+	else:
+		options_prefix = []
+		results_prefix = []
 	while True:
 		menu_result = ui.menu(
-			["WiFi", "Serial", "Punchbag", "Drive"],
-			[menu_wifi, menu_serial, menu_punchbag, menu_drive],
+			options_prefix + ["WiFi", "Serial", "Punchbag", "Drive"],
+			results_prefix + [menu_wifi, menu_serial, menu_punchbag, menu_drive],
 			None,
 		)
 		menu_result()
@@ -346,11 +352,14 @@ else:
 	serial_print("not requested")
 
 displayio.release_displays()
-try:
-	ui = wificom.hardware.ui.UserInterface(**board_config.ui_pins)
-except: #pylint: disable=bare-except
-	ui = None #pylint: disable=invalid-name
-	serial_print("Display not found")
+ui = None #pylint: disable=invalid-name
+if board_config.ui_pins is None:
+	serial_print("Display pins not set")
+else:
+	try:
+		ui = wificom.hardware.ui.UserInterface(**board_config.ui_pins)
+	except Exception as exc: #pylint: disable=broad-except
+		serial_print("Display not found: " + str(exc))
 
 run_column = 0
 if ui is None:
