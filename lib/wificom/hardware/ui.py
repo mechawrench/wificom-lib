@@ -7,10 +7,10 @@ import time
 import busio
 import digitalio
 import displayio
-import pwmio
 import terminalio
 import adafruit_displayio_ssd1306
 from adafruit_display_text.bitmap_label import Label
+from wificom.hardware.pio_sound import PIOSound
 
 SCREEN_WIDTH=128
 SCREEN_HEIGHT=32
@@ -44,7 +44,7 @@ class UserInterface:
 		self._buttons["C"] = digitalio.DigitalInOut(button_c)
 		for button_id in "ABC":
 			self._buttons[button_id].pull = digitalio.Pull.UP
-		self._speaker = pwmio.PWMOut(speaker, variable_frequency=True)
+		self._speaker = PIOSound(speaker)
 	def display_rows(self, rows, y_start=None):
 		'''
 		Display rows of text on the screen.
@@ -88,12 +88,9 @@ class UserInterface:
 		return self._is_button_pressed("C")
 	def beep(self, frequency, duration):
 		'''
-		Beep with specified frequency and duration (seconds), blocking until complete.
+		Beep with specified frequency and duration (seconds), returning immediately.
 		'''
-		self._speaker.frequency = frequency
-		self._speaker.duty_cycle = 0x8000
-		time.sleep(duration)
-		self._speaker.duty_cycle = 0x0000
+		self._speaker.play_one(frequency, duration)
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
@@ -110,6 +107,7 @@ class UserInterface:
 				else:
 					text_rows[i] = "  " + options[i]
 			self.display_rows(text_rows, TEXT_MENU_Y_START - selection * TEXT_ROW_Y_STEP)
+			time.sleep(0.15)
 			while True:
 				if self.is_a_pressed():
 					selection += 1
@@ -118,13 +116,16 @@ class UserInterface:
 					break
 				if self.is_b_pressed():
 					if results[selection] is not None:
-						self.beep(1000, 0.25)
+						self.beep(1000, 0.3)
 						self.clear()
 						return results[selection]
-					self.beep(500, 0.25)
+					#test sequence ;)
+					self._speaker.play([(500, 0.3), (1000, 0.3), (0, 0.5)] * 3)
+					break
 				if self.is_c_pressed():
 					if cancel_result is not None:
-						self.beep(1000, 0.25)
+						self.beep(1000, 0.3)
 						self.clear()
 						return cancel_result
 					self.beep(500, 0.25)
+					break
