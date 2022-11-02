@@ -48,6 +48,7 @@ if board.board_id == "arduino_nano_rp2040_connect":
 		"button_a": board.D1,
 		"button_b": board.D2,
 		"button_c": board.D3,
+		"speaker": board.D0,
 	}
 elif board.board_id == "raspberry_pi_pico":
 	from wificom.hardware.nina_wifi import Wifi as WifiCls
@@ -96,6 +97,7 @@ elif board.board_id == "raspberry_pi_pico_w":
 		"button_a": board.GP9,
 		"button_b": board.GP8,
 		"button_c": board.GP3,
+		"speaker": board.GP2,
 	}
 else:
 	raise ValueError("Your board is not supported.")

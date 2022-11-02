@@ -7,6 +7,7 @@ import time
 import busio
 import digitalio
 import displayio
+import pwmio
 import terminalio
 import adafruit_displayio_ssd1306
 from adafruit_display_text.bitmap_label import Label
@@ -31,7 +32,7 @@ class UserInterface:
 	'''
 	Handles the screen, buttons and menus.
 	'''
-	def __init__(self, display_scl, display_sda, button_a, button_b, button_c):
+	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker):
 		# pylint: disable=too-many-arguments
 		i2c = busio.I2C(display_scl, display_sda)
 		display_bus = displayio.I2CDisplay(i2c, device_address=SCREEN_ADDRESS)
@@ -43,6 +44,7 @@ class UserInterface:
 		self._buttons["C"] = digitalio.DigitalInOut(button_c)
 		for button_id in "ABC":
 			self._buttons[button_id].pull = digitalio.Pull.UP
+		self._speaker = pwmio.PWMOut(speaker, variable_frequency=True)
 	def display_rows(self, rows, y_start=None):
 		'''
 		Display rows of text on the screen.
@@ -84,6 +86,14 @@ class UserInterface:
 		Check if button C is pressed.
 		'''
 		return self._is_button_pressed("C")
+	def beep(self, frequency, duration):
+		'''
+		Beep with specified frequency and duration (seconds), blocking until complete.
+		'''
+		self._speaker.frequency = frequency
+		self._speaker.duty_cycle = 0x8000
+		time.sleep(duration)
+		self._speaker.duty_cycle = 0x0000
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
@@ -104,11 +114,17 @@ class UserInterface:
 				if self.is_a_pressed():
 					selection += 1
 					selection %= len(options)
-					time.sleep(0.15)
+					self.beep(1000, 0.15)
 					break
-				if self.is_b_pressed() and results[selection] is not None:
-					self.clear()
-					return results[selection]
-				if self.is_c_pressed() and cancel_result is not None:
-					self.clear()
-					return cancel_result
+				if self.is_b_pressed():
+					if results[selection] is not None:
+						self.beep(1000, 0.25)
+						self.clear()
+						return results[selection]
+					self.beep(500, 0.25)
+				if self.is_c_pressed():
+					if cancel_result is not None:
+						self.beep(1000, 0.25)
+						self.clear()
+						return cancel_result
+					self.beep(500, 0.25)
