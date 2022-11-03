@@ -6,8 +6,7 @@ import json
 import time
 from wificom.common.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
-secrets_user_uuid, \
-secrets_mqtt_username
+secrets_user_uuid
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 
 last_application_id = None
@@ -141,41 +140,6 @@ def quit_rtb():
 	rtb_topic = None
 	rtb_digirom = None
 
-# Define callback functions which will be called when certain events happen.
-def connected(client):
-	# pylint: disable=unused-argument
-	'''
-	Connected function will be called when the client is connected to the MQTT Broker
-	'''
-	print("Connected to MQTT Broker! ")
-
-
-def subscribe(client, userdata, topic, granted_qos):
-	# pylint: disable=unused-argument
-	'''
-	This method is called when the client subscribes to a new feed.
-	'''
-	# pylint: disable=consider-using-f-string
-	print("Subscribed to {0} with QOS level {1}".format(topic, granted_qos))
-
-def unsubscribe(client, userdata, topic, granted_qos):
-	# pylint: disable=unused-argument
-	'''
-	This method is called when the client unsubscribes to a feed.
-	'''
-	# pylint: disable=consider-using-f-string
-	print("Unsubscribed to {0} with QOS level {1}".format(topic, granted_qos))
-
-
-# pylint: disable=unused-argument
-def disconnected(client):
-	# pylint: disable=unused-argument
-	'''
-	Disconnected function will be called when the client disconnects.
-	'''
-	print("Disconnected from MQTT Broker!")
-
-
 def on_app_feed_callback(client, topic, message):
 	# pylint: disable=unused-argument
 	'''
@@ -258,24 +222,37 @@ def on_realtime_battle_feed_callback(client, topic, message):
 	else:
 		print("realtime battle is not active, shouldn't be receiving data to this callback..")
 
-def connect(client, userdata, flags, rc):
-    # This function will be called when the client is connected
-    # successfully to the broker.
-    print('Connected to MQTT Broker!')
+# pylint: disable=unused-argument
+def connect(client, userdata, flags, r_c):
+	'''
+	This method is called when the client connects to MQTT Broker
+	'''
+	print('Connected to MQTT Broker!')
 
-def disconnect(client, userdata, rc):
-    # This method is called when the client disconnects
-    # from the broker.
-    print('Disconnected from MQTT Broker!')
+# pylint: disable=unused-argument
+def disconnect(client, userdata, r_c):
+	'''
+	This method is called when the client disconnects from the MQTT Broker
+	'''
+	print('Disconnected from MQTT Broker!')
 
+# pylint: disable=unused-argument,consider-using-f-string
 def subscribe(client, userdata, topic, granted_qos):
-    # This method is called when the client subscribes to a new feed.
-    print('Subscribed to {0} with QOS level {1}'.format(topic, granted_qos))
+	'''
+	This method is called when the client subscribes to a new feed.
+	'''
+	print('Subscribed to {0} with QOS level {1}'.format(topic, granted_qos))
 
+# pylint: disable=unused-argument,consider-using-f-string
 def unsubscribe(client, userdata, topic, pid):
-    # This method is called when the client unsubscribes from a feed.
-    print('Unsubscribed from {0} with PID {1}'.format(topic, pid))
+	'''
+	This method is called when the client unsubscribes from a feed.
+	'''
+	print('Unsubscribed from {0} with PID {1}'.format(topic, pid))
 
+# pylint: disable=unused-argument,consider-using-f-string
 def publish(client, userdata, topic, pid):
-    # This method is called when the client publishes data to a feed.
-    print('Published to {0} with PID {1}'.format(topic, pid))
+	'''
+	This method is called when the client publishes data to a feed.
+	'''
+	print('Published to {0} with PID {1}'.format(topic, pid))
