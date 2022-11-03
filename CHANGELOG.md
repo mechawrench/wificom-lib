@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WiFi/Serial/Drive are now separate modes (WiFi mode no longer listens on serial)
 - Default CIRCUITPY state is now read-only instead of hidden
 - Fixed RAM waste importing `adafruit_esp32spi` on Pico W
+- Minimqtt class introduced in place of PlatformIO
+### Removed
+- PlatformIO dependency
 
 ## [0.5.0] - 2022-10-28
 ### Added
