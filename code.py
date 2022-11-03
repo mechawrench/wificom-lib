@@ -26,7 +26,7 @@ import dmcomm.protocol
 import dmcomm.protocol.realtime as rt
 import wificom.hardware.ui
 from wificom.hardware import nvm
-from wificom.mqtt import platform_io
+from wificom.mqtt import minimqtt
 import digiroms
 
 gc.collect()
@@ -64,7 +64,7 @@ def execute_digirom(rom):
 	except (CommandError, ReceiveError) as ex:
 		error = repr(ex)
 		result_end = " "
-	if not platform_io.is_output_hidden:
+	if not minimqtt.is_output_hidden:
 		serial_print(str(rom.result), result_end)
 	else:
 		serial_print("Received output, check the App")
@@ -81,15 +81,15 @@ def rtb_send_callback(message):
 	'''
 	Called when a RTB object sends a message.
 	'''
-	platform_io.send_rtb_digirom_output(message)
+	minimqtt.send_rtb_digirom_output(message)
 	print("RTB sent message:", message)
 def rtb_receive_callback():
 	'''
 	Called when a RTB object checks for messages received.
 	'''
-	if platform_io.rtb_digirom is not None:
-		msg = platform_io.rtb_digirom
-		platform_io.rtb_digirom = None
+	if minimqtt.rtb_digirom is not None:
+		msg = minimqtt.rtb_digirom
+		minimqtt.rtb_digirom = None
 		return msg
 	return None
 def rtb_status_callback(status):
@@ -191,16 +191,16 @@ def run_wifi():
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	out, mqtt_client = wifi.connect()
 	display_text("Connecting to MQTT")
-	platform_io.connect_to_mqtt(out, mqtt_client)
+	minimqtt.connect_to_mqtt(out, mqtt_client)
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 	display_text("WiFi\nHold C to change")
 	while not is_c_pressed():
 		time_start = time.monotonic()
-		replacement_digirom = platform_io.get_subscribed_output()
+		replacement_digirom = minimqtt.get_subscribed_output()
 		if replacement_digirom is not None:
-			if not platform_io.is_output_hidden:
+			if not minimqtt.is_output_hidden:
 				print("New digirom:", replacement_digirom)
 			else:
 				serial_print("Received digirom input, check the App")
@@ -208,8 +208,8 @@ def run_wifi():
 		if replacement_digirom is not None:
 			digirom = dmcomm.protocol.parse_command(replacement_digirom)
 
-		if platform_io.rtb_active:
-			rtb_type_id_new = (platform_io.rtb_battle_type, platform_io.rtb_user_type)
+		if minimqtt.rtb_active:
+			rtb_type_id_new = (minimqtt.rtb_battle_type, minimqtt.rtb_user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
 				rtb_type_id = rtb_type_id_new
 				if rtb_type_id in rtb_types:
@@ -220,13 +220,13 @@ def run_wifi():
 						rtb_status_callback,
 					)
 				else:
-					serial_print(platform_io.rtb_battle_type + " not implemented")
+					serial_print(minimqtt.rtb_battle_type + " not implemented")
 			rtb_was_active = True
 			# Heartbeat approx every 10 seconds
 			if time_start - rtb_last_ping > 10:
-				platform_io.send_digirom_output("RTB")
+				minimqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
-			platform_io.loop()
+			minimqtt.loop()
 			rtb.loop()
 		else:
 			if rtb_was_active:
@@ -239,11 +239,11 @@ def run_wifi():
 					last_output = str(digirom.result)
 
 			# Send to MQTT topic (acts as a ping also)
-			platform_io.send_digirom_output(last_output)
+			minimqtt.send_digirom_output(last_output)
 
 			while True:
-				platform_io.loop()
-				if platform_io.get_subscribed_output(False) is not None:
+				minimqtt.loop()
+				if minimqtt.get_subscribed_output(False) is not None:
 					break
 				if time.monotonic() - time_start >= 5:
 					break

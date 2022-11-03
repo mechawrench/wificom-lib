@@ -1,13 +1,14 @@
 '''
-platform_io.py
+minimqtt.py
 Handle MQTT connections, subscriptions, and callbacks
 '''
 import json
+import time
 from wificom.common.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
-secrets_user_uuid
+secrets_user_uuid, \
+secrets_mqtt_username
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
-from adafruit_io.adafruit_io import IO_MQTT
 
 last_application_id = None
 is_output_hidden = None
@@ -21,7 +22,7 @@ rtb_digirom = None
 
 _mqtt_io_prefix = secrets_mqtt_username.lower() + "/f/"
 _mqtt_topic_identifier = secrets_user_uuid + '-' + secrets_device_uuid
-_mqtt_topic_input = _mqtt_topic_identifier + '/wificom-input'
+_mqtt_topic_input = _mqtt_io_prefix + _mqtt_topic_identifier + '/wificom-input'
 _mqtt_topic_output =  _mqtt_io_prefix + _mqtt_topic_identifier + "/wificom-output"
 
 _io = None
@@ -36,37 +37,33 @@ def connect_to_mqtt(output, mqtt_client):
 	global _mqtt_client
 	_mqtt_client = mqtt_client
 
+	_mqtt_client.on_connect = connect
+	_mqtt_client.on_disconnect = disconnect
+	_mqtt_client.on_subscribe = subscribe
+	_mqtt_client.on_unsubscribe = unsubscribe
+	_mqtt_client.on_publish = publish
+
 	if type(output).__name__ != "SocketPool":
 		#pylint: disable=import-outside-toplevel
 		import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 		MQTT.set_socket(socket, output)
 
-	# Initialize an IO MQTT Client
-	# pylint: disable=global-statement
-	global _io
-	_io = IO_MQTT(_mqtt_client)
-
-	# Connect the callback methods defined below to MQTT Broker
-	_io.on_connect = connected
-	_io.on_disconnect = disconnected
-	_io.on_subscribe =  subscribe
-	_io.on_unsubscribe = unsubscribe
-
 	# Connect to MQTT Broker
 	print("Connecting to MQTT Broker...")
-	_io.connect()
+	# _io.connect()
+	_mqtt_client.connect()
 
-	# Subscribe to all messages on the mqtt_topic_input feed
-	_io.subscribe(_mqtt_topic_input)
+	# Use _mqtt_client to subscribe to the mqtt_topic_input feed
+	_mqtt_client.subscribe(_mqtt_topic_input)
 
 	# Set up a callback for the topic/feed
-	_io.add_feed_callback(_mqtt_topic_input, on_app_feed_callback)
+	_mqtt_client.add_topic_callback(_mqtt_topic_input, on_app_feed_callback)
 
 def loop():
 	'''
 	Loop IO MQTT client
 	'''
-	_io.loop()
+	_mqtt_client.loop()
 
 def get_subscribed_output(clear_rom=True):
 	'''
@@ -244,7 +241,7 @@ def on_realtime_battle_feed_callback(client, topic, message):
 		}
 	'''
 	# pylint: disable=consider-using-f-string
-	print("New RTB message on topic {0}: {1} ".format(topic, message))
+	print(time.monotonic(), "New RTB message on topic {0}: {1} ".format(topic, message))
 	# parse message as json
 	message_json = json.loads(message)
 
@@ -260,3 +257,25 @@ def on_realtime_battle_feed_callback(client, topic, message):
 				print('rtb_user_type is not[' + rtb_user_type + '] ignoring Digirom')
 	else:
 		print("realtime battle is not active, shouldn't be receiving data to this callback..")
+
+def connect(client, userdata, flags, rc):
+    # This function will be called when the client is connected
+    # successfully to the broker.
+    print('Connected to MQTT Broker!')
+
+def disconnect(client, userdata, rc):
+    # This method is called when the client disconnects
+    # from the broker.
+    print('Disconnected from MQTT Broker!')
+
+def subscribe(client, userdata, topic, granted_qos):
+    # This method is called when the client subscribes to a new feed.
+    print('Subscribed to {0} with QOS level {1}'.format(topic, granted_qos))
+
+def unsubscribe(client, userdata, topic, pid):
+    # This method is called when the client unsubscribes from a feed.
+    print('Unsubscribed from {0} with PID {1}'.format(topic, pid))
+
+def publish(client, userdata, topic, pid):
+    # This method is called when the client publishes data to a feed.
+    print('Published to {0} with PID {1}'.format(topic, pid))
