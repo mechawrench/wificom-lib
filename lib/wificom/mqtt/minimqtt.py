@@ -3,7 +3,6 @@ minimqtt.py
 Handle MQTT connections, subscriptions, and callbacks
 '''
 import json
-import time
 from wificom.common.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
@@ -40,7 +39,6 @@ def connect_to_mqtt(output, mqtt_client):
 	_mqtt_client.on_disconnect = disconnect
 	_mqtt_client.on_subscribe = subscribe
 	_mqtt_client.on_unsubscribe = unsubscribe
-	_mqtt_client.on_publish = publish
 
 	if type(output).__name__ != "SocketPool":
 		#pylint: disable=import-outside-toplevel
@@ -205,7 +203,7 @@ def on_realtime_battle_feed_callback(client, topic, message):
 		}
 	'''
 	# pylint: disable=consider-using-f-string
-	print(time.monotonic(), "New RTB message on topic {0}: {1} ".format(topic, message))
+	print("New RTB message on topic {0}: {1} ".format(topic, message))
 	# parse message as json
 	message_json = json.loads(message)
 
@@ -249,10 +247,3 @@ def unsubscribe(client, userdata, topic, pid):
 	This method is called when the client unsubscribes from a feed.
 	'''
 	print('Unsubscribed from {0} with PID {1}'.format(topic, pid))
-
-# pylint: disable=unused-argument,consider-using-f-string
-def publish(client, userdata, topic, pid):
-	'''
-	This method is called when the client publishes data to a feed.
-	'''
-	print('Published to {0} with PID {1}'.format(topic, pid))
