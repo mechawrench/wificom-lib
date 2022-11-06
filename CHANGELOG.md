@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.6.0]
 ### Added
 - UI with screen and 3 buttons
 - Mode selection menu
@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimqtt class introduced in place of PlatformIO
 ### Removed
 - PlatformIO dependency
+### Tested with
+- CircuitPython 8.0.0-beta-4
+- adafruit-circuitpython-bundle-8.x-mpy-20221104 except `adafruit_minimqtt` [8.x-mpy-5.5.1](https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/tag/5.5.1)
+- dmcomm-python 2022-10-22 fd8a61a
 
 ## [0.5.0] - 2022-10-28
 ### Added
@@ -84,7 +88,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.5.0...develop
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.6.0...develop
+[0.6.0]: https://github.com/mechawrench/wificom-lib/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/mechawrench/wificom-lib/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/mechawrench/wificom-lib/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/mechawrench/wificom-lib/compare/v0.3.0...v0.3.1
