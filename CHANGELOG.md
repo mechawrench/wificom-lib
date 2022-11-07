@@ -4,12 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.0]
+## [0.6.0] - 2022-11-07
 ### Added
 - UI with screen and 3 buttons
 - Mode selection menu
 - Standalone punchbag feature
 - Mode switching via reboot and instructions saved in NVM
+  - "Dev mode" (button released during startup) provides unprotected access to all features without rebooting
 ### Changed
 - WiFi/Serial/Drive are now separate modes (WiFi mode no longer listens on serial)
 - Default CIRCUITPY state is now read-only instead of hidden
