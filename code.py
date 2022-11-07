@@ -38,21 +38,6 @@ def serial_print(contents, end="\n"):
 	'''
 	serial.write((contents + end).encode("utf-8"))
 
-def display_text(text):
-	'''
-	Show text on the display if it exists.
-	'''
-	if ui is not None:
-		ui.display_text(text)
-
-def is_c_pressed():
-	'''
-	Check whether button C is pressed if it exists.
-	'''
-	if ui is None:
-		return False
-	return ui.is_c_pressed()
-
 def execute_digirom(rom):
 	'''
 	Execute the digirom and report results according to reporting settings.
@@ -187,16 +172,16 @@ def run_wifi():
 	# Connect to WiFi and MQTT
 	led.frequency = 1
 	led.duty_cycle = 0x8000
-	display_text("Connecting to WiFi")
+	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	out, mqtt_client = wifi.connect()
-	display_text("Connecting to MQTT")
+	ui.display_text("Connecting to MQTT")
 	minimqtt.connect_to_mqtt(out, mqtt_client)
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 
-	display_text("WiFi\nHold C to change")
-	while not is_c_pressed():
+	ui.display_text("WiFi\nHold C to change")
+	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		replacement_digirom = minimqtt.get_subscribed_output()
 		if replacement_digirom is not None:
@@ -255,8 +240,8 @@ def run_serial():
 	'''
 	serial_print("Running serial")
 	digirom = None
-	display_text("Serial\nHold C to change")
-	while not is_c_pressed():
+	ui.display_text("Serial\nHold C to change")
+	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		if serial.in_waiting != 0:
 			digirom = None
@@ -310,7 +295,7 @@ def run_drive():
 	Run in drive mode.
 	'''
 	serial_print("Running drive")
-	if ui is None:
+	if not ui.has_display:
 		while True:
 			pass
 	result = ui.menu(
@@ -352,18 +337,12 @@ else:
 	serial_print("not requested")
 
 displayio.release_displays()
-ui = None #pylint: disable=invalid-name
-if board_config.ui_pins is None:
-	serial_print("Display pins not set")
-else:
-	try:
-		ui = wificom.hardware.ui.UserInterface(**board_config.ui_pins)
-	except Exception as exc: #pylint: disable=broad-except
-		serial_print("Display not found: " + str(exc))
+ui = wificom.hardware.ui.UserInterface(**board_config.ui_pins)  #pylint: disable=invalid-name
 
 run_column = 0
-if ui is None:
+if not ui.has_display:
 	run_column += 2
+	serial_print("Display not found: " + str(ui.display_error))
 if not mode_was_requested:
 	run_column += 1
 serial_print("Run column: " + str(run_column))

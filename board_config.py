@@ -62,7 +62,6 @@ elif board.board_id == "raspberry_pi_pico":
 		hw.TalisInputOutput(board.GP15),
 	]
 	extra_power_pins = [
-		(board.GP11, True),
 		(board.GP13, True),
 		(board.GP18, True),
 	]
@@ -74,7 +73,14 @@ elif board.board_id == "raspberry_pi_pico":
 		"esp32_busy": board.GP8,
 		"esp32_reset": board.GP9,
 	}
-	ui_pins = None
+	ui_pins = {
+		"display_scl": None,
+		"display_sda": None,
+		"button_a": None,
+		"button_b": None,
+		"button_c": board.GP3,
+		"speaker": board.GP2,
+	}
 elif board.board_id == "raspberry_pi_pico_w":
 	from wificom.hardware.picow_wifi import Wifi as WifiCls
 	led_pin = board.GP10

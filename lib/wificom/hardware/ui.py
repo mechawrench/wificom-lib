@@ -34,21 +34,45 @@ class UserInterface:
 	'''
 	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker):
 		# pylint: disable=too-many-arguments
-		i2c = busio.I2C(display_scl, display_sda)
-		display_bus = displayio.I2CDisplay(i2c, device_address=SCREEN_ADDRESS)
-		self._display = adafruit_displayio_ssd1306.SSD1306(
-			display_bus, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
+		self._display = None
+		self.display_error = None
+		if None in (display_scl, display_sda, button_a, button_b):
+			self.display_error = "UI pins not set"
+		else:
+			try:
+				i2c = busio.I2C(display_scl, display_sda)
+				display_bus = displayio.I2CDisplay(
+					i2c, device_address=SCREEN_ADDRESS)
+				self._display = adafruit_displayio_ssd1306.SSD1306(
+					display_bus, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
+			except Exception as ex:  #pylint: disable=broad-except
+				self.display_error = ex
 		self._buttons = {}
-		self._buttons["A"] = digitalio.DigitalInOut(button_a)
-		self._buttons["B"] = digitalio.DigitalInOut(button_b)
-		self._buttons["C"] = digitalio.DigitalInOut(button_c)
-		for button_id in "ABC":
-			self._buttons[button_id].pull = digitalio.Pull.UP
+		if self._display is not None:
+			self._buttons["A"] = digitalio.DigitalInOut(button_a)
+			self._buttons["B"] = digitalio.DigitalInOut(button_b)
+			self._buttons["C"] = digitalio.DigitalInOut(button_c)
+			for button_id in "ABC":
+				self._buttons[button_id].pull = digitalio.Pull.UP
+		else:
+			# Physical button C takes the B role
+			self._buttons["B"] = digitalio.DigitalInOut(button_c)
+			self._buttons["B"].pull = digitalio.Pull.UP
+			self._buttons["A"] = None
+			self._buttons["C"] = None
 		self._speaker = PIOSound(speaker)
+	@property
+	def has_display(self):
+		'''
+		Whether we have a display.
+		'''
+		return self._display is not None
 	def display_rows(self, rows, y_start=None):
 		'''
-		Display rows of text on the screen.
+		Display rows of text on the screen. Ignored if there is no screen.
 		'''
+		if not self.has_display:
+			return
 		if y_start is None:
 			y_start = centre_y_start(len(rows))
 		group = displayio.Group()
@@ -61,16 +85,22 @@ class UserInterface:
 	def display_text(self, text, y_start=None):
 		'''
 		Display text on the screen, lines divided with linefeeds.
+		Ignored if there is no screen.
 		'''
 		self.display_rows(text.split("\n"), y_start)
 	def clear(self):
 		'''
-		Clear the screen.
+		Clear the screen. Ignored if there is no screen.
 		'''
+		if not self.has_display:
+			return
 		group = displayio.Group()
 		self._display.show(group)
 	def _is_button_pressed(self, button_id):
-		return not self._buttons[button_id].value
+		button = self._buttons[button_id]
+		if button is None:
+			return False
+		return not button.value
 	def is_a_pressed(self):
 		'''
 		Check if button A is pressed.
@@ -96,6 +126,7 @@ class UserInterface:
 		Display a menu with the specified options and return the corresponding result.
 
 		If a result is None, that option cannot be activated.
+		Should only be called if there is a screen.
 		'''
 		selection = 0
 		text_rows = options[:]
