@@ -61,6 +61,7 @@ class UserInterface:
 			self._buttons["A"] = None
 			self._buttons["C"] = None
 		self._speaker = PIOSound(speaker)
+		self.audio_base_freq = 1000
 	@property
 	def has_display(self):
 		'''
@@ -116,11 +117,30 @@ class UserInterface:
 		Check if button C is pressed.
 		'''
 		return self._is_button_pressed("C")
-	def beep(self, frequency, duration):
+	def beep_normal(self):
 		'''
-		Beep with specified frequency and duration (seconds), returning immediately.
+		A normal beep.
 		'''
-		self._speaker.play_one(frequency, duration)
+		f = self.audio_base_freq
+		self._speaker.play_one(f, 0.15)
+	def beep_activate(self):
+		'''
+		Beep for when a menu item is activated.
+		'''
+		f = self.audio_base_freq
+		self._speaker.play_one(f*2, 0.15)
+	def beep_error(self):
+		'''
+		Beep for errors.
+		'''
+		f = self.audio_base_freq
+		self._speaker.play_one(f/2, 0.3)
+	def beep_cancel(self):
+		'''
+		Beep for cancelling out of a menu.
+		'''
+		f = self.audio_base_freq
+		self._speaker.play([(f, 0.15), (f/2, 0.15)])
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
@@ -143,20 +163,19 @@ class UserInterface:
 				if self.is_a_pressed():
 					selection += 1
 					selection %= len(options)
-					self.beep(1000, 0.15)
+					self.beep_normal()
 					break
 				if self.is_b_pressed():
 					if results[selection] is not None:
-						self.beep(1000, 0.3)
+						self.beep_activate()
 						self.clear()
 						return results[selection]
-					#test sequence ;)
-					self._speaker.play([(500, 0.3), (1000, 0.3), (0, 0.5)] * 3)
+					self.beep_error()
 					break
 				if self.is_c_pressed():
 					if cancel_result is not None:
-						self.beep(1000, 0.3)
+						self.beep_cancel()
 						self.clear()
 						return cancel_result
-					self.beep(500, 0.25)
+					self.beep_error()
 					break
