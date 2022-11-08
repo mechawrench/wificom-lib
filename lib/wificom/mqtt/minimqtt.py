@@ -150,7 +150,8 @@ def on_app_feed_callback(client, topic, message):
 			"host": "BrassBolt",
 			"topic_action" = "subscribe", # subscribe/unsubscribe
 			"topic": "RTB_TOPIC_GOES_HERE,
-			"user_type": "guest" # Guest or Host, each side expects the opposite for real messages
+			"user_type": "guest" # Guest or Host, each side expects the opposite for real messages,
+			"ack_id" 111111 # Acknowledgement ID, used to acknowledge the message
 		}
 	'''
 	# pylint: disable=consider-using-f-string
@@ -164,6 +165,20 @@ def on_app_feed_callback(client, topic, message):
 			rtb_active, rtb_host, rtb_topic, rtb_battle_type
 
 	print(message_json)
+
+	# If message has an ack_id, acknowledge it
+	if "ack_id" in message_json:
+		mqtt_message = {
+			"application_uuid": last_application_id,
+			"device_uuid": secrets_device_uuid,
+			"ack_id": message_json["ack_id"]
+		}
+
+		mqtt_message_json = json.dumps(mqtt_message)
+		if _mqtt_client.is_connected:
+			print("sent Ack")
+			print(mqtt_message_json)
+			_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 
 	# If message_json contains topic_action, then we have a realtime battle request
 	topic_action = message_json.get('topic_action', None)
