@@ -79,8 +79,9 @@ elif board.board_id == "raspberry_pi_pico":
 		"button_a": None,
 		"button_b": None,
 		"button_c": board.GP3,
-		"speaker": board.GP2,
+		"speaker": board.GP11,
 	}
+	# GP0-2 for flashing AirLift
 elif board.board_id == "raspberry_pi_pico_w":
 	from wificom.hardware.picow_wifi import Wifi as WifiCls
 	led_pin = board.GP10
