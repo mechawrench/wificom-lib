@@ -176,8 +176,6 @@ def on_app_feed_callback(client, topic, message):
 
 		mqtt_message_json = json.dumps(mqtt_message)
 		if _mqtt_client.is_connected:
-			print("sent Ack")
-			print(mqtt_message_json)
 			_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 
 	# If message_json contains topic_action, then we have a realtime battle request
