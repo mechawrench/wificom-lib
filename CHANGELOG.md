@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Ack for webapp sent commands
+- Sound output with various beeps for different menu actions
+### Changed
+- UI object now exists even when there is no display
 
 ## [0.6.0] - 2022-11-07
 ### Added
