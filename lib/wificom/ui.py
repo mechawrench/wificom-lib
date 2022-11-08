@@ -10,7 +10,7 @@ import displayio
 import terminalio
 import adafruit_displayio_ssd1306
 from adafruit_display_text.bitmap_label import Label
-from wificom.hardware.pio_sound import PIOSound
+from wificom.sound import PIOSound
 
 SCREEN_WIDTH=128
 SCREEN_HEIGHT=32

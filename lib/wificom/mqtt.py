@@ -1,9 +1,9 @@
 '''
-minimqtt.py
+mqtt.py
 Handle MQTT connections, subscriptions, and callbacks
 '''
 import json
-from wificom.common.import_secrets import secrets_mqtt_username, \
+from wificom.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
