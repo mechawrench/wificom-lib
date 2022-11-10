@@ -17,7 +17,7 @@ print("Board ID: ", board.board_id)
 # pylint: disable=unused-import
 
 if board.board_id == "arduino_nano_rp2040_connect":
-	from wificom.hardware.nina_wifi import Wifi as WifiCls
+	from wificom.wifi_nina import Wifi as WifiCls
 	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.A0, board.A2),
@@ -51,7 +51,7 @@ if board.board_id == "arduino_nano_rp2040_connect":
 		"speaker": board.D0,
 	}
 elif board.board_id == "raspberry_pi_pico":
-	from wificom.hardware.nina_wifi import Wifi as WifiCls
+	from wificom.wifi_nina import Wifi as WifiCls
 	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
@@ -83,7 +83,7 @@ elif board.board_id == "raspberry_pi_pico":
 	}
 	# GP0-2 for flashing AirLift
 elif board.board_id == "raspberry_pi_pico_w":
-	from wificom.hardware.picow_wifi import Wifi as WifiCls
+	from wificom.wifi_picow import Wifi as WifiCls
 	led_pin = board.GP10
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),

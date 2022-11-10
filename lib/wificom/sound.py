@@ -1,5 +1,5 @@
 '''
-pio_sound.py
+sound.py
 Handles the PIO sound output.
 '''
 

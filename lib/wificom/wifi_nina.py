@@ -1,5 +1,5 @@
 '''
-wifi.py
+wifi_nina.py
 Handles the WiFi connnection for supported boards.
 Currently supported boards:
 	- Arduino Nano RP2040 Connect,
@@ -7,7 +7,7 @@ Currently supported boards:
 '''
 import busio
 from digitalio import DigitalInOut
-from wificom.common.import_secrets import secrets_wifi_ssid,secrets_wifi_password, \
+from wificom.import_secrets import secrets_wifi_ssid,secrets_wifi_password, \
 	secrets_mqtt_broker, \
 	secrets_mqtt_username, \
 	secrets_mqtt_password
