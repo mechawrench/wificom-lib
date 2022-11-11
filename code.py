@@ -23,7 +23,7 @@ led = pwmio.PWMOut(board_config.led_pin,
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
-import dmcomm.protocol.realtime as rt
+import wificom.realtime as rt
 import wificom.ui
 from wificom import nvm
 from wificom import mqtt
