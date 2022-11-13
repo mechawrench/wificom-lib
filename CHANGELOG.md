@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI object now exists even when there is no display
 - wificom modules are no longer in subpackages
 - realtime.py (with the real-time battle logic) moved to wificom-lib from dmcomm-python
+- Cleaned up serial messages regarding MQTT
 
 ## [0.6.0] - 2022-11-07
 ### Added
