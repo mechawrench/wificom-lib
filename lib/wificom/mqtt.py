@@ -164,8 +164,6 @@ def on_app_feed_callback(client, topic, message):
 	global last_application_id, is_output_hidden, new_digirom, rtb_user_type, \
 			rtb_active, rtb_host, rtb_topic, rtb_battle_type
 
-	print(message_json)
-
 	# If message has an ack_id, acknowledge it
 	if "ack_id" in message_json:
 		mqtt_message = {
@@ -229,7 +227,7 @@ def on_realtime_battle_feed_callback(client, topic, message):
 				last_application_id = message_json['application_id']
 				rtb_digirom = message_json['output']
 			else:
-				print('rtb_user_type is not[' + rtb_user_type + '] ignoring Digirom')
+				print('(user_type is [' + rtb_user_type + ']; ignoring message from self)')
 	else:
 		print("realtime battle is not active, shouldn't be receiving data to this callback..")
 
