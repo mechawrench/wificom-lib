@@ -6,7 +6,6 @@ import json
 from wificom.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
-import adafruit_minimqtt.adafruit_minimqtt as MQTT
 
 last_application_id = None
 is_output_hidden = None
@@ -26,7 +25,7 @@ _mqtt_topic_output =  _mqtt_io_prefix + _mqtt_topic_identifier + "/wificom-outpu
 _io = None
 _mqtt_client = None
 
-def connect_to_mqtt(output, mqtt_client):
+def connect_to_mqtt(mqtt_client):
 	'''
 	Connect to the MQTT broker
 	'''
@@ -39,11 +38,6 @@ def connect_to_mqtt(output, mqtt_client):
 	_mqtt_client.on_disconnect = disconnect
 	_mqtt_client.on_subscribe = subscribe
 	_mqtt_client.on_unsubscribe = unsubscribe
-
-	if type(output).__name__ != "SocketPool":
-		#pylint: disable=import-outside-toplevel
-		import adafruit_esp32spi.adafruit_esp32spi_socket as socket
-		MQTT.set_socket(socket, output)
 
 	# Connect to MQTT Broker
 	print("Connecting to MQTT Broker...")

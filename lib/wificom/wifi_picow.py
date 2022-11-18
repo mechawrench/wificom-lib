@@ -44,4 +44,4 @@ class Wifi:
 			ssl_context=ssl.create_default_context(),
 		)
 
-		return pool, mqtt_client
+		return mqtt_client

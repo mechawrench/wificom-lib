@@ -174,9 +174,9 @@ def run_wifi():
 	led.duty_cycle = 0x8000
 	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
-	out, mqtt_client = wifi.connect()
+	mqtt_client = wifi.connect()
 	ui.display_text("Connecting to MQTT")
-	mqtt.connect_to_mqtt(out, mqtt_client)
+	mqtt.connect_to_mqtt(mqtt_client)
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 

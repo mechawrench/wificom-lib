@@ -60,5 +60,6 @@ class Wifi:
 			password=secrets_mqtt_password,
 		)
 
-		# Return esp to use with mqtt client
-		return self.esp, mqtt_client
+		MQTT.set_socket(socket, self.esp)
+
+		return mqtt_client
