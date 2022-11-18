@@ -5,6 +5,7 @@ Currently supported boards:
 	- Arduino Nano RP2040 Connect,
 	- AirLift co-processor module with RP2040 Board (tested with Pi Pico)
 '''
+import time
 import busio
 from digitalio import DigitalInOut
 from wificom.import_secrets import secrets_wifi_ssid,secrets_wifi_password, \
@@ -63,3 +64,10 @@ class Wifi:
 		MQTT.set_socket(socket, self.esp)
 
 		return mqtt_client
+
+	def get_time(self):
+		try:
+			now = self.esp.get_time()
+			return time.localtime(now[0])
+		except OSError:
+			return None

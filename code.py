@@ -23,6 +23,7 @@ led = pwmio.PWMOut(board_config.led_pin,
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
+import wificom.clock
 import wificom.realtime as rt
 import wificom.ui
 from wificom import nvm
@@ -174,6 +175,7 @@ def run_wifi():
 	led.duty_cycle = 0x8000
 	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
+	clock = wificom.clock.Clock(wifi)
 	mqtt_client = wifi.connect()
 	ui.display_text("Connecting to MQTT")
 	mqtt.connect_to_mqtt(mqtt_client)
@@ -182,6 +184,7 @@ def run_wifi():
 
 	ui.display_text("WiFi\nHold C to change")
 	while not ui.is_c_pressed():
+		print(clock.get_time())
 		time_start = time.monotonic()
 		replacement_digirom = mqtt.get_subscribed_output()
 		if replacement_digirom is not None:

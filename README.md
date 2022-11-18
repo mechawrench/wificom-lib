@@ -53,6 +53,7 @@ A list of contributors will come as pull requests appear
    1. adafruit_esp32spi
    1. adafruit_minimqtt - note you may need an older version of this
    1. adafruit_displayio_ssd1306.mpy
+   1. adafruit_ntp.mpy
    1. adafruit_requests.mpy
 1. Copy the "secrets.py.example" to "secrets.py" and make changes to match your environment (you can get a prefilled version on the website)
 1. Modify "board_config.py" so that pinouts match your board, we advise using what you find as default but you can modify as needed
