@@ -123,11 +123,10 @@ class RealTimeGuest(RealTime):
 			if self.comm_successful():
 				self.send_message()
 
-class RealTimeHostTalisReal(RealTimeHost):
+class RealTimeGuestTalis(RealTimeHost):
 	'''
-	"Real" real-time host for Legendz battle.
-
-	WiFiCom seems to be too slow for this. Used as base class for "fake" version.
+	Real-time guest for Legendz battle.
+	Based on host because this battle type is almost symmetrical.
 	'''
 	@property
 	def scan_str(self):
@@ -142,52 +141,18 @@ class RealTimeHostTalisReal(RealTimeHost):
 	@property
 	def wait_min(self):
 		'''RealTimeHost interface'''
-		return 0
-	@property
-	def wait_max(self):
-		'''RealTimeHost interface'''
-		return 2
-	def matched(self, rom_str):
-		'''RealTime interface'''
-		return rom_str.startswith("LT1-")
-
-class RealTimeGuestTalisReal(RealTimeGuest):
-	'''
-	"Real" real-time guest for Legendz battle.
-
-	WiFiCom seems to be too slow for this. Currently unused.
-	'''
-	def matched(self, rom_str):
-		'''RealTime interface'''
-		return rom_str.startswith("LT1-")
-	@property
-	def push(self):
-		'''RealTimeGuest interface'''
-		return False
-	def comm_successful(self):
-		'''RealTimeGuest interface'''
-		return len(self.result) >= 4
-	def message(self):
-		'''RealTime interface'''
-		return "LT1-" + str(self.result[1])[2:] + "-AA590003" * 3
-
-class RealTimeGuestTalis(RealTimeHostTalisReal):
-	'''
-	"Fake" real-time guest for Legendz battle.
-	Based on "real" host because this battle type is almost symmetrical.
-	'''
-	@property
-	def wait_min(self):
-		'''RealTimeHost interface'''
 		return 9
 	@property
 	def wait_max(self):
 		'''RealTimeHost interface'''
 		return 15
+	def matched(self, rom_str):
+		'''RealTime interface'''
+		return rom_str.startswith("LT1-")
 
 class RealTimeHostTalis(RealTimeGuestTalis):
 	'''
-	"Fake" real-time host for Legendz battle.
+	Real-time host for Legendz battle.
 	Based on guest (which uses host interface) because this battle type is almost symmetrical.
 	'''
 	def modify(self, digirom):
