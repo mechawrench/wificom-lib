@@ -7,14 +7,15 @@ import array
 import rp2pio
 
 _PIO_FREQ = 1_000_000
+_SILENT_DIV = 32
 
 _PROGRAM = array.array("H",
-	[32928, 24660, 40999, 44, 57345, 40999, 70, 57344, 40999, 73, 132, 0, 140])
+	[32928, 24660, 40999, 44, 57345, 40999, 70, 57344, 40999, 73, 132, 0, 8076])
 '''
 start:
 	pull
-	out y 20   ; low 20 bits: duration in cycles, or ticks if no period
-	mov x osr  ; high 12 bits: half-period in ticks
+	out y 20   ; low 20 bits: duration in cycles
+	mov x osr  ; high 12 bits: half-period in ticks (if 0, silent with period=32)
 	jmp !x delay
 high:
 	set pins 1
@@ -29,17 +30,21 @@ lowloop:
 	jmp y-- high
 	jmp start
 delay:
-	jmp y-- delay
+	jmp y-- delay [31]
 '''
 
 def _make_sound(note):
 	(frequency, duration) = note
 	if frequency == 0:
 		half_period = 0
-		duration_out = int(duration * _PIO_FREQ)
+		duration_out = int(duration * _PIO_FREQ / _SILENT_DIV)
 	else:
 		half_period = int(_PIO_FREQ / frequency / 2)
 		duration_out = int(duration * frequency)
+	if half_period > 0xFFF:
+		raise ValueError(f"Frequency {frequency} too small")
+	if duration_out > 0xFFFFF:
+		raise ValueError(f"Duration {duration} too large")
 	return (half_period << 20) | duration_out
 
 class PIOSound:
