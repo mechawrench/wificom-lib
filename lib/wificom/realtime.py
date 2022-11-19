@@ -10,6 +10,8 @@ from dmcomm import CommandError
 STATUS_IDLE = 0
 STATUS_WAIT = 1
 STATUS_PUSH = 2
+STATUS_PUSH_NOW = 3
+STATUS_PUSH_SYNC = 4
 
 class RealTime:
 	'''
@@ -27,6 +29,7 @@ class RealTime:
 		self._status_callback = status_callback
 		self.time_start = None
 		self.result = None
+		self.status = STATUS_IDLE
 	def execute(self, rom_str):
 		'''
 		Parse rom_str, modify if defined in subclass,
@@ -62,8 +65,9 @@ class RealTime:
 		return message
 	def update_status(self, status):
 		'''
-		Report current status to the status callback.
+		Report current status to the status callback and save it here.
 		'''
+		self.status = status
 		self._status_callback(status)
 
 class RealTimeHost(RealTime):
@@ -71,6 +75,7 @@ class RealTimeHost(RealTime):
 	Abstract class for real-time host.
 
 	Subclasses must implement:
+	* property `scan_status` - the status value to report when starting to scan.
 	* property `scan_str` - the digirom string to use for scanning.
 	* `def scan_successful(self)` - True if enough data was collected from the toy
 		using the scan digirom, False otherwise.
@@ -83,7 +88,7 @@ class RealTimeHost(RealTime):
 		Update state machine. Should be called repeatedly.
 		'''
 		if self.time_start is None:
-			self.update_status(STATUS_PUSH)
+			self.update_status(self.scan_status)
 			self.execute(self.scan_str)
 			if self.scan_successful():
 				self.send_message()
@@ -105,8 +110,7 @@ class RealTimeGuest(RealTime):
 	Abstract class for real-time guest.
 
 	Subclasses must implement:
-	* property `push` - True if guest player needs to press the button
-		on the toy, False otherwise.
+
 	* `def comm_successful(self)` - True if the interaction with the toy
 		was successful, False otherwise.
 	'''
@@ -116,8 +120,7 @@ class RealTimeGuest(RealTime):
 		'''
 		message = self.receive_message()
 		if message is not None:
-			if self.push:
-				self.update_status(STATUS_PUSH)
+			self.update_status(STATUS_PUSH_NOW)
 			self.execute(message)
 			self.update_status(STATUS_WAIT)
 			if self.comm_successful():
@@ -128,6 +131,10 @@ class RealTimeGuestTalis(RealTimeHost):
 	Real-time guest for Legendz battle.
 	Based on host because this battle type is almost symmetrical.
 	'''
+	@property
+	def scan_status(self):
+		'''RealTimeHost interface'''
+		return STATUS_PUSH_SYNC
 	@property
 	def scan_str(self):
 		'''RealTimeHost interface'''
@@ -170,6 +177,10 @@ class RealTimeHostTalis(RealTimeGuestTalis):
 class RealTimeHostPenXBattle(RealTimeHost):
 	'''Real-time host for PenX battle.'''
 	@property
+	def scan_status(self):
+		'''RealTimeHost interface'''
+		return STATUS_PUSH
+	@property
 	def scan_str(self):
 		'''RealTimeHost interface'''
 		return "X2-0069-2169-8009"
@@ -201,10 +212,6 @@ class RealTimeGuestPenXBattle(RealTimeGuest):
 	def matched(self, rom_str):
 		'''RealTime interface'''
 		return rom_str.startswith("X2-")
-	@property
-	def push(self):
-		'''RealTimeGuest interface'''
-		return True
 	def comm_successful(self):
 		'''RealTimeGuest interface'''
 		return len(self.result) == 9

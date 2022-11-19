@@ -19,7 +19,7 @@ class Wifi:
 	'''
 	# pylint: disable=too-many-arguments
 	def __init__(self):
-		return
+		self._pool = None
 
 	def connect(self):
 		'''
@@ -34,13 +34,13 @@ class Wifi:
 
 		wifi.radio.connect(secrets_payload["ssid"], secrets_payload["password"])
 
-		self.pool = socketpool.SocketPool(wifi.radio)
+		self._pool = socketpool.SocketPool(wifi.radio)
 
 		mqtt_client = MQTT.MQTT(
 			broker=secrets_mqtt_broker,
 			username=secrets_mqtt_username.lower(),
 			password=secrets_mqtt_password,
-			socket_pool=self.pool,
+			socket_pool=self._pool,
 			ssl_context=ssl.create_default_context(),
 		)
 
@@ -48,7 +48,7 @@ class Wifi:
 
 	def get_time(self):
 		try:
-			ntp = adafruit_ntp.NTP(self.pool, tz_offset=0)
+			ntp = adafruit_ntp.NTP(self._pool, tz_offset=0)
 			return ntp.datetime
 		except OSError:
 			return None

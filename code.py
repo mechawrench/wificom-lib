@@ -82,9 +82,11 @@ def rtb_status_callback(status):
 	'''
 	Called when a RTB object updates the status display.
 	'''
-	if status == rt.STATUS_PUSH:
+	if status == rt.STATUS_PUSH_NOW:
+		ui.beep_activate()
+	if status in (rt.STATUS_PUSH, rt.STATUS_PUSH_NOW):
 		led.duty_cycle = 0xFFFF
-	else:
+	elif status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
 		led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 def main_menu():
@@ -184,7 +186,6 @@ def run_wifi():
 
 	ui.display_text("WiFi\nHold C to change")
 	while not ui.is_c_pressed():
-		print(clock.get_time())
 		time_start = time.monotonic()
 		replacement_digirom = mqtt.get_subscribed_output()
 		if replacement_digirom is not None:
@@ -215,7 +216,19 @@ def run_wifi():
 				mqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
 			mqtt.loop()
-			rtb.loop()
+			if rtb.status == rt.STATUS_PUSH_SYNC:
+				if clock.get_time() is None:
+					serial_print("Clock not set yet")
+					time.sleep(5)
+					continue
+				while clock.get_time().tm_sec % 10 != 0:
+					pass
+				ui.beep_sync()
+				led.duty_cycle = 0xFFFF
+				rtb.loop()
+				led.duty_cycle = LED_DUTY_CYCLE_DIM
+			else:
+				rtb.loop()
 		else:
 			if rtb_was_active:
 				led.duty_cycle = LED_DUTY_CYCLE_DIM
