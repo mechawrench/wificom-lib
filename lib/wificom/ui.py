@@ -141,13 +141,15 @@ class UserInterface:
 		'''
 		f = self.audio_base_freq
 		self._speaker.play([(f, 0.15), (f/2, 0.15)])
-	def beep_sync(self):
+	def beep_sync(self, block=False):
 		'''
-		Beep for RTB sync.
+		Beep for RTB sync. If block is True, return slightly before the final beep.
 		'''
 		f = self.audio_base_freq
 		countdown = [(f/2, 0.15), (0, 0.35)] * 3
 		self._speaker.play(countdown + [(f, 0.3)])
+		if block:
+			time.sleep(1.25)
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.

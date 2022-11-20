@@ -10,8 +10,7 @@ from dmcomm import CommandError
 STATUS_IDLE = 0
 STATUS_WAIT = 1
 STATUS_PUSH = 2
-STATUS_PUSH_NOW = 3
-STATUS_PUSH_SYNC = 4
+STATUS_PUSH_SYNC = 3
 
 class RealTime:
 	'''
@@ -67,8 +66,8 @@ class RealTime:
 		'''
 		Report current status to the status callback and save it here.
 		'''
+		self._status_callback(status, status != self.status)
 		self.status = status
-		self._status_callback(status)
 
 class RealTimeHost(RealTime):
 	'''
@@ -120,7 +119,7 @@ class RealTimeGuest(RealTime):
 		'''
 		message = self.receive_message()
 		if message is not None:
-			self.update_status(STATUS_PUSH_NOW)
+			self.update_status(STATUS_PUSH)
 			self.execute(message)
 			self.update_status(STATUS_WAIT)
 			if self.comm_successful():
