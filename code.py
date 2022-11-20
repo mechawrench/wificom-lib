@@ -23,6 +23,7 @@ led = pwmio.PWMOut(board_config.led_pin,
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
+import wificom.clock
 import wificom.realtime as rt
 import wificom.ui
 from wificom import nvm
@@ -77,13 +78,17 @@ def rtb_receive_callback():
 		mqtt.rtb_digirom = None
 		return msg
 	return None
-def rtb_status_callback(status):
+def rtb_status_callback(status, changed):
 	'''
 	Called when a RTB object updates the status display.
 	'''
 	if status == rt.STATUS_PUSH:
 		led.duty_cycle = 0xFFFF
-	else:
+		if changed:
+			ui.beep_activate()
+	if status == rt.STATUS_PUSH_SYNC and changed:
+		led.duty_cycle = LED_DUTY_CYCLE_DIM
+	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
 		led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 def main_menu():
@@ -174,6 +179,7 @@ def run_wifi():
 	led.duty_cycle = 0x8000
 	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
+	clock = wificom.clock.Clock(wifi)
 	mqtt_client = wifi.connect()
 	ui.display_text("Connecting to MQTT")
 	mqtt.connect_to_mqtt(mqtt_client)
@@ -212,7 +218,18 @@ def run_wifi():
 				mqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
 			mqtt.loop()
-			rtb.loop()
+			if rtb.status == rt.STATUS_PUSH_SYNC:
+				if clock.get_time() is None:
+					serial_print("Clock not set yet")
+				else:
+					while clock.get_time().tm_sec % 10 != 0:
+						pass
+					ui.beep_sync(True)
+				led.duty_cycle = 0xFFFF
+				rtb.loop()
+				led.duty_cycle = LED_DUTY_CYCLE_DIM
+			else:
+				rtb.loop()
 		else:
 			if rtb_was_active:
 				led.duty_cycle = LED_DUTY_CYCLE_DIM
