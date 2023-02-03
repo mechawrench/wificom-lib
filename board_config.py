@@ -17,7 +17,7 @@ print("Board ID: ", board.board_id)
 # pylint: disable=unused-import
 
 if board.board_id == "arduino_nano_rp2040_connect":
-	from wificom.wifi_nina import Wifi as WifiCls
+	from wificom.hardware.nina_wifi import Wifi as WifiCls
 	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.A0, board.A2),
@@ -48,10 +48,9 @@ if board.board_id == "arduino_nano_rp2040_connect":
 		"button_a": board.D1,
 		"button_b": board.D2,
 		"button_c": board.D3,
-		"speaker": board.D0,
 	}
 elif board.board_id == "raspberry_pi_pico":
-	from wificom.wifi_nina import Wifi as WifiCls
+	from wificom.hardware.nina_wifi import Wifi as WifiCls
 	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
@@ -62,6 +61,7 @@ elif board.board_id == "raspberry_pi_pico":
 		hw.TalisInputOutput(board.GP15),
 	]
 	extra_power_pins = [
+		(board.GP11, True),
 		(board.GP13, True),
 		(board.GP18, True),
 	]
@@ -73,17 +73,9 @@ elif board.board_id == "raspberry_pi_pico":
 		"esp32_busy": board.GP8,
 		"esp32_reset": board.GP9,
 	}
-	ui_pins = {
-		"display_scl": None,
-		"display_sda": None,
-		"button_a": None,
-		"button_b": None,
-		"button_c": board.GP3,
-		"speaker": board.GP11,
-	}
-	# GP0-2 for flashing AirLift
+	ui_pins = None
 elif board.board_id == "raspberry_pi_pico_w":
-	from wificom.wifi_picow import Wifi as WifiCls
+	from wificom.hardware.picow_wifi import Wifi as WifiCls
 	led_pin = board.GP10
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
@@ -104,7 +96,6 @@ elif board.board_id == "raspberry_pi_pico_w":
 		"button_a": board.GP9,
 		"button_b": board.GP8,
 		"button_c": board.GP3,
-		"speaker": board.GP2,
 	}
 else:
 	raise ValueError("Your board is not supported.")

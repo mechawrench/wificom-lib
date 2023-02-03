@@ -1,9 +1,9 @@
 '''
-wifi_picow.py
+wifi.py
 Handles the WiFi connnection for Pico W.
 '''
 import ssl
-from wificom.import_secrets import secrets_wifi_ssid, \
+from wificom.common.import_secrets import secrets_wifi_ssid, \
 	secrets_wifi_password, \
 	secrets_mqtt_broker, \
 	secrets_mqtt_username, \
@@ -44,4 +44,4 @@ class Wifi:
 			ssl_context=ssl.create_default_context(),
 		)
 
-		return mqtt_client
+		return pool, mqtt_client

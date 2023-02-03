@@ -23,10 +23,10 @@ led = pwmio.PWMOut(board_config.led_pin,
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
-import wificom.realtime as rt
-import wificom.ui
-from wificom import nvm
-from wificom import mqtt
+import dmcomm.protocol.realtime as rt
+import wificom.hardware.ui
+from wificom.hardware import nvm
+from wificom.mqtt import minimqtt
 import digiroms
 
 gc.collect()
@@ -37,6 +37,21 @@ def serial_print(contents, end="\n"):
 	Print output to the serial console
 	'''
 	serial.write((contents + end).encode("utf-8"))
+
+def display_text(text):
+	'''
+	Show text on the display if it exists.
+	'''
+	if ui is not None:
+		ui.display_text(text)
+
+def is_c_pressed():
+	'''
+	Check whether button C is pressed if it exists.
+	'''
+	if ui is None:
+		return False
+	return ui.is_c_pressed()
 
 def execute_digirom(rom):
 	'''
@@ -49,7 +64,7 @@ def execute_digirom(rom):
 	except (CommandError, ReceiveError) as ex:
 		error = repr(ex)
 		result_end = " "
-	if not mqtt.is_output_hidden:
+	if not minimqtt.is_output_hidden:
 		serial_print(str(rom.result), result_end)
 	else:
 		serial_print("Received output, check the App")
@@ -66,15 +81,15 @@ def rtb_send_callback(message):
 	'''
 	Called when a RTB object sends a message.
 	'''
-	mqtt.send_rtb_digirom_output(message)
+	minimqtt.send_rtb_digirom_output(message)
 	print("RTB sent message:", message)
 def rtb_receive_callback():
 	'''
 	Called when a RTB object checks for messages received.
 	'''
-	if mqtt.rtb_digirom is not None:
-		msg = mqtt.rtb_digirom
-		mqtt.rtb_digirom = None
+	if minimqtt.rtb_digirom is not None:
+		msg = minimqtt.rtb_digirom
+		minimqtt.rtb_digirom = None
 		return msg
 	return None
 def rtb_status_callback(status):
@@ -172,20 +187,20 @@ def run_wifi():
 	# Connect to WiFi and MQTT
 	led.frequency = 1
 	led.duty_cycle = 0x8000
-	ui.display_text("Connecting to WiFi")
+	display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
-	mqtt_client = wifi.connect()
-	ui.display_text("Connecting to MQTT")
-	mqtt.connect_to_mqtt(mqtt_client)
+	out, mqtt_client = wifi.connect()
+	display_text("Connecting to MQTT")
+	minimqtt.connect_to_mqtt(out, mqtt_client)
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 
-	ui.display_text("WiFi\nHold C to change")
-	while not ui.is_c_pressed():
+	display_text("WiFi\nHold C to change")
+	while not is_c_pressed():
 		time_start = time.monotonic()
-		replacement_digirom = mqtt.get_subscribed_output()
+		replacement_digirom = minimqtt.get_subscribed_output()
 		if replacement_digirom is not None:
-			if not mqtt.is_output_hidden:
+			if not minimqtt.is_output_hidden:
 				print("New digirom:", replacement_digirom)
 			else:
 				serial_print("Received digirom input, check the App")
@@ -193,8 +208,8 @@ def run_wifi():
 		if replacement_digirom is not None:
 			digirom = dmcomm.protocol.parse_command(replacement_digirom)
 
-		if mqtt.rtb_active:
-			rtb_type_id_new = (mqtt.rtb_battle_type, mqtt.rtb_user_type)
+		if minimqtt.rtb_active:
+			rtb_type_id_new = (minimqtt.rtb_battle_type, minimqtt.rtb_user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
 				rtb_type_id = rtb_type_id_new
 				if rtb_type_id in rtb_types:
@@ -205,13 +220,13 @@ def run_wifi():
 						rtb_status_callback,
 					)
 				else:
-					serial_print(mqtt.rtb_battle_type + " not implemented")
+					serial_print(minimqtt.rtb_battle_type + " not implemented")
 			rtb_was_active = True
 			# Heartbeat approx every 10 seconds
 			if time_start - rtb_last_ping > 10:
-				mqtt.send_digirom_output("RTB")
+				minimqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
-			mqtt.loop()
+			minimqtt.loop()
 			rtb.loop()
 		else:
 			if rtb_was_active:
@@ -224,11 +239,11 @@ def run_wifi():
 					last_output = str(digirom.result)
 
 			# Send to MQTT topic (acts as a ping also)
-			mqtt.send_digirom_output(last_output)
+			minimqtt.send_digirom_output(last_output)
 
 			while True:
-				mqtt.loop()
-				if mqtt.get_subscribed_output(False) is not None:
+				minimqtt.loop()
+				if minimqtt.get_subscribed_output(False) is not None:
 					break
 				if time.monotonic() - time_start >= 5:
 					break
@@ -240,8 +255,8 @@ def run_serial():
 	'''
 	serial_print("Running serial")
 	digirom = None
-	ui.display_text("Serial\nHold C to change")
-	while not ui.is_c_pressed():
+	display_text("Serial\nHold C to change")
+	while not is_c_pressed():
 		time_start = time.monotonic()
 		if serial.in_waiting != 0:
 			digirom = None
@@ -295,7 +310,7 @@ def run_drive():
 	Run in drive mode.
 	'''
 	serial_print("Running drive")
-	if not ui.has_display:
+	if ui is None:
 		while True:
 			pass
 	result = ui.menu(
@@ -337,12 +352,18 @@ else:
 	serial_print("not requested")
 
 displayio.release_displays()
-ui = wificom.ui.UserInterface(**board_config.ui_pins)  #pylint: disable=invalid-name
+ui = None #pylint: disable=invalid-name
+if board_config.ui_pins is None:
+	serial_print("Display pins not set")
+else:
+	try:
+		ui = wificom.hardware.ui.UserInterface(**board_config.ui_pins)
+	except Exception as exc: #pylint: disable=broad-except
+		serial_print("Display not found: " + str(exc))
 
 run_column = 0
-if not ui.has_display:
+if ui is None:
 	run_column += 2
-	serial_print("Display not found: " + str(ui.display_error))
 if not mode_was_requested:
 	run_column += 1
 serial_print("Run column: " + str(run_column))
