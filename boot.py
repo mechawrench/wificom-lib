@@ -9,7 +9,7 @@ import storage
 import supervisor
 import usb_cdc
 import usb_hid
-from wificom import nvm
+from wificom.hardware import nvm
 
 BUTTON_NOT_PRESSED = 0
 BUTTON_RELEASED = 1
