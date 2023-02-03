@@ -1,12 +1,11 @@
 '''
-minimqtt.py
+mqtt.py
 Handle MQTT connections, subscriptions, and callbacks
 '''
 import json
-from wificom.common.import_secrets import secrets_mqtt_username, \
+from wificom.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
-import adafruit_minimqtt.adafruit_minimqtt as MQTT
 
 last_application_id = None
 is_output_hidden = None
@@ -26,7 +25,7 @@ _mqtt_topic_output =  _mqtt_io_prefix + _mqtt_topic_identifier + "/wificom-outpu
 _io = None
 _mqtt_client = None
 
-def connect_to_mqtt(output, mqtt_client):
+def connect_to_mqtt(mqtt_client):
 	'''
 	Connect to the MQTT broker
 	'''
@@ -39,11 +38,6 @@ def connect_to_mqtt(output, mqtt_client):
 	_mqtt_client.on_disconnect = disconnect
 	_mqtt_client.on_subscribe = subscribe
 	_mqtt_client.on_unsubscribe = unsubscribe
-
-	if type(output).__name__ != "SocketPool":
-		#pylint: disable=import-outside-toplevel
-		import adafruit_esp32spi.adafruit_esp32spi_socket as socket
-		MQTT.set_socket(socket, output)
 
 	# Connect to MQTT Broker
 	print("Connecting to MQTT Broker...")
@@ -150,7 +144,8 @@ def on_app_feed_callback(client, topic, message):
 			"host": "BrassBolt",
 			"topic_action" = "subscribe", # subscribe/unsubscribe
 			"topic": "RTB_TOPIC_GOES_HERE,
-			"user_type": "guest" # Guest or Host, each side expects the opposite for real messages
+			"user_type": "guest" # Guest or Host, each side expects the opposite for real messages,
+			"ack_id" 111111 # Acknowledgement ID, used to acknowledge the message
 		}
 	'''
 	# pylint: disable=consider-using-f-string
@@ -163,7 +158,17 @@ def on_app_feed_callback(client, topic, message):
 	global last_application_id, is_output_hidden, new_digirom, rtb_user_type, \
 			rtb_active, rtb_host, rtb_topic, rtb_battle_type
 
-	print(message_json)
+	# If message has an ack_id, acknowledge it
+	if "ack_id" in message_json:
+		mqtt_message = {
+			"application_uuid": last_application_id,
+			"device_uuid": secrets_device_uuid,
+			"ack_id": message_json["ack_id"]
+		}
+
+		mqtt_message_json = json.dumps(mqtt_message)
+		if _mqtt_client.is_connected:
+			_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 
 	# If message_json contains topic_action, then we have a realtime battle request
 	topic_action = message_json.get('topic_action', None)
@@ -216,7 +221,7 @@ def on_realtime_battle_feed_callback(client, topic, message):
 				last_application_id = message_json['application_id']
 				rtb_digirom = message_json['output']
 			else:
-				print('rtb_user_type is not[' + rtb_user_type + '] ignoring Digirom')
+				print('(user_type is [' + rtb_user_type + ']; ignoring message from self)')
 	else:
 		print("realtime battle is not active, shouldn't be receiving data to this callback..")
 
