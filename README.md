@@ -34,7 +34,7 @@ Credits to the other great developers on the WiFiCom Discord.
 - Visit https://dmcomm.github.io/guide/pi-pico/ for more information on this topic
 - Ensure you match pins on your supported board with those found in the example "board_config.py" file.  The pins have been optimized by BladeSabre for the boards found in "board_config.py".  If you have a different board, you will need to adjust the pins in the "board_config.py" file.
 
-## Installation
+## Initial Installation
 
 1. Check the version of WiFiCom you're installing in CHANGLOG.md to find the versions of dependencies we tested with it (other versions might not work)
 1. Install CircuitPython 8.x to the board
@@ -54,6 +54,16 @@ Credits to the other great developers on the WiFiCom Discord.
     10:59:47.046 -> Connected to MQTT Broker! 
     10:59:47.481 -> Subscribed to USERNAME/f/1111111111111111-2222222222222222/wificom-input with QOS level 0
     ```
+## Upgrade Firmware
+1. Backup your current files, in particular the following are commonly modified:
+    - secrets.py
+    - board_config.py
+    - digiroms.py
+1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION.zip"
+1. Extract the zip and copy the contents into the root of the CIRCUITPY drive
+1. Compare contents of your modified files with the new files and make any neecessary changes
+1. Test that everything works, including connecting to WiFi and sending/receiving DigiRoms
+
 ## Screen
 There is an optional UI with a small screen and 3 buttons. Guide to follow.
 
