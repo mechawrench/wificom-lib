@@ -41,7 +41,7 @@ Credits to the other great developers on the WiFiCom Discord.
     - Raspberry Pi Pico W: https://circuitpython.org/board/raspberry_pi_pico_w/
     - Arduino Nano RP2040 Connect: https://circuitpython.org/board/arduino_nano_rp2040_connect/
     - Pico with AirLift: https://circuitpython.org/board/raspberry_pi_pico/
-1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib-VERSION.zip"
+1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION.zip"
 1. Extract the zip and copy the contents into the root of the CIRCUITPY drive
 1. Copy the "secrets.py.example" to "secrets.py" and make changes to match your environment (you can get a prefilled version on the website https://wificom.dev)
 1. Modify "board_config.py" so that pinouts match your board, we advise using what you find as default but you can modify as needed for an unsupported board
