@@ -1,0 +1,106 @@
+name: Merge libs into release and branch, create artifacts for testing
+
+on:
+  release:
+    types: [created]
+  push:
+  pull_request:
+
+jobs:
+  merge_libs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set Env Variable
+        run: |
+          echo "FILENAME=release" >> $GITHUB_ENV
+
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Populate Variables
+        id: populate-vars
+        run: |
+          # Parse JSON data from sources.json
+          JSON_DATA=$(cat sources.json)
+
+          # Extract values from JSON data using jq
+          DMCOMM_COMMIT=$(echo $JSON_DATA | jq -r '.["dmcomm-python"].commit')
+          DMCOMM_URL=$(echo $JSON_DATA | jq -r '.["dmcomm-python"].url')
+          ADAFRUIT_VERSION=$(echo $JSON_DATA | jq -r '.adafruit_bundle.version')
+          ADAFRUIT_URL=$(echo $JSON_DATA | jq -r '.adafruit_bundle.url')
+          MINIMQTT_VERSION=$(echo $JSON_DATA | jq -r '.circuitpython_minimqtt.version')
+          MINIMQTT_URL=$(echo $JSON_DATA | jq -r '.circuitpython_minimqtt.url')
+
+          # Set environment variables
+          echo "DMCOMM_COMMIT=$DMCOMM_COMMIT" >> $GITHUB_ENV
+          echo "DMCOMM_URL=$DMCOMM_URL" >> $GITHUB_ENV
+          echo "ADAFRUIT_VERSION=$ADAFRUIT_VERSION" >> $GITHUB_ENV
+          echo "ADAFRUIT_URL=$ADAFRUIT_URL" >> $GITHUB_ENV
+          echo "MINIMQTT_VERSION=$MINIMQTT_VERSION" >> $GITHUB_ENV
+          echo "MINIMQTT_URL=$MINIMQTT_URL" >> $GITHUB_ENV
+
+      - name: Download and extract dmcomm-python
+        run: |
+          curl -LO $DMCOMM_URL
+          unzip -q $DMCOMM_COMMIT.zip -d dmcomm-python_lib 
+
+      - name: Download and extract Adafruit BUndle
+        run: |
+          curl -LO $ADAFRUIT_URL
+          unzip -q $ADAFRUIT_VERSION.zip -d adafruit_bundle
+
+      - name: Download and extract MiniMQTT
+        run: |
+          curl -LO $MINIMQTT_URL
+          unzip -q $MINIMQTT_VERSION -d minimqtt_lib      
+
+      - name: Merge libs
+        run: |
+          cp -r dmcomm-python_lib/dmcomm-python-$DMCOMM_COMMIT/lib/* lib/
+          cp -r adafruit_bundle/$ADAFRUIT_VERSION/lib/adafruit_bus_device lib/
+          cp -r adafruit_bundle/$ADAFRUIT_VERSION/lib/adafruit_display_text lib/
+          cp -r adafruit_bundle/$ADAFRUIT_VERSION/lib/adafruit_displayio_ssd1306.mpy lib/
+          cp -r adafruit_bundle/$ADAFRUIT_VERSION/lib/adafruit_requests.mpy lib/
+          cp -r adafruit_bundle/$ADAFRUIT_VERSION/lib/adafruit_esp32spi   lib/
+          cp -r minimqtt_lib/$MINIMQTT_VERSION/lib/* lib/
+
+      - name: Concatenate Licenses
+        run: |
+          echo "dmcomm-python" >> LICENSE
+          echo "https://github.com/dmcomm/dmcomm-python" >> LICENSE
+          curl https://raw.githubusercontent.com/dmcomm/dmcomm-python/main/LICENSE.txt >> LICENSE
+          echo -e "\n\n\nAdafruit_CircuitPython_Bundle" >> LICENSE
+          echo "https://github.com/adafruit/Adafruit_CircuitPython_Bundle" >> LICENSE
+          curl https://raw.githubusercontent.com/adafruit/Adafruit_CircuitPython_Bundle/main/LICENSE >> LICENSE
+          echo -e "\n\n\nAdafruit_CircuitPython_MiniMQTT" >> LICENSE
+          echo "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT" >> LICENSE
+          curl https://raw.githubusercontent.com/adafruit/Adafruit_CircuitPython_MiniMQTT/main/LICENSE >> LICENSE
+      
+      - name: Create archive
+        id: create_archive
+        run: |
+          rm -f release.zip
+          rm -rf dmcomm-python_lib adafruit_bundle minimqtt_lib *.zip
+          zip -r release.zip --exclude=lib/wificom *
+          if [[ $GITHUB_REF =~ refs/tags/.* ]]; then
+            filename="wificom-lib_$(echo $GITHUB_REF | awk -F/ '{print $3}').zip"
+          else
+            filename="wificom-lib_$GITHUB_SHA.zip"
+          fi
+          current_value=$FILENAME
+          modified_value="$filename"
+          echo "FILENAME=$modified_value" >> $GITHUB_ENV
+          cp release.zip $filename
+        shell: /usr/bin/bash -e {0}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wificom_libs_merged.zip
+          path: release.zip
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ env.FILENAME }}
