@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Audio prompts for Pendulum X RTB
+- GitHub Action for combining third party libs into one archive for easy installation on microcontrollers
+
 ### Changed
 - Errors with secrets.py are caught, and displayed on the screen when attempting WiFi (other modes are able to run)
+- Updated README.md to reflect new installation process
+- Updated README.md to more accurately reflect current project status
 
 ## [0.7.0] - 2023-02-02
 ### Added
