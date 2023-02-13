@@ -216,6 +216,7 @@ def run_wifi():
 						rtb_receive_callback,
 						rtb_status_callback,
 					)
+					rtb_status_callback(rtb.status, True)
 				else:
 					serial_print(mqtt.rtb_battle_type + " not implemented")
 			rtb_was_active = True
