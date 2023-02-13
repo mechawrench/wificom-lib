@@ -61,8 +61,9 @@ jobs:
       - name: Cleanup folder
         id: cleanup_folder
         run: |
-          rm -f release.zip
+          rm -f release.zip .gitignore .pylintrc
           rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip
+          rm -rf .git .github
 
       - uses: actions/upload-artifact@v3
         with:
