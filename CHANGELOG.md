@@ -4,10 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [UNRELEASED] - 2023-02-12
+## [Unreleased]
 ### Added
+- Audio prompts for Pendulum X RTB
 - GitHub Action for combining third party libs into one archive for easy installation on microcontrollers
+
 ### Changed
+- Errors with secrets.py are caught, and displayed on the screen when attempting WiFi (other modes are able to run)
 - Updated README.md to reflect new installation process
 - Updated README.md to more accurately reflect current project status
 

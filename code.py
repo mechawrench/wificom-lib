@@ -27,6 +27,7 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import nvm
 from wificom import mqtt
+from wificom.import_secrets import secrets_imported, secrets_error_display
 import digiroms
 
 gc.collect()
@@ -77,13 +78,17 @@ def rtb_receive_callback():
 		mqtt.rtb_digirom = None
 		return msg
 	return None
-def rtb_status_callback(status):
+def rtb_status_callback(status, changed):
 	'''
 	Called when a RTB object updates the status display.
 	'''
 	if status == rt.STATUS_PUSH:
 		led.duty_cycle = 0xFFFF
-	else:
+		if changed:
+			ui.beep_activate()
+	if status == rt.STATUS_PUSH_SYNC:
+		led.duty_cycle = 0xFFFF
+	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
 		led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 def main_menu():
@@ -168,6 +173,13 @@ def run_wifi():
 	rtb_was_active = False
 	rtb_type_id = None
 	rtb_last_ping = 0
+
+	if not secrets_imported:
+		print("Error with secrets.py (see above)")
+		ui.display_text(secrets_error_display)
+		while not ui.is_c_pressed():
+			pass
+		return
 
 	# Connect to WiFi and MQTT
 	led.frequency = 1
