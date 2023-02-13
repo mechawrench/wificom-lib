@@ -77,13 +77,17 @@ def rtb_receive_callback():
 		mqtt.rtb_digirom = None
 		return msg
 	return None
-def rtb_status_callback(status):
+def rtb_status_callback(status, changed):
 	'''
 	Called when a RTB object updates the status display.
 	'''
 	if status == rt.STATUS_PUSH:
 		led.duty_cycle = 0xFFFF
-	else:
+		if changed:
+			ui.beep_activate()
+	if status == rt.STATUS_PUSH_SYNC:
+		led.duty_cycle = 0xFFFF
+	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
 		led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 def main_menu():
