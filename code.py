@@ -27,6 +27,7 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import nvm
 from wificom import mqtt
+from wificom.import_secrets import secrets_imported, secrets_error_display
 import digiroms
 
 gc.collect()
@@ -172,6 +173,13 @@ def run_wifi():
 	rtb_was_active = False
 	rtb_type_id = None
 	rtb_last_ping = 0
+
+	if not secrets_imported:
+		print("Error with secrets.py (see above)")
+		ui.display_text(secrets_error_display)
+		while not ui.is_c_pressed():
+			pass
+		return
 
 	# Connect to WiFi and MQTT
 	led.frequency = 1

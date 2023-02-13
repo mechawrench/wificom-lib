@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Audio prompts for Pendulum X RTB
+### Changed
+- Errors with secrets.py are caught, and displayed on the screen when attempting WiFi (other modes are able to run)
 
 ## [0.7.0] - 2023-02-02
 ### Added
