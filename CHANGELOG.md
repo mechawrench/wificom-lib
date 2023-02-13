@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Errors with secrets.py are caught, and displayed on the screen when attempting WiFi (other modes are able to run)
+- Reboot when entering WiFi mode for a second time to avoid reinitialization errors
 - Updated README.md to reflect new installation process
 - Updated README.md to more accurately reflect current project status
 
