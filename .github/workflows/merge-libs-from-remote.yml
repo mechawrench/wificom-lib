@@ -74,7 +74,7 @@ jobs:
         id: create_archive
         run: |
           rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip
-          zip -r release.zip --exclude=lib/wificom *
+          zip -r release.zip *
           if [[ $GITHUB_REF =~ refs/tags/.* ]]; then
             filename="wificom-lib_$(echo $GITHUB_REF | awk -F/ '{print $3}').zip"
           else
