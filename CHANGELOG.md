@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Audio prompts for Pendulum X RTB
+
+## [0.7.0] - 2023-02-02
+### Added
 - Ack for webapp sent commands
 - Sound output with various beeps for different menu actions
 ### Changed
@@ -13,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - wificom modules are no longer in subpackages
 - realtime.py (with the real-time battle logic) moved to wificom-lib from dmcomm-python
 - Cleaned up serial messages regarding MQTT
+- Moved NINA-specific socket setting to `wifi_nina`
+### Removed
+- Old version of Legendz RTB classes
+### Tested with
+- CircuitPython 8.0.0-beta-4
+- adafruit-circuitpython-bundle-8.x-mpy-20221104 except `adafruit_minimqtt` [8.x-mpy-5.5.1](https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/tag/5.5.1)
+- dmcomm-python 2022-10-22 fd8a61a
 
 ## [0.6.0] - 2022-11-07
 ### Added
@@ -99,7 +110,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.6.0...develop
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.7.0...develop
+[0.7.0]: https://github.com/mechawrench/wificom-lib/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/mechawrench/wificom-lib/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/mechawrench/wificom-lib/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/mechawrench/wificom-lib/compare/v0.3.1...v0.4.0
