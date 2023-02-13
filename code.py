@@ -8,6 +8,7 @@ import digitalio
 import displayio
 import microcontroller
 import pwmio
+import supervisor
 import usb_cdc
 
 # Light LED dimly while starting up. Doing this here because the following imports are slow.
@@ -160,6 +161,7 @@ def menu_reboot(mode):
 	ui.clear()
 	microcontroller.reset()
 
+done_wifi_before = False
 def run_wifi():
 	'''
 	Do the normal WiFiCom things.
@@ -180,6 +182,17 @@ def run_wifi():
 		while not ui.is_c_pressed():
 			pass
 		return
+
+	global done_wifi_before  # pylint: disable=global-statement
+	if done_wifi_before:
+		if startup_mode == nvm.MODE_DEV:
+			ui.display_text("Soft reboot...")
+			time.sleep(0.5)
+			ui.clear()
+			supervisor.reload()
+		else:
+			menu_reboot(nvm.MODE_WIFI)
+	done_wifi_before = True
 
 	# Connect to WiFi and MQTT
 	led.frequency = 1
