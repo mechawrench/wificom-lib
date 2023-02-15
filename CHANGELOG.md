@@ -4,16 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.0] - 2023-02-15
 ### Added
 - Audio prompts for Pendulum X RTB
 - GitHub Action for combining third party libs into one archive for easy installation on microcontrollers
-
 ### Changed
 - Errors with secrets.py are caught, and displayed on the screen when attempting WiFi (other modes are able to run)
 - Reboot when entering WiFi mode for a second time to avoid reinitialization errors
 - Updated README.md to reflect new installation process
 - Updated README.md to more accurately reflect current project status
+### Tested with
+- CircuitPython 8.0.0
 
 ## [0.7.0] - 2023-02-02
 ### Added
@@ -117,7 +118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.7.0...develop
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.8.0...develop
+[0.8.0]: https://github.com/mechawrench/wificom-lib/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/mechawrench/wificom-lib/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/mechawrench/wificom-lib/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/mechawrench/wificom-lib/compare/v0.4.0...v0.5.0
