@@ -8,6 +8,7 @@ import digitalio
 import displayio
 import microcontroller
 import pwmio
+import supervisor
 import usb_cdc
 
 # Light LED dimly while starting up. Doing this here because the following imports are slow.
@@ -27,6 +28,7 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import nvm
 from wificom import mqtt
+from wificom.import_secrets import secrets_imported, secrets_error_display
 import digiroms
 
 gc.collect()
@@ -77,13 +79,17 @@ def rtb_receive_callback():
 		mqtt.rtb_digirom = None
 		return msg
 	return None
-def rtb_status_callback(status):
+def rtb_status_callback(status, changed):
 	'''
 	Called when a RTB object updates the status display.
 	'''
 	if status == rt.STATUS_PUSH:
 		led.duty_cycle = 0xFFFF
-	else:
+		if changed:
+			ui.beep_activate()
+	if status == rt.STATUS_PUSH_SYNC:
+		led.duty_cycle = 0xFFFF
+	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
 		led.duty_cycle = LED_DUTY_CYCLE_DIM
 
 def main_menu():
@@ -155,6 +161,7 @@ def menu_reboot(mode):
 	ui.clear()
 	microcontroller.reset()
 
+done_wifi_before = False
 def run_wifi():
 	'''
 	Do the normal WiFiCom things.
@@ -168,6 +175,24 @@ def run_wifi():
 	rtb_was_active = False
 	rtb_type_id = None
 	rtb_last_ping = 0
+
+	if not secrets_imported:
+		print("Error with secrets.py (see above)")
+		ui.display_text(secrets_error_display)
+		while not ui.is_c_pressed():
+			pass
+		return
+
+	global done_wifi_before  # pylint: disable=global-statement
+	if done_wifi_before:
+		if startup_mode == nvm.MODE_DEV:
+			ui.display_text("Soft reboot...")
+			time.sleep(0.5)
+			ui.clear()
+			supervisor.reload()
+		else:
+			menu_reboot(nvm.MODE_WIFI)
+	done_wifi_before = True
 
 	# Connect to WiFi and MQTT
 	led.frequency = 1
@@ -204,6 +229,7 @@ def run_wifi():
 						rtb_receive_callback,
 						rtb_status_callback,
 					)
+					rtb_status_callback(rtb.status, True)
 				else:
 					serial_print(mqtt.rtb_battle_type + " not implemented")
 			rtb_was_active = True

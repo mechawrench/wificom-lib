@@ -8,70 +8,84 @@
 
 [![Pylint](https://github.com/mechawrench/wificom-lib/actions/workflows/pylint.yml/badge.svg)](https://github.com/mechawrench/wificom-lib/actions/workflows/pylint.yml)
 
-This library enables an RP2040 device using dmcomm-python (CircuitPython 8.x) to connect to https://wificom.dev to enable DigiRom reading and writing via HTTP API calls and MQTT for device interactions.
+This library enables an RP2040+WiFi device using dmcomm-python (CircuitPython 8.x) to connect to https://wificom.dev to enable DigiRom reading and writing via HTTP API calls and MQTT for device interactions.
 
 ## Credits
 
-This project was enabled by the great work, help, and input from BladeSabre.  Find the repo this one is built on top of at https://github.com/dmcomm/dmcomm-python.
+This project was enabled by the great work, help, input and code additions from BladeSabre.  Find the repo this one is built on top of at https://github.com/dmcomm/dmcomm-python.
 
 Credits to the other great developers on the WiFiCom Discord.
-
-A list of contributors will come as pull requests appear
 
 ## RP2040 Board Support
 
 ### Supported Boards
+- Raspberry Pi Pico W - RECOMMENDED OPTION
 - Arduino Nano Connect
-- Raspberry Pi Pico W
 - RP2040 with AirLift co-processor module
     - Pi Pico is the only tested board so far but others should work as well
 
 ### Unsupported Boards
 - RP2040 Challenger with WiFi Chip
     - Issues with SSL with onboard chip; doesn't allow for secure requests
+- RP2040 Challenger with WiFi/BLE Chip
+    - Issues with SSL with onboard chip; doesn't allow for secure requests
 
 ## Building a (WiFi) Pico-Com
 - Visit https://dmcomm.github.io/guide/pi-pico/ for more information on this topic
 - Ensure you match pins on your supported board with those found in the example "board_config.py" file.  The pins have been optimized by BladeSabre for the boards found in "board_config.py".  If you have a different board, you will need to adjust the pins in the "board_config.py" file.
 
-## Installation
+## Initial Installation
 
-1. Check the version of WiFiCom you're installing in CHANGLOG.md to find the versions of dependencies we tested with it (other versions might not work)
-1. Install CircuitPython to the board
-1. Copy the "wificom" folder in this repository to your "lib" folder in your "CIRCUITPY" drive
-1. Copy the "code.py" file to your "CIRCUITPY" drive, replace existing "code.py"
-1. Copy the "boot.py" file into the "CIRCUITPY" drive, replace existing "boot.py"
-1. Copy the "board_config.py" file into the "CIRCUITPY" drive, replace existing "board_config.py"
-    - Keep the old version for reference if you've made modifications
-1. Copy the "digiroms.py" file into the "CIRCUITPY" drive, replace existing "digiroms.py"
-    - Keep the old version for reference if you've made modifications
-1. Install dmcomm-python into the "CIRCUITPY" drive
-    1. Copy the "lib/dmcomm" folder into the lib folder in your "CIRCUITPY" drive
-1. Install the following libs, find all of these in the libs folder of the CircuitPython [AdaFruit bundle](https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases) (8.x mpy archive)
-   1. adafruit_bus_device
-   1. adafruit_display_text
-   1. adafruit_esp32spi
-   1. adafruit_minimqtt - note you may need an older version of this
-   1. adafruit_displayio_ssd1306.mpy
-   1. adafruit_requests.mpy
-1. Copy the "secrets.py.example" to "secrets.py" and make changes to match your environment (you can get a prefilled version on the website)
-1. Modify "board_config.py" so that pinouts match your board, we advise using what you find as default but you can modify as needed
-1. Test that everything works, you should see the following output from Arduino IDE Serial Monitor
+1. Install CircuitPython 8.x to the board
+    - Raspberry Pi Pico W: https://circuitpython.org/board/raspberry_pi_pico_w/
+    - Arduino Nano RP2040 Connect: https://circuitpython.org/board/arduino_nano_rp2040_connect/
+    - Pico with AirLift: https://circuitpython.org/board/raspberry_pi_pico/
+1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION.zip"
+1. Extract the zip and copy the contents into the root of the CIRCUITPY drive
+    - If you are using an unsupported board or custom circuit layout, then before copying to CIRCUITPY, modify "board_config.py" so that pinouts match your board
+1. Copy the "secrets.py.example" to "secrets.py" and make changes to match your environment (you can get a prefilled version on the website https://wificom.dev)
+1. Check that the system boots, then eject CIRCUITPY from the computer and replug the USB to enable the `boot.py` configuration
+1. Test that everything works, you should see the following output from Arduino IDE Serial Monitor (Mac/Linux) / MU Editor (Windows) after the screen comes up and you select "Wifi"
     ```
-    10:59:45.103 -> dmcomm-python starting
     10:59:45.103 -> Connecting to WiFi network [WIFI_SSID]...
     10:59:46.387 -> Connected to WiFi network!
     10:59:46.423 -> Connecting to MQTT Broker...
     10:59:47.046 -> Connected to MQTT Broker! 
     10:59:47.481 -> Subscribed to USERNAME/f/1111111111111111-2222222222222222/wificom-input with QOS level 0
     ```
+1. If you need to change any files, put the WiFiCom into drive mode (or dev mode if necessary) using the instructions below
+
+## Upgrade Firmware
+1. Backup your current files, in particular the following are commonly modified:
+    - secrets.py
+    - board_config.py
+    - digiroms.py
+1. Update CircuitPython if required
+1. Put the WiFiCom into drive mode so that the CIRCUITPY drive is writeable
+1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION.zip"
+1. Extract the zip and copy the contents into the root of the CIRCUITPY drive
+1. Compare contents of your modified files with the new files and make any necessary changes
+1. Test that everything works, including connecting to WiFi and sending/receiving DigiRoms
+
 ## Screen
-There is an optional UI with a small screen and 3 buttons. Guide to follow.
+
+The UI has a small screen and 3 buttons. Some features are supported on a minimal build with only one button and no screen, but the full build is recommended.
+
+### Buttons
+- Button A: select menu options
+- Button B: activate selected option
+- Button C: cancel/return (needs to be held for several seconds when device is busy)
+
+### Menu options
+- WiFi: Connect to WiFi and MQTT and await instructions from the server
+- Serial: Act as a normal serial com unit
+- Punchbag: Communicate with the toys in a standalone mode (you can edit `digiroms.py` to change the available options in this submenu)
+- Drive: Make the CIRCUITPY drive writeable so you can edit configuration or update firmware
 
 ## LED Indicator
+- Raspberry Pi Pico W: external LED is required
 - Arduino Nano RP2040 Connect: on-board orange LED
 - Raspberry Pi Pico: on-board green LED
-- Raspberry Pi Pico W: external LED is required
 
 ### LED Meanings
 - Blinking indicates connecting to WiFi and MQTT
@@ -81,6 +95,28 @@ There is an optional UI with a small screen and 3 buttons. Guide to follow.
 - During startup, see below
 
 ## Button Usage During Startup
-- To use "WiFiCom mode (without drive access)", do not press the button
-- To use "WiFiCom mode (with drive access)", hold button until LED comes on, then release
-- To use "Serial Only Mode", hold button until LED comes on, keep holding until LED starts flashing or goes off
+- To use "WiFiCom mode (with drive read-only)", do not press the button
+- To use "WiFiCom mode (with full drive access)", also known as "Dev mode", hold the C button until the LED comes on, then release
+- To use "Serial Only mode", hold the C button until the LED comes on, and keep holding until the LED goes dim or off
+
+## Dependencies
+
+Runs on CircuitPython 8.x. Check the CHANGELOG for the exact version tested with each release.
+
+### Libraries
+
+These are included in the release zip. If installing manually, check `sources.json` for versions. In particular, `adafruit_minimqtt` is likely to break if a different version is used from the one specified.
+
+- dmcomm-python
+- adafruit_bus_device
+- adafruit_display_text
+- adafruit_esp32spi
+- adafruit_minimqtt
+- adafruit_displayio_ssd1306
+- adafruit_requests
+
+### Server
+
+wificom.dev is open-source. The code is available at:
+- https://github.com/mechawrench/wificom-webapp/
+- https://github.com/mechawrench/wificom-mosquitto-docker/
