@@ -28,7 +28,7 @@ class Wifi:
 		'''
 
 		# Initialize networking
-		num_retries = 1
+		num_retries = 3
 		connected = False
 		while not connected:
 			print("Scanning for networks...")
