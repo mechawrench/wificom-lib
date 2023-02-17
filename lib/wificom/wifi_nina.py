@@ -28,7 +28,7 @@ class Wifi:
 		self.esp = adafruit_esp32spi.ESP_SPIcontrol(self.spi, self.esp32_cs, self.esp32_ready, \
 			 self.esp32_reset)
 		socket.set_interface(self.esp)
-	# pylint: disable=unused-argument,invalid-name
+	# pylint: disable=unused-argument,invalid-name,inconsistent-return-statements
 	def connect(self, ui = None, led = None):
 		'''
 		Connect to a supported board's WiFi network
@@ -49,7 +49,6 @@ class Wifi:
 					MQTT.set_socket(socket, self.esp)
 
 					return mqtt_client
-				#pylint: disable=broad-except, invalid-name
+				#pylint: disable=broad-except,invalid-name
 				except Exception as e:
 					print("Failed to connect: ", e)
-					return False
