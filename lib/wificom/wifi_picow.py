@@ -44,7 +44,6 @@ class Wifi:
 							wifi.radio.connect(network['ssid'], network['password'])
 						except ConnectionError as e:
 							print("Failed to connect, retrying: ", e)
-						#pylint: disable=no-else-break
 						if wifi.radio.ipv4_address is not None:
 							connected = True
 							break
@@ -62,9 +61,8 @@ class Wifi:
 					ui.beep_error()
 					time.sleep(0.7)
 					ui.beep_error()
-					while True:
-						led.frequency = 1
-						led.duty_cycle = 0x7d0
+					led.frequency = 1
+					led.duty_cycle = 0x7d0
 
 				ui.beep_cancel()
 				time.sleep(0.5)
