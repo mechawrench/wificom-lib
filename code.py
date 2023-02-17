@@ -286,7 +286,7 @@ def run_serial():
 					# It's an OtherCommand
 					raise NotImplementedError("op=" + command.op)
 				digirom = command
-				serial_print(f"{digirom.physical}{digirom.turn}-[{len(digirom)} packets]")
+				serial_print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
 			except (CommandError, NotImplementedError) as ex:
 				serial_print(repr(ex))
 			time.sleep(1)
