@@ -5,7 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Sound on/off config option
 ### Changed
+- Punchbag DigiROMs moved to `config.py` (`digiroms.py` removed)
 - Changed recommended `prong_in` on "Pi Pico + AirLift" from GP26 to GP22
 - Updated dmcomm-python to v0.5.0
 

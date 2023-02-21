@@ -59,7 +59,7 @@ Credits to the other great developers on the WiFiCom Discord.
 1. Backup your current files, in particular the following are commonly modified:
     - secrets.py
     - board_config.py
-    - digiroms.py
+    - config.py (previously digiroms.py)
 1. Update CircuitPython if required
 1. Put the WiFiCom into drive mode so that the CIRCUITPY drive is writeable
 1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION.zip"
@@ -79,7 +79,7 @@ The UI has a small screen and 3 buttons. Some features are supported on a minima
 ### Menu options
 - WiFi: Connect to WiFi and MQTT and await instructions from the server
 - Serial: Act as a normal serial com unit
-- Punchbag: Communicate with the toys in a standalone mode (you can edit `digiroms.py` to change the available options in this submenu)
+- Punchbag: Communicate with the toys in a standalone mode (you can edit `config.py` to change the available options in this submenu)
 - Drive: Make the CIRCUITPY drive writeable so you can edit configuration or update firmware
 
 ## LED Indicator

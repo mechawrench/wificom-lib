@@ -58,6 +58,7 @@ class PIOSound:
 			first_set_pin=pin,
 			set_pin_count=1,
 		)
+		self.sound_on = True
 	def deinit(self):
 		'''
 		Deinitialises the PIOSound and releases any hardware resources for reuse.
@@ -67,6 +68,8 @@ class PIOSound:
 		'''
 		Play notes of [(frequency, duration)] in the background. frequency=0 for silence.
 		'''
+		if not self.sound_on:
+			return
 		to_send = [_make_sound(note) for note in notes]
 		self._state_machine.background_write(array.array("L", to_send))
 	def play_one(self, frequency, duration):
