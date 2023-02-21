@@ -68,14 +68,17 @@ jobs:
           echo "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT" >> LICENSE.txt
           curl https://raw.githubusercontent.com/adafruit/Adafruit_CircuitPython_MiniMQTT/main/LICENSE >> LICENSE.txt
 
+      - name: Remove unnecessary files
+        run: |
+          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip
+  
       - uses: actions/upload-artifact@v2
         with:
           name: wificom_libs_merged.zip
           path: .
-          
+
       - name: Create archive
         run: |
-          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip
           zip -r release.zip *
           if [[ $GITHUB_REF =~ refs/tags/.* ]]; then
             filename="wificom-lib_$(echo $GITHUB_REF | awk -F/ '{print $3}').zip"
