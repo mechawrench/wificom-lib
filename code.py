@@ -203,18 +203,19 @@ def run_wifi():
 
 	wifi_loop_has_run = False
 
-	while mqtt_client is False:
-		ui.display_text("WiFi Failed\nHold C to reboot")
-		if not wifi_loop_has_run:
-			led.duty_cycle = 0
-			ui.beep_wifi_failure()
-			wifi_loop_has_run = True
+	if mqtt_client is None:
+		while True:
+			ui.display_text("WiFi Failed\nHold C to reboot")
+			if not wifi_loop_has_run:
+				led.duty_cycle = 0
+				ui.beep_wifi_failure()
+				wifi_loop_has_run = True
 
-		time.sleep(0.5)
+			time.sleep(0.5)
 
-		if ui.is_c_pressed():
-			time.sleep(2)
-			supervisor.reload()
+			if ui.is_c_pressed():
+				time.sleep(2)
+				supervisor.reload()
 
 	ui.display_text("Connecting to MQTT")
 	mqtt.connect_to_mqtt(mqtt_client)

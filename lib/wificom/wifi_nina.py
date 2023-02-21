@@ -52,4 +52,4 @@ class Wifi:
 				#pylint: disable=broad-except,invalid-name
 				except Exception as e:
 					print("Failed to connect: ", e)
-		return False
+		return None

@@ -56,7 +56,7 @@ class Wifi:
 			wifi.radio.stop_scanning_networks()
 
 			if not connected:
-				return False
+				return None
 
 			pool = socketpool.SocketPool(wifi.radio)
 
