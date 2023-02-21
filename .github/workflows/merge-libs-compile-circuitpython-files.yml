@@ -2,8 +2,9 @@ name: Merge libs and compile CircuitPython files
 
 on:
   push:
-    paths:
-      - '**/lib/**/*.py'
+  pull_request:
+  release:
+    types: [published]
 
 jobs:
   merge_and_compile:
@@ -68,7 +69,7 @@ jobs:
         with:
           name: wificom_libs_merged.zip
           path: .
-          
+
       - name: Attach to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v1
