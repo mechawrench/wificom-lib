@@ -48,13 +48,24 @@ jobs:
       - name: Compile CircuitPython files to .mpy files
         run: |
           for file in $(find ./lib -type f -name "*.py"); do
-            echo "Compiling $file..."
-            mpy-cross $file
+            if [ -s $file ]; then
+              echo "Compiling $file..."
+              mpy-cross $file
+            else
+              echo "Skipping $file because it is empty."
+            fi
           done
 
-      - name: Delete original .py files in lib/ folder
+      - name: Delete original .py files in lib/ folder, except for empty ones
         run: |
-          find ./lib -type f -name "*.py" -delete
+          find ./lib -type f -name "*.py" | while read file; do
+            if [ -s $file ]; then
+              echo "Deleting $file because it is not empty."
+              rm $file
+            else
+              echo "Skipping $file because it is empty."
+            fi
+          done
 
       - name: Concatenate Licenses
         run: |
