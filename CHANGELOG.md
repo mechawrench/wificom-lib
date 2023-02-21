@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Multiple WiFi network support, configured through secrets.py, see secrets.py.example for updates
+- Retry each WiFi network up to 3 times each before moving on to the next
+- New sound "beep_wifi_failure" for when WiFi fails to connect
+### Changed
+- Default mqtt server in secrets.py.example is now "mqtt.wificom.dev", changed from "mqtt-production.wificom.dev
+### Removed
+- In secrets.py the values "ssid" and "password" are no longer used, removed from example
+
 ## [0.8.0] - 2023-02-15
 ### Added
 - Audio prompts for Pendulum X RTB
