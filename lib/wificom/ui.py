@@ -61,7 +61,17 @@ class UserInterface:
 			self._buttons["A"] = None
 			self._buttons["C"] = None
 		self._speaker = PIOSound(speaker)
+		self.sound_on = True
 		self.audio_base_freq = 1000
+	@property
+	def sound_on(self):
+		'''
+		Whether the sound is on.
+		'''
+		return self._speaker.sound_on
+	@sound_on.setter
+	def sound_on(self, value):
+		self._speaker.sound_on = value
 	@property
 	def has_display(self):
 		'''
