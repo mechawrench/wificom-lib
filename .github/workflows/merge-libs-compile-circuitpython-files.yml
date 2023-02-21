@@ -19,6 +19,22 @@ jobs:
       - name: Install Adafruit-ampy
         run: python3 -m pip install adafruit-ampy
 
+      - name: JSON to variables
+        uses: antifree/json-to-variables@v1.0.1
+        with:
+          filename: 'sources.json'
+          prefix: sources
+
+      - name: Download and extract sources
+        run: |
+          for key in dmcomm_python adafruit_bundle circuitpython_minimqtt; do
+            value=$(eval echo "\$sources_$key")
+            echo "Downloading and extracting $key..."
+            wget $value -O sources_$key.zip
+            unzip -q sources_$key.zip -d sources_$key
+            echo "$key successfully downloaded and extracted."
+          done
+          
       - name: Merge libs
         run: |
           cp -r sources_dmcomm_python/*/lib/* lib/
