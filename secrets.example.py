@@ -16,4 +16,4 @@ secrets = {
 	'mqtt_password' : 'YOUR_WIFICOM.DEV_MQTT_AUTH_TOKEN',
 	'user_uuid': 'FIND_ON_WIFICOM.DEV',
 	'device_uuid': 'FIND_ON_WIFICOM.DEV',
-} 
+}
