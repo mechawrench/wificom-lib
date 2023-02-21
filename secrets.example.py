@@ -8,7 +8,7 @@ secrets = {
 	"wireless_networks":[
 		{'ssid': 'FIRST_SSID', 'password': 'YOURSECUREPASSWORD'},
 		# {'ssid': 'SECOND_SSID', 'password': 'YOURSECUREPASSWORD'}, # Example of an additional network
-		# {'ssid': 'THRID_SSID', 'password': 'YOURSECUREPASSWORD'}, # Example of an additional network
+		# {'ssid': 'THIRD_SSID', 'password': 'YOURSECUREPASSWORD'}, # Example of an additional network
 	],
 	# Hosted service variables
 	'broker' : 'mqtt.wificom.dev',

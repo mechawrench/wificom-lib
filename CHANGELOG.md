@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed recommended `prong_in` on "Pi Pico + AirLift" from GP26 to GP22
 - Updated dmcomm-python to v0.5.0
 - Default mqtt server in secrets.py.example is now "mqtt.wificom.dev", changed from "mqtt-production.wificom.dev
+- Renamed secrets.py.example to secrets.example.py
 ### Removed
 - In secrets.py the values "ssid" and "password" are no longer used, removed from example
 
