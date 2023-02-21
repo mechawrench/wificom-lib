@@ -6,10 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Sound on/off config option
 - Multiple WiFi network support, configured through secrets.py, see secrets.py.example for updates
 - Retry each WiFi network up to 3 times each before moving on to the next
 - New sound "beep_wifi_failure" for when WiFi fails to connect
 ### Changed
+- Punchbag DigiROMs moved to `config.py` (`digiroms.py` removed)
+- Changed recommended `prong_in` on "Pi Pico + AirLift" from GP26 to GP22
+- Updated dmcomm-python to v0.5.0
 - Default mqtt server in secrets.py.example is now "mqtt.wificom.dev", changed from "mqtt-production.wificom.dev
 ### Removed
 - In secrets.py the values "ssid" and "password" are no longer used, removed from example

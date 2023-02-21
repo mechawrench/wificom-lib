@@ -29,7 +29,7 @@ import wificom.ui
 from wificom import nvm
 from wificom import mqtt
 from wificom.import_secrets import secrets_imported, secrets_error_display
-import digiroms
+from config import config
 
 gc.collect()
 print("Free memory after imports:", gc.mem_free())
@@ -303,7 +303,7 @@ def run_serial():
 					# It's an OtherCommand
 					raise NotImplementedError("op=" + command.op)
 				digirom = command
-				serial_print(f"{digirom.physical}{digirom.turn}-[{len(digirom)} packets]")
+				serial_print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
 			except (CommandError, NotImplementedError) as ex:
 				serial_print(repr(ex))
 			time.sleep(1)
@@ -318,8 +318,9 @@ def run_punchbag():
 	Run in punchbag mode.
 	'''
 	serial_print("Running punchbag")
-	names = [name for (name, rom) in digiroms.items]
-	roms = [dmcomm.protocol.parse_command(rom) for (name, rom) in digiroms.items]
+	digiroms = config["digiroms"]
+	names = [name for (name, rom) in digiroms]
+	roms = [dmcomm.protocol.parse_command(rom) for (name, rom) in digiroms]
 	while True:
 		rom = ui.menu(names, roms, "")
 		if rom == "":
@@ -381,6 +382,7 @@ else:
 
 displayio.release_displays()
 ui = wificom.ui.UserInterface(**board_config.ui_pins)  #pylint: disable=invalid-name
+ui.sound_on = config["sound_on"]
 
 run_column = 0
 if not ui.has_display:
