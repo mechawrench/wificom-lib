@@ -81,7 +81,7 @@ jobs:
 
       - name: Remove unnecessary files
         run: |
-          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip
+          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip .git .github .gitignore .pylintrc
   
       - uses: actions/upload-artifact@v2
         with:
