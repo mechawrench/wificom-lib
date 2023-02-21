@@ -3,7 +3,6 @@ wifi_picow.py
 Handles the WiFi connnection for Pico W.
 '''
 import ssl
-import time
 from wificom.import_secrets import secrets_wireless_networks, \
 	secrets_mqtt_broker, \
 	secrets_mqtt_username, \
@@ -11,7 +10,6 @@ from wificom.import_secrets import secrets_wireless_networks, \
 import wifi
 import socketpool
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
-import supervisor
 
 class Wifi:
 	'''
@@ -22,7 +20,7 @@ class Wifi:
 		return
 
 	# pylint: disable=invalid-name
-	def connect(self, ui, led):
+	def connect(self):
 		'''
 		Connect to a supported board's WiFi network
 		'''
@@ -54,33 +52,20 @@ class Wifi:
 						retries -= 1
 				if connected:
 					break
+
+			wifi.radio.stop_scanning_networks()
+
 			if not connected:
-				while not ui.is_c_pressed():
-					ui.display_text("WiFi Failed\nHold C to change")
-					ui.beep_error()
-					time.sleep(0.7)
-					ui.beep_error()
-					time.sleep(0.7)
-					ui.beep_error()
-					led.frequency = 1
-					led.duty_cycle = 0x7d0
+				return False
 
-				ui.beep_cancel()
-				time.sleep(0.5)
-				supervisor.reload()
+			pool = socketpool.SocketPool(wifi.radio)
 
+			mqtt_client = MQTT.MQTT(
+				broker=secrets_mqtt_broker,
+				username=secrets_mqtt_username.lower(),
+				password=secrets_mqtt_password,
+				socket_pool=pool,
+				ssl_context=ssl.create_default_context(),
+			)
 
-
-		wifi.radio.stop_scanning_networks()
-
-		pool = socketpool.SocketPool(wifi.radio)
-
-		mqtt_client = MQTT.MQTT(
-			broker=secrets_mqtt_broker,
-			username=secrets_mqtt_username.lower(),
-			password=secrets_mqtt_password,
-			socket_pool=pool,
-			ssl_context=ssl.create_default_context(),
-		)
-
-		return mqtt_client
+			return mqtt_client

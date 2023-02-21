@@ -29,7 +29,7 @@ class Wifi:
 			 self.esp32_reset)
 		socket.set_interface(self.esp)
 	# pylint: disable=unused-argument,invalid-name,inconsistent-return-statements
-	def connect(self, ui = None, led = None):
+	def connect(self):
 		'''
 		Connect to a supported board's WiFi network
 		'''
@@ -52,3 +52,4 @@ class Wifi:
 				#pylint: disable=broad-except,invalid-name
 				except Exception as e:
 					print("Failed to connect: ", e)
+		return False
