@@ -68,6 +68,11 @@ jobs:
           echo "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT" >> LICENSE.txt
           curl https://raw.githubusercontent.com/adafruit/Adafruit_CircuitPython_MiniMQTT/main/LICENSE >> LICENSE.txt
 
+      - uses: actions/upload-artifact@v2
+        with:
+          name: wificom_libs_merged.zip
+          path: .
+          
       - name: Create archive
         run: |
           rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip
@@ -80,11 +85,6 @@ jobs:
           mv release.zip $filename
           echo "FILENAME=$filename" >> $GITHUB_ENV
         shell: /usr/bin/bash -e {0}
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: wificom_libs_merged.zip
-          path: .
 
       - name: Attach to release
         if: github.event_name == 'release'
