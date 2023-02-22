@@ -315,7 +315,10 @@ def run_punchbag():
 			seconds_passed = time.monotonic() - time_start
 			if seconds_passed < 5:
 				time.sleep(5 - seconds_passed)
-		time.sleep(1)
+		ui.beep_cancel()
+		ui.display_text("Exiting\n(Release button)")
+		while ui.is_c_pressed():
+			pass
 
 def run_drive():
 	'''

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Punchbag DigiROMs moved to `config.py` (`digiroms.py` removed)
 - Changed recommended `prong_in` on "Pi Pico + AirLift" from GP26 to GP22
+- Can now return to punchbag menu from a punchbag DigiROM
 - Updated dmcomm-python to v0.5.0
 
 ## [0.8.0] - 2023-02-15
