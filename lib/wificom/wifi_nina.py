@@ -28,17 +28,16 @@ class Wifi:
 		self.esp = adafruit_esp32spi.ESP_SPIcontrol(self.spi, self.esp32_cs, self.esp32_ready, \
 			 self.esp32_reset)
 		socket.set_interface(self.esp)
-	# pylint: disable=unused-argument,invalid-name,inconsistent-return-statements
 	def connect(self):
 		'''
 		Connect to a supported board's WiFi network
 		'''
-		for network in secrets_wireless_networks:
+		for _ in secrets_wireless_networks:
 			#pylint: disable=unused-variable
 			for i in range(3):
 				try:
-					print("Connecting to", network['ssid'])
-					self.esp.connect_AP(network['ssid'], network['password'])
+					print("Connecting to", _['ssid'])
+					self.esp.connect_AP(_['ssid'], _['password'])
 
 					mqtt_client = MQTT.MQTT(
 						broker=secrets_mqtt_broker,
@@ -51,5 +50,5 @@ class Wifi:
 					return mqtt_client
 				#pylint: disable=broad-except,invalid-name
 				except Exception as e:
-					print("Failed to connect: ", e)
+					print(f"Failed to connect: {type(e)} - {e}")
 		return None
