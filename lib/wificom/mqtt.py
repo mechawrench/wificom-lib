@@ -46,10 +46,13 @@ def connect_to_mqtt(mqtt_client):
 		try:
 			print(f"Connecting to MQTT Broker (attempt {attempt+1})...")
 			_mqtt_client.connect()
-			break
+
+			return _mqtt_client
+		# pylint: disable=bare-except
 		except:
 			attempt += 1
 			time.sleep(1)
+	# pylint: disable=useless-else-on-loop
 	else:
 		print("Unable to connect to MQTT Broker after 3 attempts.")
 		return None
