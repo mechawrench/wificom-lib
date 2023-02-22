@@ -27,42 +27,39 @@ _io = None
 _mqtt_client = None
 
 def connect_to_mqtt(mqtt_client):
-	'''
-	Connect to the MQTT broker
-	'''
-	# Initialize MQTT interface
-	# pylint: disable=global-statement
-	global _mqtt_client
-	_mqtt_client = mqtt_client
+    '''
+    Connect to the MQTT broker
+    '''
+    # Initialize MQTT interface
+    global _mqtt_client
+    _mqtt_client = mqtt_client
 
-	_mqtt_client.on_connect = connect
-	_mqtt_client.on_disconnect = disconnect
-	_mqtt_client.on_subscribe = subscribe
-	_mqtt_client.on_unsubscribe = unsubscribe
+    _mqtt_client.on_connect = connect
+    _mqtt_client.on_disconnect = disconnect
+    _mqtt_client.on_subscribe = subscribe
+    _mqtt_client.on_unsubscribe = unsubscribe
 
-	# Connect to MQTT Broker
-	attempt = 0
-	while attempt < 3:
-		try:
-			print(f"Connecting to MQTT Broker (attempt {attempt+1})...")
-			_mqtt_client.connect()
+    # Connect to MQTT Broker
+    attempt = 0
+    while attempt < 3:
+        try:
+            print(f"Connecting to MQTT Broker (attempt {attempt+1})...")
+            _mqtt_client.connect()
+            break
+        except:
+            attempt += 1
+            time.sleep(1)
+    else:
+        print("Unable to connect to MQTT Broker after 3 attempts.")
+        return None
 
-			return _mqtt_client
-		# pylint: disable=bare-except
-		except:
-			attempt += 1
-			time.sleep(1)
-	# pylint: disable=useless-else-on-loop
-	else:
-		print("Unable to connect to MQTT Broker after 3 attempts.")
-		return None
+    # Use _mqtt_client to subscribe to the mqtt_topic_input feed
+    _mqtt_client.subscribe(_mqtt_topic_input)
 
-	# Use _mqtt_client to subscribe to the mqtt_topic_input feed
-	_mqtt_client.subscribe(_mqtt_topic_input)
+    # Set up a callback for the topic/feed
+    _mqtt_client.add_topic_callback(_mqtt_topic_input, on_app_feed_callback)
 
-	# Set up a callback for the topic/feed
-	_mqtt_client.add_topic_callback(_mqtt_topic_input, on_app_feed_callback)
-
+    return _mqtt_client
 
 def loop():
 	'''
