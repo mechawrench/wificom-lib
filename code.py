@@ -201,12 +201,12 @@ def run_wifi():
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
 	if mqtt_client is None:
-		connection_failure_alert(mqtt_client, 'WiFi')
+		connection_failure_alert('WiFi')
 	ui.display_text("Connecting to MQTT")
 	# pylint: disable=assignment-from-none
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
-		connection_failure_alert(mqtt_connect, "MQTT")
+		connection_failure_alert("MQTT")
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 	ui.display_text("WiFi\nHold C to change")
@@ -264,7 +264,7 @@ def run_wifi():
 					break
 				time.sleep(0.1)
 
-def connection_failure_alert(connection, failure_type):
+def connection_failure_alert(failure_type):
 	'''
 	Alert on connection failure.
 	'''
