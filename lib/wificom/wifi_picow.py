@@ -30,16 +30,16 @@ class Wifi:
 		connected = False
 		while not connected:
 			print("Scanning for networks...")
-			for _ in secrets_wireless_networks:
+			for network in secrets_wireless_networks:
 				retries = num_retries
 				while retries > 0:
 					#pylint: disable=consider-using-set-comprehension
 					found = set([wifi.ssid for wifi in wifi.radio.start_scanning_networks()])
-					if _['ssid'] in found:
-						print(f"Connecting to {_['ssid']} \
+					if network['ssid'] in found:
+						print(f"Connecting to {network['ssid']} \
 							(attempt {num_retries-retries+1} of {num_retries})...")
 						try:
-							wifi.radio.connect(_['ssid'], _['password'])
+							wifi.radio.connect(network['ssid'], network['password'])
 						except ConnectionError as e:
 							print("Failed to connect, retrying: ", e)
 						#pylint: disable=no-else-break

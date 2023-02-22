@@ -32,12 +32,11 @@ class Wifi:
 		'''
 		Connect to a supported board's WiFi network
 		'''
-		for _ in secrets_wireless_networks:
-			#pylint: disable=unused-variable
-			for i in range(3):
+		for network in secrets_wireless_networks:
+			for _ in range(3):
 				try:
-					print("Connecting to", _['ssid'])
-					self.esp.connect_AP(_['ssid'], _['password'])
+					print("Connecting to", network['ssid'])
+					self.esp.connect_AP(network['ssid'], network['password'])
 
 					mqtt_client = MQTT.MQTT(
 						broker=secrets_mqtt_broker,
