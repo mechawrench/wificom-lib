@@ -7,17 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Sound on/off config option
+- GitHub Action to compile libraries into mpy files, removes all lib/**/*.py files that are not empty before archiving for release and artifacts
 - Multiple WiFi network support, configured through secrets.py, see secrets.example.py for updates
 - Retry each WiFi network up to 3 times each before moving on to the next
 - New sound "beep_wifi_failure" for when WiFi fails to connect
 ### Changed
 - Punchbag DigiROMs moved to `config.py` (`digiroms.py` removed)
 - Changed recommended `prong_in` on "Pi Pico + AirLift" from GP26 to GP22
+- Can now return to punchbag menu from a punchbag DigiROM
 - Updated dmcomm-python to v0.5.0
 - Default mqtt server in secrets.example.py is now "mqtt.wificom.dev", changed from "mqtt-production.wificom.dev
 - Renamed secrets.py.example to secrets.example.py
 ### Removed
 - In secrets.py the values "ssid" and "password" are no longer used, removed from example.  Users must now use wifi_networks array instead.  This is a breaking change, you will get errors connecting to WiFi until you update your secrets.py file to match secrets.example.py
+- Combined merge-libs-from-remote.yml GitHub Action into single file with mpy compilation
 
 ## [0.8.0] - 2023-02-15
 ### Added
