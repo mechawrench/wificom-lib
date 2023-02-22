@@ -51,7 +51,7 @@ def connect_to_mqtt(mqtt_client):
             time.sleep(1)
     else:
         print("Unable to connect to MQTT Broker after 3 attempts.")
-        return None
+        return False
 
     # Use _mqtt_client to subscribe to the mqtt_topic_input feed
     _mqtt_client.subscribe(_mqtt_topic_input)
@@ -59,7 +59,7 @@ def connect_to_mqtt(mqtt_client):
     # Set up a callback for the topic/feed
     _mqtt_client.add_topic_callback(_mqtt_topic_input, on_app_feed_callback)
 
-    return _mqtt_client
+    return True
 
 def loop():
 	'''
