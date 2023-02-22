@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Sound on/off config option
 - MQTT retries on connection failure (set to 3 times)
-- New function wifi_failure_alert() in code.py to handle shared wifi/mqtt failure alerts
+- New function connection_failure_alert() in code.py to handle shared wifi/mqtt failure alerts
 ### Changed
 - Punchbag DigiROMs moved to `config.py` (`digiroms.py` removed)
 - Changed recommended `prong_in` on "Pi Pico + AirLift" from GP26 to GP22
