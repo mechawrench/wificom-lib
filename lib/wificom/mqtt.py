@@ -47,7 +47,7 @@ def connect_to_mqtt(mqtt_client):
 			print(f"Connecting to MQTT Broker (attempt {attempt+1})...")
 			_mqtt_client.connect()
 			break
-		# pylint: disable=bare-except
+		# pylint: disable=broad-except,invalid-name
 		except Exception as e:
 			print(f"Failed to connect to MQTT Broker: {type(e)} - {e}")
 			attempt += 1
