@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Sound on/off config option
+- MQTT retries on connection failure (set to 3 times)
+- New function connection_failure_alert() in code.py to handle shared wifi/mqtt failure alerts
 - GitHub Action to compile libraries into mpy files, removes all lib/**/*.py files that are not empty before archiving for release and artifacts
 - Multiple WiFi network support, configured through secrets.py, see secrets.example.py for updates
 - Retry each WiFi network up to 3 times each before moving on to the next

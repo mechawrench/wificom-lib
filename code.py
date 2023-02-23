@@ -203,7 +203,10 @@ def run_wifi():
 	if mqtt_client is None:
 		connection_failure_alert('WiFi')
 	ui.display_text("Connecting to MQTT")
-	mqtt.connect_to_mqtt(mqtt_client)
+	# pylint: disable=assignment-from-none
+	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
+	if mqtt_connect is False:
+		connection_failure_alert("MQTT")
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 	ui.display_text("WiFi\nHold C to change")
@@ -260,6 +263,7 @@ def run_wifi():
 				if time.monotonic() - time_start >= 5:
 					break
 				time.sleep(0.1)
+
 def connection_failure_alert(failure_type):
 	'''
 	Alert on connection failure.
@@ -273,6 +277,7 @@ def connection_failure_alert(failure_type):
 		if ui.is_c_pressed():
 			time.sleep(2)
 			supervisor.reload()
+
 def run_serial():
 	'''
 	Run in serial mode.

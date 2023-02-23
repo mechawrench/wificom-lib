@@ -2,6 +2,7 @@
 mqtt.py
 Handle MQTT connections, subscriptions, and callbacks
 '''
+import time
 import json
 from wificom.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
@@ -40,15 +41,28 @@ def connect_to_mqtt(mqtt_client):
 	_mqtt_client.on_unsubscribe = unsubscribe
 
 	# Connect to MQTT Broker
-	print("Connecting to MQTT Broker...")
-	# _io.connect()
-	_mqtt_client.connect()
+	attempt = 0
+	while attempt < 3:
+		try:
+			print(f"Connecting to MQTT Broker (attempt {attempt+1})...")
+			_mqtt_client.connect()
+			break
+		# pylint: disable=broad-except,invalid-name
+		except Exception as e:
+			print(f"Failed to connect to MQTT Broker: {type(e)} - {e}")
+			attempt += 1
+			time.sleep(1)
+	else:
+		print("Unable to connect to MQTT Broker after 3 attempts.")
+		return False
 
 	# Use _mqtt_client to subscribe to the mqtt_topic_input feed
 	_mqtt_client.subscribe(_mqtt_topic_input)
 
 	# Set up a callback for the topic/feed
 	_mqtt_client.add_topic_callback(_mqtt_topic_input, on_app_feed_callback)
+
+	return True
 
 def loop():
 	'''
