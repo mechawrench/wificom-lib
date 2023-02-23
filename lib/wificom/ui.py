@@ -151,6 +151,13 @@ class UserInterface:
 		'''
 		f = self.audio_base_freq
 		self._speaker.play([(f, 0.15), (f/2, 0.15)])
+	def beep_wifi_failure(self):
+		'''
+		Beep for WiFi connection failure.
+		'''
+		for _ in range(3):
+			self.beep_error()
+			time.sleep(0.8)
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.

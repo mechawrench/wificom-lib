@@ -200,11 +200,12 @@ def run_wifi():
 	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
+	if mqtt_client is None:
+		connection_failure_alert('WiFi')
 	ui.display_text("Connecting to MQTT")
 	mqtt.connect_to_mqtt(mqtt_client)
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
-
 	ui.display_text("WiFi\nHold C to change")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
@@ -259,7 +260,19 @@ def run_wifi():
 				if time.monotonic() - time_start >= 5:
 					break
 				time.sleep(0.1)
-
+def connection_failure_alert(failure_type):
+	'''
+	Alert on connection failure.
+	'''
+	led.duty_cycle = 0
+	# pylint: disable=consider-using-f-string
+	ui.display_text("{} Failed\nHold C to reboot".format(failure_type))
+	ui.beep_wifi_failure()
+	while True:
+		time.sleep(0.5)
+		if ui.is_c_pressed():
+			time.sleep(2)
+			supervisor.reload()
 def run_serial():
 	'''
 	Run in serial mode.
