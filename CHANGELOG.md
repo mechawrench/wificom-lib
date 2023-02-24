@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multiple WiFi network support, configured through secrets.py, see secrets.example.py for updates
 - Retry each WiFi network up to 3 times each before moving on to the next
 - New sound "beep_wifi_failure" for when WiFi fails to connect
-- Added audible beep for when a DigiROM is received via MQTT while on Wifi mode
+- Audible beep for when a DigiROM is received via MQTT while on Wifi mode
 ### Changed
 - Punchbag DigiROMs moved to `config.py` (`digiroms.py` removed)
 - Changed recommended `prong_in` on "Pi Pico + AirLift" from GP26 to GP22
