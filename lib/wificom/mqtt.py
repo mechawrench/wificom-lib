@@ -10,6 +10,7 @@ secrets_user_uuid
 
 last_application_id = None
 is_output_hidden = None
+api_response = None
 new_digirom = None
 rtb_user_type = None
 rtb_active = False
@@ -127,6 +128,15 @@ def send_rtb_digirom_output(output):
 		else:
 			print("RTB not active, shouldn't be calling this callback while RTB is inactive")
 
+def handle_result(result):
+	'''
+	Handle the DigiROM result according to settings
+	'''
+	if not api_response:
+		print(result)
+	else:
+		print("DigiROM executed")
+
 def quit_rtb():
 	'''
 	Exit from any real-time battle
@@ -147,14 +157,14 @@ def quit_rtb():
 	rtb_digirom = None
 
 def on_app_feed_callback(client, topic, message):
-	# pylint: disable=unused-argument
+	# pylint: disable=unused-argument,consider-using-f-string
 	'''
 	Method called whenever application specific feed/topic has received data
 		Expected request body:
 		{
 			"output": "V1-0000", # This would likely be the packet to send to the next device, WIP
 			"application_id": APP_UUID,
-			"hide_output": False,
+			"api_response": False,
 			"host": "BrassBolt",
 			"topic_action" = "subscribe", # subscribe/unsubscribe
 			"topic": "RTB_TOPIC_GOES_HERE,
@@ -162,14 +172,24 @@ def on_app_feed_callback(client, topic, message):
 			"ack_id" 111111 # Acknowledgement ID, used to acknowledge the message
 		}
 	'''
-	# pylint: disable=consider-using-f-string
-	print("New message on topic {0}: {1} ".format(topic, message))
+
+	print("New message on topic {0}".format(topic), end="")
 
 	# parse message as json
-	message_json = json.loads(message)
+	try:
+		message_json = json.loads(message)
+	except json.decoder.JSONDecodeError:
+		print(":", message)
+		raise
+
+	if not message_json["api_response"]:
+		print(":", message, end="")
+	if is_output_hidden:
+		print("check the App", end="")
+	print()
 
 	# pylint: disable=global-statement
-	global last_application_id, is_output_hidden, new_digirom, rtb_user_type, \
+	global last_application_id, api_response, new_digirom, rtb_user_type, \
 			rtb_active, rtb_host, rtb_topic, rtb_battle_type
 
 	# If message has an ack_id, acknowledge it
@@ -205,9 +225,13 @@ def on_app_feed_callback(client, topic, message):
 		)
 	else:
 		# Here we deal with a normal message, one without a topic sub/unsub action
-		is_output_hidden = message_json['hide_output']
+		api_response = message_json['api_response']
 		last_application_id = message_json['application_id']
 		new_digirom = message_json['digirom']
+		print("Received new DigiROM", end="")
+		if not api_response:
+			print(":", new_digirom, end="")
+		print()
 
 def on_realtime_battle_feed_callback(client, topic, message):
 	# pylint: disable=unused-argument
