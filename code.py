@@ -214,6 +214,7 @@ def run_wifi():
 		time_start = time.monotonic()
 		replacement_digirom = mqtt.get_subscribed_output()
 		if replacement_digirom is not None:
+			ui.beep_activate()
 			if not mqtt.is_output_hidden:
 				print("New digirom:", replacement_digirom)
 			else:
