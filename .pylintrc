@@ -149,20 +149,25 @@ disable=raw-checker-failed,
         locally-disabled,
         file-ignored,
         suppressed-message,
-        useless-suppression,
+        # useless-suppression,
         deprecated-pragma,
         use-symbolic-message-instead,
         # Custom
         import-error, # We don't include
         no-member ,
         too-few-public-methods,
-        no-name-in-module
+        no-name-in-module,
+        too-many-arguments,
+        no-else-break,
+        no-else-return,
+        no-self-use,
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once). See also the "--disable" option for examples.
-enable=c-extension-no-member
+enable=c-extension-no-member,
+        # useless-suppression  # has false positives?
 
 
 [LOGGING]
@@ -553,13 +558,13 @@ function-naming-style=snake_case
 #function-rgx=
 
 # Good variable names which should always be accepted, separated by a comma.
-good-names=f,
+good-names=e,
+           f,
            i,
            j,
            k,
            x,
            y,
-           ex,
            Run,
            _
 

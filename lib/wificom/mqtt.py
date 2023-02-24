@@ -2,6 +2,9 @@
 mqtt.py
 Handle MQTT connections, subscriptions, and callbacks
 '''
+
+# pylint: disable=global-statement,unused-argument
+
 import time
 import json
 from wificom.import_secrets import secrets_mqtt_username, \
@@ -32,7 +35,6 @@ def connect_to_mqtt(mqtt_client):
 	Connect to the MQTT broker
 	'''
 	# Initialize MQTT interface
-	# pylint: disable=global-statement
 	global _mqtt_client
 	_mqtt_client = mqtt_client
 
@@ -48,8 +50,7 @@ def connect_to_mqtt(mqtt_client):
 			print(f"Connecting to MQTT Broker (attempt {attempt+1})...")
 			_mqtt_client.connect()
 			break
-		# pylint: disable=broad-except,invalid-name
-		except Exception as e:
+		except Exception as e:  # pylint: disable=broad-except
 			print(f"Failed to connect to MQTT Broker: {type(e)} - {e}")
 			attempt += 1
 			time.sleep(1)
@@ -75,7 +76,6 @@ def get_subscribed_output(clear_rom=True):
 	'''
 	Get the output from the MQTT broker, and load in new Digirom (and clear if clear_rom is True)
 	'''
-	# pylint: disable=global-statement,global-variable-not-assigned
 	global new_digirom
 	returned_digirom = new_digirom
 
@@ -90,8 +90,6 @@ def send_digirom_output(output):
 	Set last_application_id for use server side
 	'''
 	# 8 or less characters is the loaded digirom
-	# pylint: disable=global-statement,global-variable-not-assigned
-	global last_application_id, rtb_active, rtb_user_type, rtb_topic
 
 	# create json object containing output and device_uuid
 	mqtt_message = {
@@ -111,8 +109,6 @@ def send_rtb_digirom_output(output):
 	'''
 	# 8 or less characters is the loaded digirom
 	if output is not None and len(str(output)) > 8:
-		# pylint: disable=global-statement,global-variable-not-assigned
-		global last_application_id, rtb_active, rtb_user_type, rtb_topic
 		# create json object containing output and device_uuid
 		mqtt_message = {
 			"application_id": 1,
@@ -141,14 +137,12 @@ def quit_rtb():
 	'''
 	Exit from any real-time battle
 	'''
-	# pylint: disable=global-statement
 	global rtb_user_type, rtb_active, rtb_host, rtb_battle_type, rtb_topic, rtb_digirom
 	if rtb_topic is not None:
 		try:
 			_mqtt_client.unsubscribe(rtb_host + "/f/" + rtb_topic)
-		# pylint: disable=broad-except
-		except (Exception) as error:
-			print(error)
+		except Exception as e:  # pylint: disable=broad-except
+			print(e)
 	rtb_user_type = None
 	rtb_active = False
 	rtb_host = None
@@ -157,7 +151,6 @@ def quit_rtb():
 	rtb_digirom = None
 
 def on_app_feed_callback(client, topic, message):
-	# pylint: disable=unused-argument,consider-using-f-string
 	'''
 	Method called whenever application specific feed/topic has received data
 		Expected request body:
@@ -173,7 +166,7 @@ def on_app_feed_callback(client, topic, message):
 		}
 	'''
 
-	print("New message on topic {0}".format(topic), end="")
+	print(f"New message on topic {topic}", end="")
 
 	# parse message as json
 	try:
@@ -188,7 +181,6 @@ def on_app_feed_callback(client, topic, message):
 		print("check the App", end="")
 	print()
 
-	# pylint: disable=global-statement
 	global last_application_id, api_response, new_digirom, rtb_user_type, \
 			rtb_active, rtb_host, rtb_topic, rtb_battle_type
 
@@ -234,7 +226,6 @@ def on_app_feed_callback(client, topic, message):
 		print()
 
 def on_realtime_battle_feed_callback(client, topic, message):
-	# pylint: disable=unused-argument
 	'''
 	Method called whenever a realtime battle topic has received data
 
@@ -245,12 +236,10 @@ def on_realtime_battle_feed_callback(client, topic, message):
 			"user_type": "guest" # Guest or Host, each side expects the opposite for real messages
 		}
 	'''
-	# pylint: disable=consider-using-f-string
-	print("New RTB message on topic {0}: {1} ".format(topic, message))
+	print(f"New RTB message on topic {topic}: {message}")
 	# parse message as json
 	message_json = json.loads(message)
 
-	# pylint: disable=global-statement
 	global last_application_id, rtb_digirom
 
 	if rtb_active:
@@ -263,30 +252,26 @@ def on_realtime_battle_feed_callback(client, topic, message):
 	else:
 		print("realtime battle is not active, shouldn't be receiving data to this callback..")
 
-# pylint: disable=unused-argument
 def connect(client, userdata, flags, r_c):
 	'''
 	This method is called when the client connects to MQTT Broker
 	'''
 	print('Connected to MQTT Broker!')
 
-# pylint: disable=unused-argument
 def disconnect(client, userdata, r_c):
 	'''
 	This method is called when the client disconnects from the MQTT Broker
 	'''
 	print('Disconnected from MQTT Broker!')
 
-# pylint: disable=unused-argument,consider-using-f-string
 def subscribe(client, userdata, topic, granted_qos):
 	'''
 	This method is called when the client subscribes to a new feed.
 	'''
-	print('Subscribed to {0} with QOS level {1}'.format(topic, granted_qos))
+	print(f"Subscribed to {topic} with QOS level {granted_qos}")
 
-# pylint: disable=unused-argument,consider-using-f-string
 def unsubscribe(client, userdata, topic, pid):
 	'''
 	This method is called when the client unsubscribes from a feed.
 	'''
-	print('Unsubscribed from {0} with PID {1}'.format(topic, pid))
+	print(f"Unsubscribed from {topic} with PID {pid}")

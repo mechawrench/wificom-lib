@@ -15,11 +15,9 @@ class Wifi:
 	'''
 	Handles WiFi connection for supported boards
 	'''
-	# pylint: disable=too-many-arguments
 	def __init__(self):
 		return
 
-	# pylint: disable=invalid-name
 	def connect(self):
 		'''
 		Connect to a supported board's WiFi network
@@ -33,7 +31,7 @@ class Wifi:
 			for network in secrets_wireless_networks:
 				retries = num_retries
 				while retries > 0:
-					#pylint: disable=consider-using-set-comprehension
+					# pylint: disable=consider-using-set-comprehension
 					found = set([wifi.ssid for wifi in wifi.radio.start_scanning_networks()])
 					if network['ssid'] in found:
 						print(f"Connecting to {network['ssid']} \
@@ -42,7 +40,7 @@ class Wifi:
 							wifi.radio.connect(network['ssid'], network['password'])
 						except ConnectionError as e:
 							print("Failed to connect, retrying: ", e)
-						#pylint: disable=no-else-break
+
 						if wifi.radio.ipv4_address is not None:
 							connected = True
 							break
