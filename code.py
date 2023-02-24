@@ -212,8 +212,8 @@ def run_wifi():
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		replacement_digirom = mqtt.get_subscribed_output()
-
 		if replacement_digirom is not None:
+    	ui.beep_activate()
 			digirom = dmcomm.protocol.parse_command(replacement_digirom)
 
 		if mqtt.rtb_active:
