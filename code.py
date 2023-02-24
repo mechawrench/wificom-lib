@@ -42,21 +42,20 @@ def serial_print(contents, end="\n"):
 
 def execute_digirom(rom):
 	'''
-	Execute the digirom and report results according to reporting settings.
+	Execute the digirom and report results.
 	'''
-	error = ""
-	result_end = "\n"
 	try:
 		controller.execute(rom)
+		result = str(rom.result)
 	except (CommandError, ReceiveError) as ex:
-		error = repr(ex)
-		result_end = " "
-	if not mqtt.is_output_hidden:
-		serial_print(str(rom.result), result_end)
+		result = str(rom.result)
+		if len(result) > 0:
+			result += " "
+		result += repr(ex)
+	if serial == usb_cdc.data:
+		serial_print(result)
 	else:
-		serial_print("Received output, check the App")
-	if error != "":
-		serial_print(error)
+		mqtt.handle_result(result)
 
 rtb_types = {
 	("legendz", "host"): rt.RealTimeHostTalis,
@@ -213,11 +212,6 @@ def run_wifi():
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		replacement_digirom = mqtt.get_subscribed_output()
-		if replacement_digirom is not None:
-			if not mqtt.is_output_hidden:
-				print("New digirom:", replacement_digirom)
-			else:
-				serial_print("Received digirom input, check the App")
 
 		if replacement_digirom is not None:
 			digirom = dmcomm.protocol.parse_command(replacement_digirom)
