@@ -19,7 +19,6 @@ class Wifi:
 	'''
 	Handles WiFi connection for supported boards
 	'''
-	# pylint: disable=too-many-arguments
 	def __init__(self, esp32_cs, esp32_busy, esp32_reset, esp32_sck, esp32_mosi, esp32_miso):
 		self.esp32_cs = DigitalInOut(esp32_cs)
 		self.esp32_ready = DigitalInOut(esp32_busy)
@@ -47,7 +46,6 @@ class Wifi:
 					MQTT.set_socket(socket, self.esp)
 
 					return mqtt_client
-				#pylint: disable=broad-except,invalid-name
-				except Exception as e:
+				except Exception as e:  # pylint: disable=broad-except
 					print(f"Failed to connect: {type(e)} - {e}")
 		return None

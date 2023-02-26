@@ -188,7 +188,7 @@ class RealTimeHostPenXBattle(RealTimeHost):
 		return len(self.result) == 7 and self.result[6].data is not None
 	def message(self):
 		'''RealTime interface'''
-		#pylint: disable=consider-using-f-string
+		# pylint: disable=consider-using-f-string
 		return "X2-{0}-{1}-{2}-@4^3^F9".format(
 			str(self.result[0])[2:],
 			str(self.result[2])[2:],
@@ -216,7 +216,7 @@ class RealTimeGuestPenXBattle(RealTimeGuest):
 		return len(self.result) == 9
 	def message(self):
 		'''RealTime interface'''
-		#pylint: disable=consider-using-f-string
+		# pylint: disable=consider-using-f-string
 		return "X1-{0}-{1}-{2}-{3}".format(
 			str(self.result[0])[2:],
 			str(self.result[2])[2:],

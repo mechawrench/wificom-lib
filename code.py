@@ -2,6 +2,9 @@
 This file is part of the DMComm project by BladeSabre. License: MIT.
 WiFiCom on supported boards (see board_config.py).
 '''
+
+# pylint: disable=wrong-import-order,wrong-import-position
+
 import time
 import gc
 import digitalio
@@ -12,14 +15,12 @@ import supervisor
 import usb_cdc
 
 # Light LED dimly while starting up. Doing this here because the following imports are slow.
-# pylint: disable=wrong-import-order,wrong-import-position
 gc.collect()
 print("Free memory at start:", gc.mem_free())
 LED_DUTY_CYCLE_DIM=0x1000
 import board_config
 led = pwmio.PWMOut(board_config.led_pin,
 	duty_cycle=LED_DUTY_CYCLE_DIM, frequency=1000, variable_frequency=True)
-# pylint: enable=wrong-import-order,wrong-import-position
 
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
@@ -47,11 +48,11 @@ def execute_digirom(rom):
 	try:
 		controller.execute(rom)
 		result = str(rom.result)
-	except (CommandError, ReceiveError) as ex:
+	except (CommandError, ReceiveError) as e:
 		result = str(rom.result)
 		if len(result) > 0:
 			result += " "
-		result += repr(ex)
+		result += repr(e)
 	if serial == usb_cdc.data:
 		serial_print(result)
 	else:
@@ -202,7 +203,6 @@ def run_wifi():
 	if mqtt_client is None:
 		connection_failure_alert('WiFi')
 	ui.display_text("Connecting to MQTT")
-	# pylint: disable=assignment-from-none
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
 		connection_failure_alert("MQTT")
@@ -263,8 +263,7 @@ def connection_failure_alert(failure_type):
 	Alert on connection failure.
 	'''
 	led.duty_cycle = 0
-	# pylint: disable=consider-using-f-string
-	ui.display_text("{} Failed\nHold C to reboot".format(failure_type))
+	ui.display_text(f"{failure_type} Failed\nHold C to reboot")
 	ui.beep_wifi_failure()
 	while True:
 		time.sleep(0.5)
@@ -299,8 +298,8 @@ def run_serial():
 					raise NotImplementedError("op=" + command.op)
 				digirom = command
 				serial_print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
-			except (CommandError, NotImplementedError) as ex:
-				serial_print(repr(ex))
+			except (CommandError, NotImplementedError) as e:
+				serial_print(repr(e))
 			time.sleep(1)
 		if digirom is not None:
 			execute_digirom(digirom)
@@ -379,7 +378,7 @@ else:
 	serial_print("not requested")
 
 displayio.release_displays()
-ui = wificom.ui.UserInterface(**board_config.ui_pins)  #pylint: disable=invalid-name
+ui = wificom.ui.UserInterface(**board_config.ui_pins)
 ui.sound_on = config["sound_on"]
 
 run_column = 0

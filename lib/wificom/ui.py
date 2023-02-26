@@ -33,7 +33,6 @@ class UserInterface:
 	Handles the screen, buttons and menus.
 	'''
 	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker):
-		# pylint: disable=too-many-arguments
 		self._display = None
 		self.display_error = None
 		if None in (display_scl, display_sda, button_a, button_b):
@@ -45,8 +44,8 @@ class UserInterface:
 					i2c, device_address=SCREEN_ADDRESS)
 				self._display = adafruit_displayio_ssd1306.SSD1306(
 					display_bus, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)
-			except Exception as ex:  #pylint: disable=broad-except
-				self.display_error = ex
+			except Exception as e:  # pylint: disable=broad-except
+				self.display_error = e
 		self._buttons = {}
 		if self._display is not None:
 			self._buttons["A"] = digitalio.DigitalInOut(button_a)
@@ -168,8 +167,7 @@ class UserInterface:
 		selection = 0
 		text_rows = options[:]
 		while True:
-			# pylint: disable=consider-using-enumerate
-			for i in range(len(options)):
+			for i in range(len(options)):  # pylint: disable=consider-using-enumerate
 				if i == selection:
 					text_rows[i] = "> " + options[i]
 				else:
