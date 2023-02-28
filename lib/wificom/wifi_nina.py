@@ -7,21 +7,18 @@ Currently supported boards:
 '''
 import busio
 from digitalio import DigitalInOut
-from wificom.import_secrets import secrets_wifi_ssid,secrets_wifi_password, \
-	secrets_mqtt_broker, \
+from wificom.import_secrets import secrets_mqtt_broker, \
 	secrets_mqtt_username, \
-	secrets_mqtt_password
+	secrets_mqtt_password, \
+	secrets_wireless_networks
 from adafruit_esp32spi import adafruit_esp32spi
-from adafruit_esp32spi import adafruit_esp32spi_wifimanager
 import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
-
 
 class Wifi:
 	'''
 	Handles WiFi connection for supported boards
 	'''
-	# pylint: disable=too-many-arguments
 	def __init__(self, esp32_cs, esp32_busy, esp32_reset, esp32_sck, esp32_mosi, esp32_miso):
 		self.esp32_cs = DigitalInOut(esp32_cs)
 		self.esp32_ready = DigitalInOut(esp32_busy)
@@ -30,36 +27,25 @@ class Wifi:
 		self.esp = adafruit_esp32spi.ESP_SPIcontrol(self.spi, self.esp32_cs, self.esp32_ready, \
 			 self.esp32_reset)
 		socket.set_interface(self.esp)
-
 	def connect(self):
 		'''
 		Connect to a supported board's WiFi network
 		'''
-		print("Connecting to WiFi network [" + secrets_wifi_ssid + "]...")
+		for network in secrets_wireless_networks:
+			for _ in range(3):
+				try:
+					print("Connecting to", network['ssid'])
+					self.esp.connect_AP(network['ssid'], network['password'])
 
-		secrets_payload = {
-			'ssid': secrets_wifi_ssid,
-			'password': secrets_wifi_password
-		}
+					mqtt_client = MQTT.MQTT(
+						broker=secrets_mqtt_broker,
+						username=secrets_mqtt_username.lower(),
+						password=secrets_mqtt_password,
+					)
 
-		wifi_manager = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(self.esp, secrets_payload)
+					MQTT.set_socket(socket, self.esp)
 
-		# Check status, attempt reconnect if connect attempt fails
-		try:
-			esp_status = self.esp.status
-			if esp_status == 0:
-				wifi_manager.connect()
-		except RuntimeError:
-			wifi_manager.reset()
-
-		print("Connected to WiFi network!")
-
-		mqtt_client = MQTT.MQTT(
-			broker=secrets_mqtt_broker,
-			username=secrets_mqtt_username.lower(),
-			password=secrets_mqtt_password,
-		)
-
-		MQTT.set_socket(socket, self.esp)
-
-		return mqtt_client
+					return mqtt_client
+				except Exception as e:  # pylint: disable=broad-except
+					print(f"Failed to connect: {type(e)} - {e}")
+		return None

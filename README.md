@@ -43,7 +43,7 @@ Credits to the other great developers on the WiFiCom Discord.
 1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION.zip"
 1. Extract the zip and copy the contents into the root of the CIRCUITPY drive
     - If you are using an unsupported board or custom circuit layout, then before copying to CIRCUITPY, modify "board_config.py" so that pinouts match your board
-1. Copy the "secrets.py.example" to "secrets.py" and make changes to match your environment (you can get a prefilled version on the website https://wificom.dev)
+1. Copy the "secrets.example.py" to "secrets.py" and make changes to match your environment (you can get a prefilled version on the website https://wificom.dev)
 1. Check that the system boots, then eject CIRCUITPY from the computer and replug the USB to enable the `boot.py` configuration
 1. Test that everything works, you should see the following output from Arduino IDE Serial Monitor (Mac/Linux) / MU Editor (Windows) after the screen comes up and you select "Wifi"
     ```
@@ -59,7 +59,7 @@ Credits to the other great developers on the WiFiCom Discord.
 1. Backup your current files, in particular the following are commonly modified:
     - secrets.py
     - board_config.py
-    - digiroms.py
+    - config.py (previously digiroms.py)
 1. Update CircuitPython if required
 1. Put the WiFiCom into drive mode so that the CIRCUITPY drive is writeable
 1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION.zip"
@@ -79,7 +79,7 @@ The UI has a small screen and 3 buttons. Some features are supported on a minima
 ### Menu options
 - WiFi: Connect to WiFi and MQTT and await instructions from the server
 - Serial: Act as a normal serial com unit
-- Punchbag: Communicate with the toys in a standalone mode (you can edit `digiroms.py` to change the available options in this submenu)
+- Punchbag: Communicate with the toys in a standalone mode (you can edit `config.py` to change the available options in this submenu)
 - Drive: Make the CIRCUITPY drive writeable so you can edit configuration or update firmware
 
 ## LED Indicator

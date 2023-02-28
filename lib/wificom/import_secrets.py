@@ -3,8 +3,7 @@ import_secrets.py
 Import secrets into variables
 '''
 
-secrets_wifi_ssid = ""
-secrets_wifi_password = ""
+secrets_wireless_networks = ""
 secrets_user_uuid = ""
 secrets_device_uuid = ""
 secrets_mqtt_broker = ""
@@ -16,8 +15,7 @@ secrets_error_display = ""
 try:
 	from secrets import secrets
 
-	secrets_wifi_ssid = secrets["ssid"]
-	secrets_wifi_password = secrets["password"]
+	secrets_wireless_networks = secrets["wireless_networks"]
 	secrets_user_uuid = secrets["user_uuid"]
 	secrets_device_uuid = secrets["device_uuid"]
 	secrets_mqtt_broker = secrets["broker"]

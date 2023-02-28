@@ -2,12 +2,14 @@
 board_config.py
 Handles differences between boards.
 
+Pi Pico W, with BladeSabre's pin assignments. RECOMMENDED.
+
 Arduino Nano RP2040 Connect, with BladeSabre's pin assignments.
 
 Pi Pico + AirLift, with BladeSabre's pin assignments.
 This was used for development but is no longer recommended.
+Screen is not included due to lack of pins.
 
-Pi Pico W, with BladeSabre's pin assignments.
 '''
 import board
 import dmcomm.hardware as hw
@@ -55,7 +57,7 @@ elif board.board_id == "raspberry_pi_pico":
 	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.GP19, board.GP21),
-		hw.ProngInput(board.GP26),
+		hw.ProngInput(board.GP22), #note this may need changed to GP26 on older builds
 		hw.InfraredOutput(board.GP16),
 		hw.InfraredInputModulated(board.GP17),
 		hw.InfraredInputRaw(board.GP14),
@@ -81,7 +83,10 @@ elif board.board_id == "raspberry_pi_pico":
 		"button_c": board.GP3,
 		"speaker": board.GP11,
 	}
-	# GP0-2 for flashing AirLift
+	# GP0-2 for flashing AirLift (not included in this software):
+	# GP0 TX to AirLift RX
+	# GP1 RX to AirLift TX
+	# GP2 to AirLift GP0
 elif board.board_id == "raspberry_pi_pico_w":
 	from wificom.wifi_picow import Wifi as WifiCls
 	led_pin = board.GP10

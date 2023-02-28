@@ -3,8 +3,7 @@ wifi_picow.py
 Handles the WiFi connnection for Pico W.
 '''
 import ssl
-from wificom.import_secrets import secrets_wifi_ssid, \
-	secrets_wifi_password, \
+from wificom.import_secrets import secrets_wireless_networks, \
 	secrets_mqtt_broker, \
 	secrets_mqtt_username, \
 	secrets_mqtt_password
@@ -12,12 +11,10 @@ import wifi
 import socketpool
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 
-
 class Wifi:
 	'''
 	Handles WiFi connection for supported boards
 	'''
-	# pylint: disable=too-many-arguments
 	def __init__(self):
 		return
 
@@ -25,23 +22,48 @@ class Wifi:
 		'''
 		Connect to a supported board's WiFi network
 		'''
-		print("Connecting to WiFi network [" + secrets_wifi_ssid + "]...")
 
-		secrets_payload = {
-			'ssid': secrets_wifi_ssid,
-			'password': secrets_wifi_password
-		}
+		# Initialize networking
+		num_retries = 3
+		connected = False
+		while not connected:
+			print("Scanning for networks...")
+			for network in secrets_wireless_networks:
+				retries = num_retries
+				while retries > 0:
+					# pylint: disable=consider-using-set-comprehension
+					found = set([wifi.ssid for wifi in wifi.radio.start_scanning_networks()])
+					if network['ssid'] in found:
+						print(f"Connecting to {network['ssid']} \
+							(attempt {num_retries-retries+1} of {num_retries})...")
+						try:
+							wifi.radio.connect(network['ssid'], network['password'])
+						except ConnectionError as e:
+							print("Failed to connect, retrying: ", e)
 
-		wifi.radio.connect(secrets_payload["ssid"], secrets_payload["password"])
+						if wifi.radio.ipv4_address is not None:
+							connected = True
+							break
+						else:
+							retries -= 1
+					else:
+						retries -= 1
+				if connected:
+					break
 
-		pool = socketpool.SocketPool(wifi.radio)
+			wifi.radio.stop_scanning_networks()
 
-		mqtt_client = MQTT.MQTT(
-			broker=secrets_mqtt_broker,
-			username=secrets_mqtt_username.lower(),
-			password=secrets_mqtt_password,
-			socket_pool=pool,
-			ssl_context=ssl.create_default_context(),
-		)
+			if not connected:
+				return None
 
-		return mqtt_client
+			pool = socketpool.SocketPool(wifi.radio)
+
+			mqtt_client = MQTT.MQTT(
+				broker=secrets_mqtt_broker,
+				username=secrets_mqtt_username.lower(),
+				password=secrets_mqtt_password,
+				socket_pool=pool,
+				ssl_context=ssl.create_default_context(),
+			)
+
+			return mqtt_client

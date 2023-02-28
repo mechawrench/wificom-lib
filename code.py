@@ -2,6 +2,9 @@
 This file is part of the DMComm project by BladeSabre. License: MIT.
 WiFiCom on supported boards (see board_config.py).
 '''
+
+# pylint: disable=wrong-import-order,wrong-import-position
+
 import time
 import gc
 import digitalio
@@ -12,14 +15,12 @@ import supervisor
 import usb_cdc
 
 # Light LED dimly while starting up. Doing this here because the following imports are slow.
-# pylint: disable=wrong-import-order,wrong-import-position
 gc.collect()
 print("Free memory at start:", gc.mem_free())
 LED_DUTY_CYCLE_DIM=0x1000
 import board_config
 led = pwmio.PWMOut(board_config.led_pin,
 	duty_cycle=LED_DUTY_CYCLE_DIM, frequency=1000, variable_frequency=True)
-# pylint: enable=wrong-import-order,wrong-import-position
 
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
@@ -29,7 +30,7 @@ import wificom.ui
 from wificom import nvm
 from wificom import mqtt
 from wificom.import_secrets import secrets_imported, secrets_error_display
-import digiroms
+from config import config
 
 gc.collect()
 print("Free memory after imports:", gc.mem_free())
@@ -42,21 +43,20 @@ def serial_print(contents, end="\n"):
 
 def execute_digirom(rom):
 	'''
-	Execute the digirom and report results according to reporting settings.
+	Execute the digirom and report results.
 	'''
-	error = ""
-	result_end = "\n"
 	try:
 		controller.execute(rom)
-	except (CommandError, ReceiveError) as ex:
-		error = repr(ex)
-		result_end = " "
-	if not mqtt.is_output_hidden:
-		serial_print(str(rom.result), result_end)
+		result = str(rom.result)
+	except (CommandError, ReceiveError) as e:
+		result = str(rom.result)
+		if len(result) > 0:
+			result += " "
+		result += repr(e)
+	if serial == usb_cdc.data:
+		serial_print(result)
 	else:
-		serial_print("Received output, check the App")
-	if error != "":
-		serial_print(error)
+		mqtt.handle_result(result)
 
 rtb_types = {
 	("legendz", "host"): rt.RealTimeHostTalis,
@@ -200,22 +200,20 @@ def run_wifi():
 	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
+	if mqtt_client is None:
+		connection_failure_alert('WiFi')
 	ui.display_text("Connecting to MQTT")
-	mqtt.connect_to_mqtt(mqtt_client)
+	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
+	if mqtt_connect is False:
+		connection_failure_alert("MQTT")
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
-
 	ui.display_text("WiFi\nHold C to change")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		replacement_digirom = mqtt.get_subscribed_output()
 		if replacement_digirom is not None:
-			if not mqtt.is_output_hidden:
-				print("New digirom:", replacement_digirom)
-			else:
-				serial_print("Received digirom input, check the App")
-
-		if replacement_digirom is not None:
+			ui.beep_activate()
 			digirom = dmcomm.protocol.parse_command(replacement_digirom)
 
 		if mqtt.rtb_active:
@@ -260,6 +258,19 @@ def run_wifi():
 					break
 				time.sleep(0.1)
 
+def connection_failure_alert(failure_type):
+	'''
+	Alert on connection failure.
+	'''
+	led.duty_cycle = 0
+	ui.display_text(f"{failure_type} Failed\nHold C to reboot")
+	ui.beep_wifi_failure()
+	while True:
+		time.sleep(0.5)
+		if ui.is_c_pressed():
+			time.sleep(2)
+			supervisor.reload()
+
 def run_serial():
 	'''
 	Run in serial mode.
@@ -286,9 +297,9 @@ def run_serial():
 					# It's an OtherCommand
 					raise NotImplementedError("op=" + command.op)
 				digirom = command
-				serial_print(f"{digirom.physical}{digirom.turn}-[{len(digirom)} packets]")
-			except (CommandError, NotImplementedError) as ex:
-				serial_print(repr(ex))
+				serial_print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
+			except (CommandError, NotImplementedError) as e:
+				serial_print(repr(e))
 			time.sleep(1)
 		if digirom is not None:
 			execute_digirom(digirom)
@@ -301,8 +312,9 @@ def run_punchbag():
 	Run in punchbag mode.
 	'''
 	serial_print("Running punchbag")
-	names = [name for (name, rom) in digiroms.items]
-	roms = [dmcomm.protocol.parse_command(rom) for (name, rom) in digiroms.items]
+	digiroms = config["digiroms"]
+	names = [name for (name, rom) in digiroms]
+	roms = [dmcomm.protocol.parse_command(rom) for (name, rom) in digiroms]
 	while True:
 		rom = ui.menu(names, roms, "")
 		if rom == "":
@@ -314,7 +326,10 @@ def run_punchbag():
 			seconds_passed = time.monotonic() - time_start
 			if seconds_passed < 5:
 				time.sleep(5 - seconds_passed)
-		time.sleep(1)
+		ui.beep_cancel()
+		ui.display_text("Exiting\n(Release button)")
+		while ui.is_c_pressed():
+			pass
 
 def run_drive():
 	'''
@@ -363,7 +378,8 @@ else:
 	serial_print("not requested")
 
 displayio.release_displays()
-ui = wificom.ui.UserInterface(**board_config.ui_pins)  #pylint: disable=invalid-name
+ui = wificom.ui.UserInterface(**board_config.ui_pins)
+ui.sound_on = config["sound_on"]
 
 run_column = 0
 if not ui.has_display:

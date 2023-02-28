@@ -1,22 +1,25 @@
-name: Merge libs into release and branch, create artifacts for testing
+name: Merge libs and compile CircuitPython files
 
 on:
-  release:
-    types: [created]
   push:
   pull_request:
+  release:
+    types: [published]
 
 jobs:
-  merge_libs:
+  merge_and_compile:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set Env Variable
-        run: |
-          echo "FILENAME=release" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
 
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Install required packages
+        run: sudo apt-get update && sudo apt-get -y install python3 python3-pip
+
+      - name: Download mpy-cross
+        run: |
+          wget https://adafruit-circuit-python.s3.amazonaws.com/bin/mpy-cross/mpy-cross.static-amd64-linux-8.0.0
+          chmod +x mpy-cross.static-amd64-linux-8.0.0
 
       - name: JSON to variables
         uses: antifree/json-to-variables@v1.0.1
@@ -28,11 +31,9 @@ jobs:
         run: |
           for key in dmcomm_python adafruit_bundle circuitpython_minimqtt; do
             value=$(eval echo "\$sources_$key")
-
             echo "Downloading and extracting $key..."
             wget $value -O sources_$key.zip
             unzip -q sources_$key.zip -d sources_$key
-
             echo "$key successfully downloaded and extracted."
           done
 
@@ -46,6 +47,28 @@ jobs:
           cp -r sources_adafruit_bundle/*/lib/adafruit_esp32spi   lib/
           cp -r sources_circuitpython_minimqtt/*/lib/* lib/
 
+      - name: Compile CircuitPython files to .mpy files
+        run: |
+          for file in $(find ./lib -type f -name "*.py"); do
+            if [ -s $file ]; then
+              echo "Compiling $file..."
+              ./mpy-cross.static-amd64-linux-8.0.0 $file
+            else
+              echo "Skipping $file because it is empty."
+            fi
+          done
+
+      - name: Delete original .py files in lib/ folder, except for empty ones
+        run: |
+          find ./lib -type f -name "*.py" | while read file; do
+            if [ -s $file ]; then
+              echo "Deleting $file because it is not empty."
+              rm $file
+            else
+              echo "Skipping $file because it is empty."
+            fi
+          done
+
       - name: Concatenate Licenses
         run: |
           echo -e "\n\n\ndmcomm-python" >> LICENSE.txt
@@ -57,33 +80,26 @@ jobs:
           echo -e "\n\n\nAdafruit_CircuitPython_MiniMQTT" >> LICENSE.txt
           echo "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT" >> LICENSE.txt
           curl https://raw.githubusercontent.com/adafruit/Adafruit_CircuitPython_MiniMQTT/main/LICENSE >> LICENSE.txt
-      
-      - name: Cleanup folder
-        id: cleanup_folder
-        run: |
-          rm -f release.zip .gitignore .pylintrc
-          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip
-          rm -rf .git .github
 
-      - uses: actions/upload-artifact@v3
+      - name: Remove unnecessary files
+        run: |
+          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip .git .github .gitignore .pylintrc mpy-cross.static-amd64-linux-8.0.0
+  
+      - uses: actions/upload-artifact@v2
         with:
           name: wificom_libs_merged.zip
           path: .
 
       - name: Create archive
-        id: create_archive
         run: |
-          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip
           zip -r release.zip *
           if [[ $GITHUB_REF =~ refs/tags/.* ]]; then
             filename="wificom-lib_$(echo $GITHUB_REF | awk -F/ '{print $3}').zip"
           else
             filename="wificom-lib_$GITHUB_SHA.zip"
           fi
-          current_value=$FILENAME
-          modified_value="$filename"
-          echo "FILENAME=$modified_value" >> $GITHUB_ENV
-          cp release.zip $filename
+          mv release.zip $filename
+          echo "FILENAME=$filename" >> $GITHUB_ENV
         shell: /usr/bin/bash -e {0}
 
       - name: Attach to release
