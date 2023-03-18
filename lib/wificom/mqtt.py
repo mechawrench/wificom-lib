@@ -71,7 +71,7 @@ def loop():
 	Loop IO MQTT client
 	'''
 	try:
-		_mqtt_client.loop(timeout=2.0)
+		_mqtt_client.loop()
 		return True
 	# pylint: disable=broad-except
 	except Exception:
@@ -106,7 +106,11 @@ def send_digirom_output(output):
 	mqtt_message_json = json.dumps(mqtt_message)
 
 	if _mqtt_client.is_connected:
-		_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
+		try:
+			_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
+		#pylint: disable=broad-except
+		except Exception:
+			print("Failed to send MQTT message")
 
 def send_rtb_digirom_output(output):
 	'''

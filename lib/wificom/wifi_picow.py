@@ -64,8 +64,8 @@ class Wifi:
 				password=secrets_mqtt_password,
 				socket_pool=pool,
 				ssl_context=ssl.create_default_context(),
-				keep_alive=7,
-				recv_timeout=7,
+				keep_alive=5,
+				recv_timeout=5,
 				connect_retries=1,
 			)
 
