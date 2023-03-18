@@ -9,6 +9,9 @@ on:
 jobs:
   merge_and_compile:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [nina, picow]
 
     steps:
       - uses: actions/checkout@v3
@@ -28,24 +31,35 @@ jobs:
           prefix: sources
 
       - name: Download and extract sources
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
-          for key in dmcomm_python adafruit_bundle circuitpython_minimqtt; do
+          for key in dmcomm_python adafruit_bundle; do
             value=$(eval echo "\$sources_$key")
             echo "Downloading and extracting $key..."
             wget $value -O sources_$key.zip
             unzip -q sources_$key.zip -d sources_$key
             echo "$key successfully downloaded and extracted."
           done
+          key="circuitpython_minimqtt"
+          value=$(eval echo "\$sources_${PLATFORM}_${key}")
+          echo "Platform: $PLATFORM"
+          echo "Downloading and extracting $key for $PLATFORM..."
+          wget $value -O sources_${PLATFORM}_${key}.zip
+          unzip -q sources_${PLATFORM}_${key}.zip -d sources_${PLATFORM}_${key}
+          echo "$key for $PLATFORM successfully downloaded and extracted."
 
       - name: Merge libs
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
           cp -r sources_dmcomm_python/*/lib/* lib/
           cp -r sources_adafruit_bundle/*/lib/adafruit_bus_device lib/
           cp -r sources_adafruit_bundle/*/lib/adafruit_display_text lib/
           cp -r sources_adafruit_bundle/*/lib/adafruit_displayio_ssd1306.mpy lib/
           cp -r sources_adafruit_bundle/*/lib/adafruit_requests.mpy lib/
-          cp -r sources_adafruit_bundle/*/lib/adafruit_esp32spi   lib/
-          cp -r sources_circuitpython_minimqtt/*/lib/* lib/
+          cp -r sources_adafruit_bundle/*/lib/adafruit_esp32spi lib/
+          cp -r sources_${PLATFORM}_circuitpython_minimqtt/*/lib/* lib/
 
       - name: Compile CircuitPython files to .mpy files
         run: |
@@ -83,20 +97,22 @@ jobs:
 
       - name: Remove unnecessary files
         run: |
-          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_circuitpython_minimqtt *.zip .git .github .gitignore .pylintrc mpy-cross.static-amd64-linux-8.0.0
+          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_nina_circuitpython_minimqtt sources_picow_circuitpython_minimqtt *.zip .git .github .gitignore .pylintrc mpy-cross.static-amd64-linux-8.0.0
   
       - uses: actions/upload-artifact@v2
         with:
-          name: wificom_libs_merged.zip
+          name: wificom_libs_merged_${{ matrix.platform }}.zip
           path: .
 
       - name: Create archive
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
           zip -r release.zip *
           if [[ $GITHUB_REF =~ refs/tags/.* ]]; then
-            filename="wificom-lib_$(echo $GITHUB_REF | awk -F/ '{print $3}').zip"
+            filename="wificom-lib_$(echo $GITHUB_REF | awk -F/ '{print $3}')_${PLATFORM}.zip"
           else
-            filename="wificom-lib_$GITHUB_SHA.zip"
+            filename="wificom-lib_${GITHUB_SHA}_${PLATFORM}.zip"
           fi
           mv release.zip $filename
           echo "FILENAME=$filename" >> $GITHUB_ENV
