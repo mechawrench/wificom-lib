@@ -235,7 +235,9 @@ def run_wifi():
 			if time_start - rtb_last_ping > 10:
 				mqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
-			mqtt.loop()
+			mqtt_connect = mqtt.loop()
+			if mqtt_connect is False:
+				connection_failure_alert("MQTT")
 			rtb.loop()
 		else:
 			if rtb_was_active:
@@ -251,7 +253,9 @@ def run_wifi():
 			mqtt.send_digirom_output(last_output)
 
 			while True:
-				mqtt.loop()
+				mqtt_connect = mqtt.loop()
+				if mqtt_connect is False:
+					connection_failure_alert("MQTT")
 				if mqtt.get_subscribed_output(False) is not None:
 					break
 				if time.monotonic() - time_start >= 5:

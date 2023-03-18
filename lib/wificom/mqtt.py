@@ -67,10 +67,29 @@ def connect_to_mqtt(mqtt_client):
 	return True
 
 def loop():
-	'''
-	Loop IO MQTT client
-	'''
-	_mqtt_client.loop()
+    """
+    Loop IO MQTT client
+    """
+    max_failures = 5
+    failure_count = 0
+    start_time = time.monotonic()
+    timeout = 50
+
+    while failure_count < max_failures:
+        try:
+            _mqtt_client.loop()
+            return True
+        except Exception as e:
+            failure_count += 1
+            print(f"Error: {e}. Attempt {failure_count} of {max_failures} failed.")
+
+            if time.monotonic() - start_time >= timeout:
+                start_time = time.monotonic()
+                failure_count = 0 
+
+            if failure_count == max_failures:
+                print("Maximum number of failures reached.")
+                return False 
 
 def get_subscribed_output(clear_rom=True):
 	'''
