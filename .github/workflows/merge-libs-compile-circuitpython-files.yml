@@ -42,7 +42,7 @@ jobs:
             echo "$key successfully downloaded and extracted."
           done
           key="circuitpython_minimqtt"
-          value=$(eval echo "\$sources_${PLATFORM}_${key}")
+          value=$(eval echo "\$sources_${key}_${PLATFORM}")
           echo "Platform: $PLATFORM"
           echo "Downloading and extracting $key for $PLATFORM..."
           wget $value -O sources_${PLATFORM}_${key}.zip
