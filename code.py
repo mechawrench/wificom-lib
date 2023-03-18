@@ -235,9 +235,7 @@ def run_wifi():
 			if time_start - rtb_last_ping > 10:
 				mqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
-			mqtt_connect = mqtt.loop()
-			if mqtt_connect is False:
-				connection_failure_alert("MQTT")
+			mqtt_loop()
 			rtb.loop()
 		else:
 			if rtb_was_active:
@@ -252,15 +250,41 @@ def run_wifi():
 			# Send to MQTT topic (acts as a ping also)
 			mqtt.send_digirom_output(last_output)
 
-			while True:
-				mqtt_connect = mqtt.loop()
-				if mqtt_connect is False:
-					connection_failure_alert("MQTT")
-				if mqtt.get_subscribed_output(False) is not None:
-					break
-				if time.monotonic() - time_start >= 5:
-					break
-				time.sleep(0.1)
+			mqtt_loop()
+
+failure_count = 0
+start_time = time.monotonic()
+
+def mqtt_loop():
+	"""
+	Loop that calls mqtt.loop function with error handling and retries
+	"""
+	# pylint: disable=global-statement
+	global failure_count
+	global start_time
+	mqtt_loop_timeout = 120
+
+	while True:
+		loop_result = mqtt.loop()
+
+		if loop_result:
+			# If the result is True, continue without incrementing failure_count
+			pass
+		else:
+			# If the result is False, increment failure_count
+			failure_count += 1
+			print(f"Failure count: {failure_count}")
+
+		if time.monotonic() - start_time <= mqtt_loop_timeout:
+			# Quit if 30 seconds have passed since the start time
+			if failure_count >= 10:
+				print("Maximum number of failures reached within 30 seconds. Quitting...")
+				connection_failure_alert("MQTT")
+				break
+		else:
+			# Reset the failure count and start time if 30 seconds have passed
+			failure_count = 0
+			start_time = time.monotonic()
 
 def connection_failure_alert(failure_type):
 	'''

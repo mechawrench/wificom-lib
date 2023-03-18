@@ -67,32 +67,16 @@ def connect_to_mqtt(mqtt_client):
 	return True
 
 def loop():
-	"""
+	'''
 	Loop IO MQTT client
-	"""
-	max_failures = 5
-	failure_count = 0
-	start_time = time.monotonic()
-	timeout = 50
+	'''
+	try:
+		_mqtt_client.loop(timeout=2.0)
+		return True
+	# pylint: disable=broad-except
+	except Exception:
+		return False
 
-	while failure_count < max_failures:
-		try:
-			_mqtt_client.loop()
-			return True
-		# pylint: disable=broad-except
-		except Exception as e:
-			failure_count += 1
-			print(f"Error: {e}. Attempt {failure_count} of {max_failures} failed.")
-
-			if time.monotonic() - start_time >= timeout:
-				start_time = time.monotonic()
-				failure_count = 0
-				return True
-
-			if failure_count == max_failures:
-				print("Maximum number of failures reached.")
-				return False
-	return False
 def get_subscribed_output(clear_rom=True):
 	'''
 	Get the output from the MQTT broker, and load in new Digirom (and clear if clear_rom is True)
