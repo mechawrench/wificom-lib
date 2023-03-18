@@ -67,3 +67,4 @@ class Wifi:
 			)
 
 			return mqtt_client
+		return None

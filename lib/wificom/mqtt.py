@@ -87,6 +87,7 @@ def loop():
 			if time.monotonic() - start_time >= timeout:
 				start_time = time.monotonic()
 				failure_count = 0
+				return True
 
 			if failure_count == max_failures:
 				print("Maximum number of failures reached.")
