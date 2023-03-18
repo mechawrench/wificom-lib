@@ -92,7 +92,7 @@ def loop():
 			if failure_count == max_failures:
 				print("Maximum number of failures reached.")
 				return False
-
+	return False
 def get_subscribed_output(clear_rom=True):
 	'''
 	Get the output from the MQTT broker, and load in new Digirom (and clear if clear_rom is True)
