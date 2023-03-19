@@ -258,7 +258,6 @@ def run_wifi():
 					break
 				time.sleep(0.1)
 
-mqtt_failure_count = 0
 mqtt_failure_start_time = time.monotonic()
 
 def mqtt_loop():
@@ -266,8 +265,8 @@ def mqtt_loop():
 	Loop that calls mqtt.loop function with error handling and retries
 	"""
 	# pylint: disable=global-statement
-	global mqtt_failure_count
 	global mqtt_failure_start_time
+	mqtt_failure_count = mqtt.get_failure_count()
 
 	loop_result = mqtt.loop()
 

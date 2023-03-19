@@ -11,6 +11,7 @@ from wificom.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
 
+mqtt_failure_count = 0
 last_application_id = None
 is_output_hidden = None
 api_response = None
@@ -29,6 +30,13 @@ _mqtt_topic_output =  _mqtt_io_prefix + _mqtt_topic_identifier + "/wificom-outpu
 
 _io = None
 _mqtt_client = None
+
+def get_failure_count():
+	'''
+	Get failure count, used in code.py for catching publish failures
+	'''
+	global mqtt_failure_count # pylint: disable=global-variable-not-assigned
+	return mqtt_failure_count
 
 def connect_to_mqtt(mqtt_client):
 	'''
@@ -109,6 +117,8 @@ def send_digirom_output(output):
 		try:
 			_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 		except Exception as e: # pylint: disable=broad-except
+			global mqtt_failure_count
+			mqtt_failure_count += 1
 			print(f"Failed to connect to send MQTT publish message: {repr(e)}")  # pylint: disable=broad-except
 
 def send_rtb_digirom_output(output):
@@ -128,7 +138,12 @@ def send_rtb_digirom_output(output):
 		mqtt_message_json = json.dumps(mqtt_message)
 
 		if rtb_active:
-			_mqtt_client.publish(rtb_host + '/f/' + rtb_topic, mqtt_message_json)
+			try:
+				_mqtt_client.publish(rtb_host + '/f/' + rtb_topic, mqtt_message_json)
+			except Exception as e: # pylint: disable=broad-except
+				global mqtt_failure_count
+				mqtt_failure_count += 1
+				print(f"Failed to connect to send MQTT publish message for RTB: {repr(e)}")  # pylint: disable=broad-except
 		else:
 			print("RTB not active, shouldn't be calling this callback while RTB is inactive")
 
@@ -202,7 +217,12 @@ def on_app_feed_callback(client, topic, message):
 
 		mqtt_message_json = json.dumps(mqtt_message)
 		if _mqtt_client.is_connected:
-			_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
+			try:
+				_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
+			except Exception as e: # pylint: disable=broad-except
+				global mqtt_failure_count
+				mqtt_failure_count += 1
+				print(f"Failed to connect to send MQTT publish message: {repr(e)}")  # pylint: disable=broad-except
 
 	# If message_json contains topic_action, then we have a realtime battle request
 	topic_action = message_json.get('topic_action', None)
