@@ -209,6 +209,7 @@ def run_wifi():
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 	ui.display_text("WiFi\nHold C to change")
+	mqtt.check_failure_state()
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		replacement_digirom = mqtt.get_subscribed_output()
@@ -233,6 +234,8 @@ def run_wifi():
 			rtb_was_active = True
 			# Heartbeat approx every 10 seconds
 			if time_start - rtb_last_ping > 10:
+				if not mqtt.check_failure_state():
+					connection_failure_alert("MQTT")
 				mqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
 			mqtt_loop()
@@ -248,8 +251,10 @@ def run_wifi():
 					last_output = str(digirom.result)
 
 			# Send to MQTT topic (acts as a ping also)
+			if not mqtt.check_failure_state():
+					connection_failure_alert("MQTT")
 			mqtt.send_digirom_output(last_output)
-
+			
 			while True:
 				mqtt_loop()
 				if mqtt.get_subscribed_output(False) is not None:
@@ -264,29 +269,10 @@ def mqtt_loop():
 	"""
 	Loop that calls mqtt.loop function with error handling and retries
 	"""
-	# pylint: disable=global-statement
-	global mqtt_failure_start_time
-	mqtt_failure_count = mqtt.get_failure_count()
-
-	loop_result = mqtt.loop()
-
-	if loop_result:
-		# If the result is True, continue without incrementing failure_count
-		pass
-	else:
-		# If the result is False, increment failure_count
-		mqtt_failure_count += 1
-		print(f"Failure count: {mqtt_failure_count}")
-
-	if time.monotonic() - mqtt_failure_start_time <= 30:
-		# Quit if 30 seconds have passed since the start time
-		if mqtt_failure_count >= 10:
-			print("Maximum number of failures reached within 30 seconds. MQTT Failure...")
-			connection_failure_alert("MQTT")
-	else:
-		# Reset the failure count and start time if 30 seconds have passed
-		mqtt_failure_count = 0
-		mqtt_failure_start_time = time.monotonic()
+	if not mqtt.check_failure_state():
+		print("Maximum number of failures reached within 30 seconds. MQTT Failure...")
+		connection_failure_alert("MQTT")
+	mqtt.loop()
 
 def connection_failure_alert(failure_type):
 	'''

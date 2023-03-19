@@ -11,7 +11,6 @@ from wificom.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
 
-mqtt_failure_count = 0
 last_application_id = None
 is_output_hidden = None
 api_response = None
@@ -22,6 +21,8 @@ rtb_host = None
 rtb_battle_type = None
 rtb_topic = None
 rtb_digirom = None
+failure_count = 0
+failure_start_time = 0
 
 _mqtt_io_prefix = secrets_mqtt_username.lower() + "/f/"
 _mqtt_topic_identifier = secrets_user_uuid + '-' + secrets_device_uuid
@@ -30,13 +31,6 @@ _mqtt_topic_output =  _mqtt_io_prefix + _mqtt_topic_identifier + "/wificom-outpu
 
 _io = None
 _mqtt_client = None
-
-def get_failure_count():
-	'''
-	Get failure count, used in code.py for catching publish failures
-	'''
-	global mqtt_failure_count # pylint: disable=global-variable-not-assigned
-	return mqtt_failure_count
 
 def connect_to_mqtt(mqtt_client):
 	'''
@@ -82,8 +76,33 @@ def loop():
 		_mqtt_client.loop()
 		return True
 	except Exception as e: # pylint: disable=broad-except
-		print(f"Failed to connect to run MQTT loop: {repr(e)}")
-		return False
+		print(f"Failed to run MQTT loop: {repr(e)}")
+		global failure_count
+		failure_count += 1
+		print(f"Failure count: {failure_count}")
+		return True
+
+def check_failure_state():
+	'''
+	Check and handle failure counts, used to display error on repeated failures
+	'''
+	global failure_count
+	global failure_start_time
+
+	if failure_start_time == 0:
+		failure_start_time = time.monotonic()
+	if time.monotonic() - failure_start_time <= 60:
+			# Quit if 60 seconds have passed since the start time
+			if failure_count >= 10:
+				print("Maximum number of failures reached within 30 seconds. MQTT Failure...")
+				# connection_failure_alert("MQTT")
+				return False
+			return True
+	else:
+		# Reset the failure count and start time if 60 seconds have passed
+		failure_count = 0
+		failure_start_time = time.monotonic()
+		return True
 
 def get_subscribed_output(clear_rom=True):
 	'''
@@ -117,9 +136,9 @@ def send_digirom_output(output):
 		try:
 			_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 		except Exception as e: # pylint: disable=broad-except
-			global mqtt_failure_count
-			mqtt_failure_count += 1
-			print(f"Failed to connect to send MQTT publish message: {repr(e)}")  # pylint: disable=broad-except
+			global failure_count
+			failure_count += 1
+			print(f"Failed to connect to send MQTT publish message (send_digirom_output): {repr(e)}")  # pylint: disable=broad-except
 
 def send_rtb_digirom_output(output):
 	'''
@@ -141,8 +160,8 @@ def send_rtb_digirom_output(output):
 			try:
 				_mqtt_client.publish(rtb_host + '/f/' + rtb_topic, mqtt_message_json)
 			except Exception as e: # pylint: disable=broad-except
-				global mqtt_failure_count
-				mqtt_failure_count += 1
+				global failure_count
+				failure_count += 1
 				print(f"Failed to connect to send MQTT publish message for RTB: {repr(e)}")  # pylint: disable=broad-except
 		else:
 			print("RTB not active, shouldn't be calling this callback while RTB is inactive")
@@ -220,9 +239,9 @@ def on_app_feed_callback(client, topic, message):
 			try:
 				_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 			except Exception as e: # pylint: disable=broad-except
-				global mqtt_failure_count
-				mqtt_failure_count += 1
-				print(f"Failed to connect to send MQTT publish message: {repr(e)}")  # pylint: disable=broad-except
+				global failure_count
+				failure_count += 1
+				print(f"Failed to connect to send MQTT publish message (on_app_feedback_callback): {repr(e)}")  # pylint: disable=broad-except
 
 	# If message_json contains topic_action, then we have a realtime battle request
 	topic_action = message_json.get('topic_action', None)
