@@ -258,17 +258,16 @@ def run_wifi():
 					break
 				time.sleep(0.1)
 
-failure_count = 0
-start_time = time.monotonic()
+mqtt_failure_count = 0
+mqtt_failure_start_time = time.monotonic()
 
 def mqtt_loop():
 	"""
 	Loop that calls mqtt.loop function with error handling and retries
 	"""
 	# pylint: disable=global-statement
-	global failure_count
-	global start_time
-	mqtt_loop_timeout = 120
+	global mqtt_failure_count
+	global mqtt_failure_start_time
 
 	loop_result = mqtt.loop()
 
@@ -277,18 +276,18 @@ def mqtt_loop():
 		pass
 	else:
 		# If the result is False, increment failure_count
-		failure_count += 1
-		print(f"Failure count: {failure_count}")
+		mqtt_failure_count += 1
+		print(f"Failure count: {mqtt_failure_count}")
 
-	if time.monotonic() - start_time <= mqtt_loop_timeout:
+	if time.monotonic() - mqtt_failure_start_time <= 30:
 		# Quit if 30 seconds have passed since the start time
-		if failure_count >= 10:
+		if mqtt_failure_count >= 10:
 			print("Maximum number of failures reached within 30 seconds. MQTT Failure...")
 			connection_failure_alert("MQTT")
 	else:
 		# Reset the failure count and start time if 30 seconds have passed
-		failure_count = 0
-		start_time = time.monotonic()
+		mqtt_failure_count = 0
+		mqtt_failure_start_time = time.monotonic()
 
 def connection_failure_alert(failure_type):
 	'''
