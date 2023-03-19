@@ -73,8 +73,8 @@ def loop():
 	try:
 		_mqtt_client.loop()
 		return True
-	# pylint: disable=broad-except
-	except Exception:
+	except Exception as e: # pylint: disable=broad-except
+		print(f"Failed to connect to run MQTT loop: {repr(e)}")
 		return False
 
 def get_subscribed_output(clear_rom=True):
@@ -108,9 +108,8 @@ def send_digirom_output(output):
 	if _mqtt_client.is_connected:
 		try:
 			_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
-		#pylint: disable=broad-except
-		except Exception:
-			print("Failed to send MQTT message")
+		except Exception as e: # pylint: disable=broad-except
+			print(f"Failed to connect to send MQTT publish message: {repr(e)}")  # pylint: disable=broad-except
 
 def send_rtb_digirom_output(output):
 	'''
