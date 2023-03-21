@@ -11,7 +11,6 @@ import microcontroller
 import supervisor
 import usb_cdc
 
-import board_config
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
@@ -21,11 +20,12 @@ from wificom import nvm
 from wificom import mqtt
 from wificom.import_secrets import secrets_imported, secrets_error_display
 from config import config
+import board_config
 
 LED_DUTY_CYCLE_DIM=0x1000
 startup_mode = None
 controller = None
-ui = None
+ui = None  #pylint: disable=invalid-name
 led = None
 done_wifi_before = False
 
@@ -349,7 +349,7 @@ def main(led_pwm):
 	'''
 	WiFiCom main program.
 	'''
-	global startup_mode, controller, ui, led  # pylint: disable=global-statement
+	global startup_mode, controller, ui, led  # pylint: disable=global-statement,invalid-name
 
 	serial.timeout = 1
 	serial_print("WiFiCom starting")
