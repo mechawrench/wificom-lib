@@ -26,44 +26,44 @@ class Wifi:
 		# Initialize networking
 		num_retries = 3
 		connected = False
-		while not connected:
-			print("Scanning for networks...")
-			for network in secrets_wireless_networks:
-				retries = num_retries
-				while retries > 0:
-					# pylint: disable=consider-using-set-comprehension
-					found = set([wifi.ssid for wifi in wifi.radio.start_scanning_networks()])
-					if network['ssid'] in found:
-						print(f"Connecting to {network['ssid']} \
-							(attempt {num_retries-retries+1} of {num_retries})...")
-						try:
-							wifi.radio.connect(network['ssid'], network['password'])
-						except ConnectionError as e:
-							print("Failed to connect, retrying: ", e)
 
-						if wifi.radio.ipv4_address is not None:
-							connected = True
-							break
-						else:
-							retries -= 1
+		print("Scanning for networks...")
+		for network in secrets_wireless_networks:
+			retries = num_retries
+			while retries > 0:
+				# pylint: disable=consider-using-set-comprehension
+				found = set([wifi.ssid for wifi in wifi.radio.start_scanning_networks()])
+				if network['ssid'] in found:
+					print(f"Connecting to {network['ssid']} \
+						(attempt {num_retries-retries+1} of {num_retries})...")
+					try:
+						wifi.radio.connect(network['ssid'], network['password'])
+					except ConnectionError as e:
+						print("Failed to connect, retrying: ", e)
+
+					if wifi.radio.ipv4_address is not None:
+						connected = True
+						break
 					else:
 						retries -= 1
-				if connected:
-					break
+				else:
+					retries -= 1
+			if connected:
+				break
 
-			wifi.radio.stop_scanning_networks()
+		wifi.radio.stop_scanning_networks()
 
-			if not connected:
-				return None
+		if not connected:
+			return None
 
-			pool = socketpool.SocketPool(wifi.radio)
+		pool = socketpool.SocketPool(wifi.radio)
 
-			mqtt_client = MQTT.MQTT(
-				broker=secrets_mqtt_broker,
-				username=secrets_mqtt_username.lower(),
-				password=secrets_mqtt_password,
-				socket_pool=pool,
-				ssl_context=ssl.create_default_context(),
-			)
+		mqtt_client = MQTT.MQTT(
+			broker=secrets_mqtt_broker,
+			username=secrets_mqtt_username.lower(),
+			password=secrets_mqtt_password,
+			socket_pool=pool,
+			ssl_context=ssl.create_default_context(),
+		)
 
-			return mqtt_client
+		return mqtt_client
