@@ -349,7 +349,7 @@ def main(led_pwm):
 	'''
 	WiFiCom main program.
 	'''
-	global startup_mode, controller, ui, led  # pylint: disable=global-statement,invalid-name
+	global startup_mode, controller, ui, led  # pylint: disable=global-statement
 
 	serial.timeout = 1
 	serial_print("WiFiCom starting")
