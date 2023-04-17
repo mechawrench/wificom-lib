@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2023-04-17
+### Added
+- Separate builds for Nina and PicoW microcontrollers, with the ability to use variants for the MiniMQTT dependency. Will show up as two archives, one ending in `_nina.zip` and other in `_picow.zip`, for both artifacts and release bundles.
+### Changed
+- Most code from `code.py` moved to `lib/wificom/main.py` with minor changes to accomodate this. This code can now be included in the release `mpy` builds for faster startup times.
+- Updated `dmcomm-python` to v0.6.0 (basic Digimon Color support, DMOG fix).
+- For messages which can appear in serial mode, changed ending of output lines from "\n" to "\r\n" to match Arduino.
+- Disabled auto-reload on CIRCUITPY changes, except when in dev mode.
+### Tested with
+- CircuitPython 8.0.5
+
 ## [0.9.0] - 2023-02-27
 ### Added
 - Sound on/off config option
@@ -24,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - In secrets.py the values "ssid" and "password" are no longer used, removed from example.  Users must now use wifi_networks array instead.  This is a breaking change, you will get errors connecting to WiFi until you update your secrets.py file to match secrets.example.py
 - Combined merge-libs-from-remote.yml GitHub Action into single file with mpy compilation
+### Tested with
+- CircuitPython 8.0.2 (note: does not work with more recent)
 
 ## [0.8.0] - 2023-02-15
 ### Added
@@ -139,7 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.9.0...main
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0...main
+[0.10.0]: https://github.com/mechawrench/wificom-lib/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/mechawrench/wificom-lib/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/mechawrench/wificom-lib/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/mechawrench/wificom-lib/compare/v0.6.0...v0.7.0
