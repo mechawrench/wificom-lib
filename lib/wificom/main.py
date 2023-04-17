@@ -35,7 +35,7 @@ if usb_cdc.data is not None:
 else:
 	serial = usb_cdc.console
 
-def serial_print(contents, end="\n"):
+def serial_print(contents, end="\r\n"):
 	'''
 	Print output to the serial console
 	'''
