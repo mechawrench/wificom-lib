@@ -379,6 +379,8 @@ def main(led_pwm):
 		serial_print("request cleared")
 	else:
 		serial_print("not requested")
+	if startup_mode != nvm.MODE_DEV:
+		supervisor.runtime.autoreload = False
 
 	displayio.release_displays()
 	ui = wificom.ui.UserInterface(**board_config.ui_pins)
