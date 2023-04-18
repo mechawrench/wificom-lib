@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.10.0] - 2023-04-17
+## [0.10.0-rc1] - 2023-04-18
 ### Added
 - Separate builds for Nina and PicoW microcontrollers, with the ability to use variants for the MiniMQTT dependency. Will show up as two archives, one ending in `_nina.zip` and other in `_picow.zip`, for both artifacts and release bundles.
 ### Changed
@@ -152,8 +152,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0...main
-[0.10.0]: https://github.com/mechawrench/wificom-lib/compare/v0.9.0...v0.10.0
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0-rc1...main
+[0.10.0-rc1]: https://github.com/mechawrench/wificom-lib/compare/v0.9.0...v0.10.0-rc1
 [0.9.0]: https://github.com/mechawrench/wificom-lib/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/mechawrench/wificom-lib/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/mechawrench/wificom-lib/compare/v0.6.0...v0.7.0
