@@ -41,7 +41,7 @@ def serial_print(contents, end="\r\n"):
 	'''
 	serial.write((contents + end).encode("utf-8"))
 
-def execute_digirom(rom):
+def execute_digirom(rom, do_led=True):
 	'''
 	Execute the digirom and report results.
 	'''
@@ -53,10 +53,15 @@ def execute_digirom(rom):
 		if len(result) > 0:
 			result += " "
 		result += repr(e)
+	if do_led:
+		led.duty_cycle=0xFFFF
 	if serial == usb_cdc.data:
 		serial_print(result)
 	else:
 		mqtt.handle_result(result)
+	if do_led:
+		time.sleep(0.05)
+		led.duty_cycle=LED_DUTY_CYCLE_DIM
 
 rtb_types = {
 	("legendz", "host"): rt.RealTimeHostTalis,
