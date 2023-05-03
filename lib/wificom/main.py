@@ -58,6 +58,17 @@ def execute_digirom(rom):
 	else:
 		mqtt.handle_result(result)
 
+def new_digirom_alert():
+	'''
+	Beep once and blink LED 3 times for new DigiROM.
+	'''
+	ui.beep_activate()
+	for _ in range(3):
+		led.duty_cycle = 0xFFFF
+		time.sleep(0.05)
+		led.duty_cycle = LED_DUTY_CYCLE_DIM
+		time.sleep(0.05)
+
 rtb_types = {
 	("legendz", "host"): rt.RealTimeHostTalis,
 	("legendz", "guest"): rt.RealTimeGuestTalis,
@@ -212,12 +223,13 @@ def run_wifi():
 		time_start = time.monotonic()
 		replacement_digirom = mqtt.get_subscribed_output()
 		if replacement_digirom is not None:
-			ui.beep_activate()
+			new_digirom_alert()
 			digirom = dmcomm.protocol.parse_command(replacement_digirom)
 
 		if mqtt.rtb_active:
 			rtb_type_id_new = (mqtt.rtb_battle_type, mqtt.rtb_user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
+				new_digirom_alert()
 				rtb_type_id = rtb_type_id_new
 				if rtb_type_id in rtb_types:
 					rtb = rtb_types[rtb_type_id](
