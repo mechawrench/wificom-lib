@@ -60,7 +60,10 @@ def execute_digirom(rom, do_led=True):
 	else:
 		mqtt.handle_result(result)
 	if do_led:
-		time.sleep(0.05)
+		if "r:" in result or "Error" in result:
+			time.sleep(0.2)
+		else:
+			time.sleep(0.05)
 		led.duty_cycle=LED_DUTY_CYCLE_DIM
 
 rtb_types = {
