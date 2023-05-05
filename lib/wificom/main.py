@@ -339,7 +339,7 @@ def run_drive():
 	)
 	result()
 
-def failure_alert(message):
+def failure_alert(message, hard_reset=False):
 	'''
 	Alert on failure and allow restart.
 	'''
@@ -350,7 +350,10 @@ def failure_alert(message):
 		time.sleep(0.5)
 		if ui.is_c_pressed():
 			time.sleep(2)
-			supervisor.reload()
+			if hard_reset:
+				microcontroller.reset()
+			else:
+				supervisor.reload()
 
 def rotate_log():
 	'''
@@ -383,10 +386,12 @@ def report_crash(crash_exception):
 			f.write(f"Crash ID {random_number}:\r\n{trace}\r\n")
 		serial_print("Wrote log")
 		message += f"(log#{random_number})"
+		hard_reset = True
 	except OSError as e:
 		serial_print("Cannot write log: " + repr(e))
 		message += "(log failed)"
-	failure_alert(message)
+		hard_reset = False
+	failure_alert(message, hard_reset)
 
 def main(led_pwm):
 	'''
