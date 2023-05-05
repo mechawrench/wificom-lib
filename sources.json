@@ -1,5 +1,5 @@
 {
-    "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/refs/tags/v0.6.0.zip",
+    "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/b86b969716e151b13f5b40f18e4c3fa361e4b8fd.zip",
     "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20221111/adafruit-circuitpython-bundle-8.x-mpy-20221111.zip",
     "circuitpython_minimqtt": {
         "nina": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/5.5.1/adafruit-circuitpython-minimqtt-8.x-mpy-5.5.1.zip",
