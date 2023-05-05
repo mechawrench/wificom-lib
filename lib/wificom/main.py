@@ -6,6 +6,7 @@ Handles WiFiCom main program logic.
 import time
 import gc
 import os
+import random
 import traceback
 
 import digitalio
@@ -376,11 +377,12 @@ def report_crash(crash_exception):
 	trace = "".join(traceback.format_exception(crash_exception))
 	serial_print(trace)
 	message = "Crashed "
+	random_number = random.randint(100, 999)
 	try:
 		with open(LOG_FILENAME, "a", encoding="utf-8") as f:
-			f.write(trace + "\r\n")
+			f.write(f"Crash ID {random_number}:\r\n{trace}\r\n")
 		serial_print("Wrote log")
-		message += "(see log)"
+		message += f"(log#{random_number})"
 	except OSError as e:
 		serial_print("Cannot write log: " + repr(e))
 		message += "(log failed)"
