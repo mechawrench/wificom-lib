@@ -165,7 +165,6 @@ def menu_reboot(mode):
 	nvm.set_mode(mode)
 	ui.display_text("Rebooting...")
 	time.sleep(0.5)
-	ui.clear()
 	microcontroller.reset()
 
 def run_wifi():
@@ -344,16 +343,16 @@ def failure_alert(message, hard_reset=False):
 	Alert on failure and allow restart.
 	'''
 	led.duty_cycle = 0
-	ui.display_text(f"{message}\nHold C to reboot")
+	ui.display_text(f"{message}\nPress A to reboot")
 	ui.beep_failure()
-	while True:
-		time.sleep(0.5)
-		if ui.is_c_pressed():
-			time.sleep(2)
-			if hard_reset:
-				microcontroller.reset()
-			else:
-				supervisor.reload()
+	while not ui.is_a_pressed():
+		pass
+	ui.display_text("Rebooting...")
+	time.sleep(0.5)
+	if hard_reset:
+		microcontroller.reset()
+	else:
+		supervisor.reload()
 
 def rotate_log():
 	'''
