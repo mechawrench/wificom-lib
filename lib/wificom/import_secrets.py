@@ -21,6 +21,13 @@ try:
 	secrets_mqtt_broker = secrets["broker"]
 	secrets_mqtt_username = secrets["mqtt_username"]
 	secrets_mqtt_password = secrets["mqtt_password"]
+
+	for network in secrets_wireless_networks:  # raises TypeError if not iterable
+		#pylint: disable=pointless-statement
+		# check keys exist
+		network["ssid"]
+		network["password"]
+
 	secrets_imported = True
 
 except ImportError:
@@ -29,6 +36,9 @@ except ImportError:
 except SyntaxError:
 	print("Syntax error in secrets.py")
 	secrets_error_display = "secrets.py\nSyntaxError"
+except TypeError:
+	print("Error in wireless_networks in secrets.py")
+	secrets_error_display = "secrets.py\nNetworks layout"
 except KeyError as e:
 	print("Missing field in secrets.py")
 	print(e)
