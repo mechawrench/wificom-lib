@@ -36,7 +36,7 @@ class RealTime:
 		'''
 		digirom = dmcomm.protocol.parse_command(rom_str)
 		self.modify(digirom)
-		self._execute_callback(digirom)
+		self._execute_callback(digirom, False)
 		self.result = digirom.result
 	def modify(self, digirom):
 		'''
