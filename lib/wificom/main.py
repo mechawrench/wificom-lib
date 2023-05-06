@@ -65,6 +65,7 @@ def execute_digirom(rom, do_led=True):
 		else:
 			time.sleep(0.05)
 		led.duty_cycle=LED_DUTY_CYCLE_DIM
+	return result
 
 def new_digirom_alert():
 	'''
@@ -262,9 +263,9 @@ def run_wifi():
 			rtb_was_active = False
 			last_output = None
 			if digirom is not None:
-				execute_digirom(digirom)
-				if len(str(digirom.result)) >= 1:
-					last_output = str(digirom.result)
+				result = execute_digirom(digirom)
+				if len(result) >= 1:
+					last_output = result
 
 			# Send to MQTT topic (acts as a ping also)
 			mqtt.send_digirom_output(last_output)
