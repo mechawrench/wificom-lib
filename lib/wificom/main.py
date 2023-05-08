@@ -5,6 +5,10 @@ Handles WiFiCom main program logic.
 
 import time
 import gc
+import os
+import random
+import traceback
+
 import digitalio
 import displayio
 import microcontroller
@@ -23,6 +27,9 @@ from config import config
 import board_config
 
 LED_DUTY_CYCLE_DIM=0x1000
+LOG_FILENAME = "wificom_log.txt"
+LOG_FILENAME_OLD = "wificom_log_old.txt"
+LOG_MAX_SIZE = 2000
 startup_mode = None
 controller = None
 ui = None  #pylint: disable=invalid-name
@@ -177,7 +184,6 @@ def menu_reboot(mode):
 	nvm.set_mode(mode)
 	ui.display_text("Rebooting...")
 	time.sleep(0.5)
-	ui.clear()
 	microcontroller.reset()
 
 def run_wifi():
@@ -219,11 +225,11 @@ def run_wifi():
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
 	if mqtt_client is None:
-		connection_failure_alert('WiFi')
+		failure_alert("WiFi failed")
 	ui.display_text("Connecting to MQTT")
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
-		connection_failure_alert("MQTT")
+		failure_alert("MQTT failed")
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 	ui.display_text("WiFi\nHold C to change")
@@ -276,19 +282,6 @@ def run_wifi():
 				if time.monotonic() - time_start >= 5:
 					break
 				time.sleep(0.1)
-
-def connection_failure_alert(failure_type):
-	'''
-	Alert on connection failure.
-	'''
-	led.duty_cycle = 0
-	ui.display_text(f"{failure_type} Failed\nHold C to reboot")
-	ui.beep_wifi_failure()
-	while True:
-		time.sleep(0.5)
-		if ui.is_c_pressed():
-			time.sleep(2)
-			supervisor.reload()
 
 def run_serial():
 	'''
@@ -365,6 +358,60 @@ def run_drive():
 	)
 	result()
 
+def failure_alert(message, hard_reset=False):
+	'''
+	Alert on failure and allow restart.
+	'''
+	led.duty_cycle = 0
+	ui.display_text(f"{message}\nPress A to reboot")
+	ui.beep_failure()
+	while not ui.is_a_pressed():
+		pass
+	ui.display_text("Rebooting...")
+	time.sleep(0.5)
+	if hard_reset:
+		microcontroller.reset()
+	else:
+		supervisor.reload()
+
+def rotate_log():
+	'''
+	Rotate log file if over LOG_MAX_SIZE.
+	'''
+	try:
+		log_size = os.stat(LOG_FILENAME)[6]
+	except OSError:
+		serial_print("No log file yet")
+		return
+	if log_size > LOG_MAX_SIZE:
+		try:
+			os.rename(LOG_FILENAME, LOG_FILENAME_OLD)
+			serial_print("Rotated log file")
+		except OSError as e:
+			serial_print("Cannot rotate log file: " + repr(e))
+	else:
+		serial_print("Log file is present")
+
+def report_crash(crash_exception):
+	'''
+	Report crash which resulted in crash_exception.
+	'''
+	trace = "".join(traceback.format_exception(crash_exception))
+	serial_print(trace)
+	message = "Crashed "
+	random_number = random.randint(100, 999)
+	try:
+		with open(LOG_FILENAME, "a", encoding="utf-8") as f:
+			f.write(f"Crash ID {random_number}:\r\n{trace}\r\n")
+		serial_print("Wrote log")
+		message += f"(log#{random_number})"
+		hard_reset = True
+	except OSError as e:
+		serial_print("Cannot write log: " + repr(e))
+		message += "(log failed)"
+		hard_reset = False
+	failure_alert(message, hard_reset)
+
 def main(led_pwm):
 	'''
 	WiFiCom main program.
@@ -406,6 +453,7 @@ def main(led_pwm):
 	ui = wificom.ui.UserInterface(**board_config.ui_pins)
 	ui.sound_on = config["sound_on"]
 	led = led_pwm
+	rotate_log()
 
 	run_column = 0
 	if not ui.has_display:
@@ -423,5 +471,8 @@ def main(led_pwm):
 		nvm.MODE_DRIVE:    (run_drive,    run_drive,  run_drive,  run_drive), # last 2 unexpected
 		nvm.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
 	}
-	branches[startup_mode][run_column]()
-	main_menu()
+	try:
+		branches[startup_mode][run_column]()
+		main_menu()
+	except Exception as e:  #pylint: disable=broad-except
+		report_crash(e)
