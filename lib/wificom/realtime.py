@@ -12,6 +12,8 @@ STATUS_WAIT = 1
 STATUS_PUSH = 2
 STATUS_PUSH_SYNC = 3
 
+_MESSAGE_EXPIRY_TIME = 20
+
 class RealTime:
 	#pylint: disable=too-many-instance-attributes
 	'''
@@ -30,6 +32,7 @@ class RealTime:
 		self.time_start = None
 		self.result = None
 		self.status = STATUS_IDLE
+		self.received_message = None
 		self.received_digirom = None
 		self.comm_attempts = 0  # for host only
 	def execute(self, digirom):
@@ -51,16 +54,31 @@ class RealTime:
 		self._send_callback(self.message())
 	def receive_message(self):
 		'''
-		Receive message from the other player if there is one, using the receive callback.
+		Receive and store message from the other player if there is one,
+		using the receive callback.
+
+		Expire previous stored message if needed, or overwrite if there is a new one.
+		'''
+		if self.received_message is not None:
+			(timestamp, _) = self.received_message
+			if time.monotonic() - timestamp > _MESSAGE_EXPIRY_TIME:
+				self.received_message = None
+		message = self._receive_callback()
+		if message is not None:
+			self.received_message = (time.monotonic(), message)
+	def receive_digirom(self):
+		'''
+		Receive digirom from the other player if there is one, from the queued message.
 		Validate with `matched` function as defined by subclass.
 		Parse digirom, and modify if defined in subclass.
 		`self.received_digirom` becomes the new digirom if there is one, None if there is not.
 		Raises `CommandError` if `matched` is False, or for other errors.
 		'''
 		self.received_digirom = None
-		message = self._receive_callback()
-		if message is None:
+		if self.received_message is None:
 			return
+		(_, message) = self.received_message
+		self.received_message = None
 		if not self.matched(message):
 			raise CommandError("Unexpected message type: " + str(message))
 		self.received_digirom = dmcomm.protocol.parse_command(message)
@@ -103,6 +121,7 @@ class RealTimeHost(RealTime):
 		'''
 		Update state machine. Should be called repeatedly.
 		'''
+		self.receive_message()  #but not digirom right now
 		if self.received_digirom is not None:
 			if time.monotonic() - self.time_start >= self.retry_delay:
 				self._attempt_second_comm()
@@ -120,7 +139,7 @@ class RealTimeHost(RealTime):
 			self.time_start = None
 		else:
 			self.update_status(STATUS_WAIT)
-			self.receive_message()
+			self.receive_digirom()
 			if self.received_digirom is not None:
 				self.comm_attempts = 0
 				self._attempt_second_comm()
@@ -150,6 +169,7 @@ class RealTimeGuest(RealTime):
 		Update state machine. Should be called repeatedly.
 		'''
 		self.receive_message()
+		self.receive_digirom()
 		if self.received_digirom is not None:
 			self.update_status(STATUS_PUSH)
 			self.execute(self.received_digirom)
