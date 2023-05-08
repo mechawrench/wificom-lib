@@ -150,9 +150,9 @@ class UserInterface:
 		'''
 		f = self.audio_base_freq
 		self._speaker.play([(f, 0.15), (f/2, 0.15)])
-	def beep_wifi_failure(self):
+	def beep_failure(self):
 		'''
-		Beep for WiFi connection failure.
+		Beep to indicate failure (blocking).
 		'''
 		for _ in range(3):
 			self.beep_error()
