@@ -13,6 +13,7 @@ STATUS_PUSH = 2
 STATUS_PUSH_SYNC = 3
 
 class RealTime:
+	#pylint: disable=too-many-instance-attributes
 	'''
 	Abstract base class for real-time battles.
 
@@ -29,6 +30,8 @@ class RealTime:
 		self.time_start = None
 		self.result = None
 		self.status = STATUS_IDLE
+		self.received_message = None  # for host only
+		self.comm_attempts = 0  # for host only
 	def execute(self, rom_str):
 		'''
 		Parse rom_str, modify if defined in subclass,
@@ -82,11 +85,28 @@ class RealTimeHost(RealTime):
 		to connect to the toy for the second time.
 	* property `wait_max` - the maximum time to wait for a reply from the other player.
 	'''
+	@property
+	def max_attempts(self):
+		'''The maximum number of attempts at the second round of communication.'''
+		return 1
+	@property
+	def retry_delay(self):
+		'''The wait time in seconds before retrying.'''
+		return 1
+	def comm_successful(self):
+		'''
+		True if the second interaction with the toy was successful
+		or we are not doing retries; False otherwise.
+		'''
+		return True
 	def loop(self):
 		'''
 		Update state machine. Should be called repeatedly.
 		'''
-		if self.time_start is None:
+		if self.received_message is not None:
+			if time.monotonic() - self.time_start >= self.retry_delay:
+				self._attempt_second_comm()
+		elif self.time_start is None:
 			self.update_status(self.scan_status)
 			self.execute(self.scan_str)
 			if self.scan_successful():
@@ -99,9 +119,20 @@ class RealTimeHost(RealTime):
 			self.time_start = None
 		else:
 			self.update_status(STATUS_WAIT)
-			message = self.receive_message()
-			if message is not None:
-				self.execute(message)
+			self.received_message = self.receive_message()
+			if self.received_message is not None:
+				self.comm_attempts = 0
+				self._attempt_second_comm()
+	def _attempt_second_comm(self):
+		self.execute(self.received_message)
+		if self.comm_successful():
+			self.received_message = None
+			self.time_start = None
+		else:
+			self.time_start = time.monotonic()
+			self.comm_attempts += 1
+			if self.comm_attempts >= self.max_attempts:
+				self.received_message = None
 				self.time_start = None
 
 class RealTimeGuest(RealTime):
@@ -155,6 +186,17 @@ class RealTimeGuestTalis(RealTimeHost):
 	def matched(self, rom_str):
 		'''RealTime interface'''
 		return rom_str.startswith("LT1-")
+	@property
+	def max_attempts(self):
+		'''RealTimeHost interface'''
+		return 4
+	@property
+	def retry_delay(self):
+		'''RealTimeHost interface'''
+		return 5
+	def comm_successful(self):
+		'''RealTimeHost interface'''
+		return len(self.result) >= 6
 
 class RealTimeHostTalis(RealTimeGuestTalis):
 	'''
