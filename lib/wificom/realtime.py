@@ -30,20 +30,17 @@ class RealTime:
 		self.time_start = None
 		self.result = None
 		self.status = STATUS_IDLE
-		self.received_message = None  # for host only
+		self.received_digirom = None
 		self.comm_attempts = 0  # for host only
-	def execute(self, rom_str):
+	def execute(self, digirom):
 		'''
-		Parse rom_str, modify if defined in subclass,
-		execute digirom using the execute callback, and store result.
+		Execute digirom using the execute callback, and store result.
 		'''
-		digirom = dmcomm.protocol.parse_command(rom_str)
-		self.modify(digirom)
 		self._execute_callback(digirom, False)
 		self.result = digirom.result
-	def modify(self, digirom):
+	def modify_received_digirom(self):
 		'''
-		Called before executing digirom.
+		Called on received digirom.
 		Does nothing by default. Can be overridden by subclasses as required.
 		'''
 	def send_message(self):
@@ -56,15 +53,18 @@ class RealTime:
 		'''
 		Receive message from the other player if there is one, using the receive callback.
 		Validate with `matched` function as defined by subclass.
-		Returns message if there is one, None if there is not.
-		Raises `CommandError` if `matched` is False.
+		Parse digirom, and modify if defined in subclass.
+		`self.received_digirom` becomes the new digirom if there is one, None if there is not.
+		Raises `CommandError` if `matched` is False, or for other errors.
 		'''
+		self.received_digirom = None
 		message = self._receive_callback()
 		if message is None:
-			return None
+			return
 		if not self.matched(message):
 			raise CommandError("Unexpected message type: " + str(message))
-		return message
+		self.received_digirom = dmcomm.protocol.parse_command(message)
+		self.modify_received_digirom()
 	def update_status(self, status):
 		'''
 		Report current status to the status callback and save it here.
@@ -103,12 +103,13 @@ class RealTimeHost(RealTime):
 		'''
 		Update state machine. Should be called repeatedly.
 		'''
-		if self.received_message is not None:
+		if self.received_digirom is not None:
 			if time.monotonic() - self.time_start >= self.retry_delay:
 				self._attempt_second_comm()
 		elif self.time_start is None:
 			self.update_status(self.scan_status)
-			self.execute(self.scan_str)
+			digirom = dmcomm.protocol.parse_command(self.scan_str)
+			self.execute(digirom)
 			if self.scan_successful():
 				self.send_message()
 				self.time_start = time.monotonic()
@@ -119,20 +120,20 @@ class RealTimeHost(RealTime):
 			self.time_start = None
 		else:
 			self.update_status(STATUS_WAIT)
-			self.received_message = self.receive_message()
-			if self.received_message is not None:
+			self.receive_message()
+			if self.received_digirom is not None:
 				self.comm_attempts = 0
 				self._attempt_second_comm()
 	def _attempt_second_comm(self):
-		self.execute(self.received_message)
+		self.execute(self.received_digirom)
 		if self.comm_successful():
-			self.received_message = None
+			self.received_digirom = None
 			self.time_start = None
 		else:
 			self.time_start = time.monotonic()
 			self.comm_attempts += 1
 			if self.comm_attempts >= self.max_attempts:
-				self.received_message = None
+				self.received_digirom = None
 				self.time_start = None
 
 class RealTimeGuest(RealTime):
@@ -148,10 +149,10 @@ class RealTimeGuest(RealTime):
 		'''
 		Update state machine. Should be called repeatedly.
 		'''
-		message = self.receive_message()
-		if message is not None:
+		self.receive_message()
+		if self.received_digirom is not None:
 			self.update_status(STATUS_PUSH)
-			self.execute(message)
+			self.execute(self.received_digirom)
 			self.update_status(STATUS_WAIT)
 			if self.comm_successful():
 				self.send_message()
@@ -203,12 +204,12 @@ class RealTimeHostTalis(RealTimeGuestTalis):
 	Real-time host for Legendz battle.
 	Based on guest (which uses host interface) because this battle type is almost symmetrical.
 	'''
-	def modify(self, digirom):
+	def modify_received_digirom(self):
 		'''RealTime interface'''
-		if len(digirom) == 0:
+		if len(self.received_digirom) == 0:
 			return
 		sent_data = self.result[0].data
-		rom_data = digirom[0].data
+		rom_data = self.received_digirom[0].data
 		rom_data[14] = sent_data[14] #random number that only Pod copies?
 		rom_data[15] = sent_data[15] #session ID
 		rom_data[17] = sent_data[17] #terrain
