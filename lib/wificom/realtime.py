@@ -217,7 +217,7 @@ class RealTimeGuestTalis(RealTimeHost):
 		return 5
 	def comm_successful(self):
 		'''RealTimeHost interface'''
-		return len(self.result) >= 6
+		return len(self.result) >= 4
 
 class RealTimeHostTalis(RealTimeGuestTalis):
 	'''
