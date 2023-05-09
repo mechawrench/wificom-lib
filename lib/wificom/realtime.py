@@ -105,6 +105,8 @@ class RealTimeHost(RealTime):
 	* property `retry_delay` - the wait time in seconds before retrying.
 	* `def comm_successful(self)` - True if the second interaction with the toy
 		was successful, False otherwise.
+
+	(Items marked "property" here can also be class attributes.)
 	'''
 	def loop(self):
 		'''
@@ -171,35 +173,20 @@ class RealTimeGuestTalis(RealTimeHost):
 	Real-time guest for Legendz battle.
 	Based on host because this battle type is almost symmetrical.
 	'''
-	@property
-	def scan_str(self):
-		'''RealTimeHost interface'''
-		return "LT2"
+	scan_str = "LT2"  #: RealTimeHost interface
+	wait_min = 9      #: RealTimeHost interface
+	wait_max = 25     #: RealTimeHost interface
+	max_attempts = 4  #: RealTimeHost interface
+	retry_delay = 5   #: RealTimeHost interface
 	def scan_successful(self):
 		'''RealTimeHost interface'''
 		return len(self.result) == 1 and len(self.result[0].data) >= 20
 	def message(self):
 		'''RealTime interface'''
 		return "LT1-" + str(self.result[0])[2:] + "-AA590003" * 3
-	@property
-	def wait_min(self):
-		'''RealTimeHost interface'''
-		return 9
-	@property
-	def wait_max(self):
-		'''RealTimeHost interface'''
-		return 25
 	def matched(self, rom_str):
 		'''RealTime interface'''
 		return rom_str.startswith("LT1-")
-	@property
-	def max_attempts(self):
-		'''RealTimeHost interface'''
-		return 4
-	@property
-	def retry_delay(self):
-		'''RealTimeHost interface'''
-		return 5
 	def comm_successful(self):
 		'''RealTimeHost interface'''
 		return len(self.result) >= 4
@@ -223,10 +210,11 @@ class RealTimeHostTalis(RealTimeGuestTalis):
 
 class RealTimeHostPenXBattle(RealTimeHost):
 	'''Real-time host for PenX battle.'''
-	@property
-	def scan_str(self):
-		'''RealTimeHost interface'''
-		return "X2-0069-2169-8009"
+	scan_str = "X2-0069-2169-8009"  #: RealTimeHost interface
+	wait_min = 0      #: RealTimeHost interface
+	wait_max = 7      #: RealTimeHost interface
+	max_attempts = 3  #: RealTimeHost interface
+	retry_delay = 3   #: RealTimeHost interface
 	def scan_successful(self):
 		'''RealTimeHost interface'''
 		return len(self.result) == 7 and self.result[6].data is not None
@@ -238,25 +226,9 @@ class RealTimeHostPenXBattle(RealTimeHost):
 			str(self.result[2])[2:],
 			str(self.result[4])[2:],
 		)
-	@property
-	def wait_min(self):
-		'''RealTimeHost interface'''
-		return 0
-	@property
-	def wait_max(self):
-		'''RealTimeHost interface'''
-		return 7
 	def matched(self, rom_str):
 		'''RealTime interface'''
 		return rom_str.startswith("X1-")
-	@property
-	def max_attempts(self):
-		'''RealTimeHost interface'''
-		return 3
-	@property
-	def retry_delay(self):
-		'''RealTimeHost interface'''
-		return 3
 	def comm_successful(self):
 		'''RealTimeHost interface'''
 		return len(self.result) == 8
