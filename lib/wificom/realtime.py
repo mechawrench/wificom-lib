@@ -35,11 +35,11 @@ class RealTime:
 		self.received_message = None
 		self.received_digirom = None
 		self.comm_attempts = 0  # for host only
-	def execute(self, digirom):
+	def execute(self, digirom, do_led=False):
 		'''
 		Execute digirom using the execute callback, and store result.
 		'''
-		self._execute_callback(digirom, False)
+		self._execute_callback(digirom, do_led)
 		self.result = digirom.result
 	def modify_received_digirom(self):
 		'''
@@ -144,7 +144,7 @@ class RealTimeHost(RealTime):
 				self.comm_attempts = 0
 				self._attempt_second_comm()
 	def _attempt_second_comm(self):
-		self.execute(self.received_digirom)
+		self.execute(self.received_digirom, True)
 		if self.comm_successful():
 			self.received_digirom = None
 			self.time_start = None
