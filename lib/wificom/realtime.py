@@ -12,7 +12,7 @@ STATUS_WAIT = 1
 STATUS_PUSH = 2
 STATUS_PUSH_SYNC = 3
 
-_MESSAGE_EXPIRY_TIME = 20
+_MESSAGE_EXPIRY_TIME = 30
 
 class RealTime:
 	#pylint: disable=too-many-instance-attributes
@@ -203,7 +203,7 @@ class RealTimeGuestTalis(RealTimeHost):
 	@property
 	def wait_max(self):
 		'''RealTimeHost interface'''
-		return 15
+		return 25
 	def matched(self, rom_str):
 		'''RealTime interface'''
 		return rom_str.startswith("LT1-")
