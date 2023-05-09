@@ -43,8 +43,10 @@ class RealTime:
 	def modify_received_digirom(self):
 		'''
 		Called on received digirom.
-		Does nothing by default. Can be overridden by subclasses as required.
+		Changes nothing by default. Can be overridden by subclasses as required.
+		Returns True if OK, False if error (additional checks can be added here).
 		'''
+		return True
 	def send_message(self):
 		'''
 		Send message to the other player, using the send callback,
@@ -79,9 +81,11 @@ class RealTime:
 		(_, message) = self.received_message
 		self.received_message = None
 		if not self.matched(message):
-			raise CommandError("Unexpected message type: " + str(message))
+			raise CommandError("Unexpected RTB message type: " + str(message))
 		self.received_digirom = dmcomm.protocol.parse_command(message)
-		self.modify_received_digirom()
+		if not self.modify_received_digirom():
+			self.received_digirom = None
+			raise CommandError("Unexpected RTB message contents: " + str(message))
 	def update_status(self, status):
 		'''
 		Report current status to the status callback and save it here.
@@ -199,14 +203,17 @@ class RealTimeHostTalis(RealTimeGuestTalis):
 	def modify_received_digirom(self):
 		'''RealTime interface'''
 		if len(self.received_digirom) == 0:
-			return
-		sent_data = self.result[0].data
+			return False
+		sent_data = self.result[0].data  # we already know this is long enough
 		rom_data = self.received_digirom[0].data
+		if len(rom_data) < 20:
+			return False
 		rom_data[14] = sent_data[14] #random number that only Pod copies?
 		rom_data[15] = sent_data[15] #session ID
 		rom_data[17] = sent_data[17] #terrain
 		rom_data[-1] = 0
 		rom_data[-1] = sum(rom_data) % 256
+		return True
 
 class RealTimeHostPenXBattle(RealTimeHost):
 	'''Real-time host for PenX battle.'''
