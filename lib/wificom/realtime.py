@@ -10,7 +10,6 @@ from dmcomm import CommandError
 STATUS_IDLE = 0
 STATUS_WAIT = 1
 STATUS_PUSH = 2
-STATUS_PUSH_SYNC = 3
 
 _MESSAGE_EXPIRY_TIME = 30
 
@@ -95,7 +94,6 @@ class RealTimeHost(RealTime):
 	Abstract class for real-time host.
 
 	Subclasses must implement:
-	* property `scan_status` - the status value to report when starting to scan.
 	* property `scan_str` - the digirom string to use for scanning.
 	* `def scan_successful(self)` - True if enough data was collected from the toy
 		using the scan digirom, False otherwise.
@@ -117,7 +115,7 @@ class RealTimeHost(RealTime):
 			if time.monotonic() - self.time_start >= self.retry_delay:
 				self._attempt_second_comm()
 		elif self.time_start is None:
-			self.update_status(self.scan_status)
+			self.update_status(STATUS_PUSH)
 			digirom = dmcomm.protocol.parse_command(self.scan_str)
 			self.execute(digirom)
 			if self.scan_successful():
@@ -174,10 +172,6 @@ class RealTimeGuestTalis(RealTimeHost):
 	Based on host because this battle type is almost symmetrical.
 	'''
 	@property
-	def scan_status(self):
-		'''RealTimeHost interface'''
-		return STATUS_PUSH_SYNC
-	@property
 	def scan_str(self):
 		'''RealTimeHost interface'''
 		return "LT2"
@@ -229,10 +223,6 @@ class RealTimeHostTalis(RealTimeGuestTalis):
 
 class RealTimeHostPenXBattle(RealTimeHost):
 	'''Real-time host for PenX battle.'''
-	@property
-	def scan_status(self):
-		'''RealTimeHost interface'''
-		return STATUS_PUSH
 	@property
 	def scan_str(self):
 		'''RealTimeHost interface'''
