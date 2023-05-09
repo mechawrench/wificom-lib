@@ -102,21 +102,12 @@ class RealTimeHost(RealTime):
 	* property `wait_min` - the minimum time to wait in seconds before attempting
 		to connect to the toy for the second time.
 	* property `wait_max` - the maximum time to wait for a reply from the other player.
+	* property `max_attempts` - the maximum number of attempts at the second
+		round of communication.
+	* property `retry_delay` - the wait time in seconds before retrying.
+	* `def comm_successful(self)` - True if the second interaction with the toy
+		was successful, False otherwise.
 	'''
-	@property
-	def max_attempts(self):
-		'''The maximum number of attempts at the second round of communication.'''
-		return 1
-	@property
-	def retry_delay(self):
-		'''The wait time in seconds before retrying.'''
-		return 1
-	def comm_successful(self):
-		'''
-		True if the second interaction with the toy was successful
-		or we are not doing retries; False otherwise.
-		'''
-		return True
 	def loop(self):
 		'''
 		Update state machine. Should be called repeatedly.
@@ -268,6 +259,17 @@ class RealTimeHostPenXBattle(RealTimeHost):
 	def matched(self, rom_str):
 		'''RealTime interface'''
 		return rom_str.startswith("X1-")
+	@property
+	def max_attempts(self):
+		'''RealTimeHost interface'''
+		return 3
+	@property
+	def retry_delay(self):
+		'''RealTimeHost interface'''
+		return 3
+	def comm_successful(self):
+		'''RealTimeHost interface'''
+		return len(self.result) == 8
 
 class RealTimeGuestPenXBattle(RealTimeGuest):
 	'''Real-time guest for PenX battle.'''
