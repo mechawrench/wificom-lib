@@ -211,8 +211,7 @@ def run_wifi():
 	if done_wifi_before:
 		if startup_mode == nvm.MODE_DEV:
 			ui.display_text("Soft reboot...")
-			time.sleep(0.5)
-			ui.clear()
+			time.sleep(0.8)
 			supervisor.reload()
 		else:
 			menu_reboot(nvm.MODE_WIFI)
@@ -365,13 +364,20 @@ def failure_alert(message, hard_reset=False):
 	led.duty_cycle = 0
 	ui.display_text(f"{message}\nPress A to reboot")
 	ui.beep_failure()
-	while not ui.is_a_pressed():
-		pass
-	ui.display_text("Rebooting...")
-	time.sleep(0.5)
+	while not ui.is_a_pressed(True):
+		# Short blink every 2s
+		if int(time.monotonic() * 10) % 20 == 0:
+			led.duty_cycle = 0xFFFF
+		else:
+			led.duty_cycle = 0
+	led.duty_cycle = 0
 	if hard_reset:
+		ui.display_text("Rebooting...")
+		time.sleep(0.5)
 		microcontroller.reset()
 	else:
+		ui.display_text("Soft reboot...")
+		time.sleep(0.8)
 		supervisor.reload()
 
 def rotate_log():

@@ -54,11 +54,11 @@ class UserInterface:
 			for button_id in "ABC":
 				self._buttons[button_id].pull = digitalio.Pull.UP
 		else:
-			# Physical button C takes the B role
-			self._buttons["B"] = digitalio.DigitalInOut(button_c)
-			self._buttons["B"].pull = digitalio.Pull.UP
-			self._buttons["A"] = None
-			self._buttons["C"] = None
+			# Physical button C can be any button in specified cases
+			self._buttons["C"] = digitalio.DigitalInOut(button_c)
+			self._buttons["C"].pull = digitalio.Pull.UP
+			self._buttons["A"] = self._buttons["C"]
+			self._buttons["B"] = self._buttons["C"]
 		self._speaker = PIOSound(speaker)
 		self.sound_on = True
 		self.audio_base_freq = 1000
@@ -106,26 +106,26 @@ class UserInterface:
 			return
 		group = displayio.Group()
 		self._display.show(group)
-	def _is_button_pressed(self, button_id):
+	def _is_button_pressed(self, button_id, do_no_display):
 		button = self._buttons[button_id]
-		if button is None:
+		if self._display is None and not do_no_display:
 			return False
 		return not button.value
-	def is_a_pressed(self):
+	def is_a_pressed(self, do_no_display=False):
 		'''
 		Check if button A is pressed.
 		'''
-		return self._is_button_pressed("A")
-	def is_b_pressed(self):
+		return self._is_button_pressed("A", do_no_display)
+	def is_b_pressed(self, do_no_display=False):
 		'''
 		Check if button B is pressed.
 		'''
-		return self._is_button_pressed("B")
-	def is_c_pressed(self):
+		return self._is_button_pressed("B", do_no_display)
+	def is_c_pressed(self, do_no_display=False):
 		'''
 		Check if button C is pressed.
 		'''
-		return self._is_button_pressed("C")
+		return self._is_button_pressed("C", do_no_display)
 	def beep_normal(self):
 		'''
 		A normal beep.
