@@ -6,7 +6,7 @@
         "picow": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/7.3.2/adafruit-circuitpython-minimqtt-8.x-mpy-7.3.2.zip"
         },
     "circuitpython": {
-        "nina": "https://adafruit-circuit-python.s3.amazonaws.com/bin/arduino_nano_rp2040_connect/en_US/adafruit-circuitpython-arduino_nano_rp2040_connect-en_US-8.0.5.uf2",
-        "picow": "https://adafruit-circuit-python.s3.amazonaws.com/bin/raspberry_pi_pico_w/en_US/adafruit-circuitpython-raspberry_pi_pico_w-en_US-8.0.5.uf2"
+        "nina": "8.0.5",
+        "picow": "8.0.5"
         }
     } 
