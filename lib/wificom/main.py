@@ -22,7 +22,7 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import nvm
 from wificom import mqtt
-from wificom.import_secrets import secrets_imported, secrets_error_display
+from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
 
@@ -201,11 +201,8 @@ def run_wifi():
 	rtb_last_ping = 0
 
 	if not secrets_imported:
-		print("Error with secrets.py (see above)")
-		ui.display_text(secrets_error_display)
-		while not ui.is_c_pressed():
-			pass
-		return
+		print(secrets_error)
+		failure_alert(secrets_error_display)
 
 	global done_wifi_before  # pylint: disable=global-statement
 	if done_wifi_before:
