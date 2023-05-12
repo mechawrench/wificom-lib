@@ -405,6 +405,7 @@ def report_crash(crash_exception):
 	trace = "".join(traceback.format_exception(crash_exception))
 	serial_print(trace)
 	message = "Crashed "
+	rotate_log()
 	random_number = random.randint(100, 999)
 	try:
 		with open(LOG_FILENAME, "a", encoding="utf-8") as f:
@@ -459,7 +460,6 @@ def main(led_pwm):
 	ui = wificom.ui.UserInterface(**board_config.ui_pins)
 	ui.sound_on = config["sound_on"]
 	led = led_pwm
-	rotate_log()
 
 	run_column = 0
 	if not ui.has_display:
