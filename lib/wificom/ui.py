@@ -150,6 +150,12 @@ class UserInterface:
 		'''
 		f = self.audio_base_freq
 		self._speaker.play([(f, 0.15), (f/2, 0.15)])
+	def beep_ready(self):
+		'''
+		Beep for when menu/wifi is ready.
+		'''
+		f = self.audio_base_freq
+		self._speaker.play([(f, 0.15), (f*2, 0.15)])
 	def beep_failure(self):
 		'''
 		Beep to indicate failure (blocking).
