@@ -3,13 +3,14 @@ boot.py
 '''
 
 import time
-import board
 import digitalio
 import storage
 import supervisor
 import usb_cdc
 import usb_hid
+
 from wificom import nvm
+import board_config
 
 BUTTON_NOT_PRESSED = 0
 BUTTON_RELEASED = 1
@@ -23,18 +24,8 @@ supervisor.status_bar.console = False
 supervisor.status_bar.display = False
 usb_hid.disable()
 
-if board.board_id == "arduino_nano_rp2040_connect":
-	button_pin = board.D3
-	led_pin = board.LED
-elif board.board_id == "raspberry_pi_pico":
-	button_pin = board.GP3
-	led_pin = board.LED
-elif board.board_id == "raspberry_pi_pico_w":
-	button_pin = board.GP3
-	led_pin = board.GP10
-else:
-	button_pin = None
-	led_pin = None
+button_pin = board_config.ui_pins["button_c"]
+led_pin = board_config.led_pin
 
 if button_pin is not None:
 	led = digitalio.DigitalInOut(led_pin)
