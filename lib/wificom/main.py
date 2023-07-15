@@ -113,16 +113,16 @@ def rtb_status_callback(status, changed):
 		led.duty_cycle = 0xFFFF
 		if changed:
 			ui.beep_activate()
-	if status == rt.STATUS_PUSH_SYNC:
-		led.duty_cycle = 0xFFFF
 	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
 		led.duty_cycle = LED_DUTY_CYCLE_DIM
 
-def main_menu():
+def main_menu(play_startup_sound=True):
 	'''
 	Show the main menu.
 	'''
 	serial_print("Main menu")
+	if play_startup_sound:
+		ui.beep_ready()
 	if startup_mode == nvm.MODE_DEV:
 		options_prefix = ["*Dev mode*"]
 		results_prefix = [None]
@@ -228,6 +228,7 @@ def run_wifi():
 		failure_alert("MQTT failed")
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
+	ui.beep_ready()
 	ui.display_text("WiFi\nHold C to change")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
@@ -476,6 +477,6 @@ def main(led_pwm):
 	}
 	try:
 		branches[startup_mode][run_column]()
-		main_menu()
+		main_menu(False)
 	except Exception as e:  #pylint: disable=broad-except
 		report_crash(e)
