@@ -72,6 +72,30 @@ def execute_digirom(rom, do_led=True):
 		else:
 			time.sleep(0.05)
 		led.duty_cycle=LED_DUTY_CYCLE_DIM
+	return result
+
+def process_new_digirom(command):
+	'''
+	Parse the command and show success/failure.
+
+	Returns (digirom, "") if successful, (None, error_string) otherwise.
+	'''
+	digirom = None
+	error = ""
+	try:
+		digirom = dmcomm.protocol.parse_command(command)
+	except CommandError as e:
+		error = repr(e)
+	if hasattr(digirom, "op"):
+		# No OtherCommand implemented yet
+		error = "NotImplementedError:op=" + digirom.op
+		digirom = None
+	if digirom is None:
+		ui.beep_error()
+		serial_print(error)
+	else:
+		new_digirom_alert()
+	return (digirom, error)
 
 def new_digirom_alert():
 	'''
@@ -236,11 +260,11 @@ def run_wifi():
 	ui.display_text("WiFi\nHold C to change")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
-		replacement_digirom = mqtt.get_subscribed_output()
-		if replacement_digirom is not None:
-			new_digirom_alert()
-			digirom = dmcomm.protocol.parse_command(replacement_digirom)
-
+		new_command = mqtt.get_subscribed_output()
+		if new_command is not None:
+			(digirom, error) = process_new_digirom(new_command)
+			if digirom is None:
+				mqtt.send_digirom_output(error)
 		if mqtt.rtb_active:
 			rtb_type_id_new = (mqtt.rtb_battle_type, mqtt.rtb_user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
@@ -262,16 +286,19 @@ def run_wifi():
 				mqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
 			mqtt.loop()
-			rtb.loop()
+			try:
+				rtb.loop()
+			except CommandError as e:
+				serial_print(repr(e))
 		else:
 			if rtb_was_active:
 				led.duty_cycle = LED_DUTY_CYCLE_DIM
 			rtb_was_active = False
 			last_output = None
 			if digirom is not None:
-				execute_digirom(digirom)
-				if len(str(digirom.result)) >= 1:
-					last_output = str(digirom.result)
+				result = execute_digirom(digirom)
+				if len(result) >= 1:
+					last_output = result
 
 			# Send to MQTT topic (acts as a ping also)
 			mqtt.send_digirom_output(last_output)
@@ -304,15 +331,9 @@ def run_serial():
 			serial_str = serial_str.strip()
 			serial_str = serial_str.strip("\0")
 			serial_print(f"got {len(serial_str)} bytes: {serial_str} -> ", end="")
-			try:
-				command = dmcomm.protocol.parse_command(serial_str)
-				if hasattr(command, "op"):
-					# It's an OtherCommand
-					raise NotImplementedError("op=" + command.op)
-				digirom = command
+			(digirom, _) = process_new_digirom(serial_str)
+			if digirom is not None:
 				serial_print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
-			except (CommandError, NotImplementedError) as e:
-				serial_print(repr(e))
 			time.sleep(1)
 		if digirom is not None:
 			execute_digirom(digirom)
