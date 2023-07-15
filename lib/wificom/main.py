@@ -369,6 +369,7 @@ def failure_alert(message, hard_reset=False):
 		else:
 			led.duty_cycle = 0
 	led.duty_cycle = 0
+	ui.beep_activate()
 	if hard_reset:
 		ui.display_text("Rebooting...")
 		time.sleep(0.5)
