@@ -10,6 +10,7 @@ secrets_mqtt_broker = ""
 secrets_mqtt_username = ""
 secrets_mqtt_password = ""
 secrets_imported = False
+secrets_error = ""
 secrets_error_display = ""
 
 try:
@@ -31,15 +32,14 @@ try:
 	secrets_imported = True
 
 except ImportError:
-	print("secrets.py is missing, please copy and edit from webapp or secrets.example.py")
+	secrets_error = "secrets.py is missing, please copy and edit from webapp or secrets.example.py"
 	secrets_error_display = "secrets.py missing"
 except SyntaxError:
-	print("Syntax error in secrets.py")
-	secrets_error_display = "secrets.py\nSyntaxError"
-except TypeError:
-	print("Error in wireless_networks in secrets.py")
-	secrets_error_display = "secrets.py\nNetworks layout"
+	secrets_error = "Syntax error in secrets.py"
+	secrets_error_display = "secrets.py syntax"
+except TypeError as e:
+	secrets_error = "Error in wireless_networks in secrets.py: " + str(e)
+	secrets_error_display = "secrets.py networks"
 except KeyError as e:
-	print("Missing field in secrets.py")
-	print(e)
-	secrets_error_display = "secrets.py\nKeyError: " + str(e)
+	secrets_error = "Missing field in secrets.py: " + str(e)
+	secrets_error_display = "secrets " + str(e)

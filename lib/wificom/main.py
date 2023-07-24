@@ -22,7 +22,7 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import nvm
 from wificom import mqtt
-from wificom.import_secrets import secrets_imported, secrets_error_display
+from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
 
@@ -225,18 +225,14 @@ def run_wifi():
 	rtb_last_ping = 0
 
 	if not secrets_imported:
-		print("Error with secrets.py (see above)")
-		ui.display_text(secrets_error_display)
-		while not ui.is_c_pressed():
-			pass
-		return
+		print(secrets_error)
+		failure_alert(secrets_error_display)
 
 	global done_wifi_before  # pylint: disable=global-statement
 	if done_wifi_before:
 		if startup_mode == nvm.MODE_DEV:
 			ui.display_text("Soft reboot...")
-			time.sleep(0.5)
-			ui.clear()
+			time.sleep(0.8)
 			supervisor.reload()
 		else:
 			menu_reboot(nvm.MODE_WIFI)
@@ -387,13 +383,21 @@ def failure_alert(message, hard_reset=False):
 	led.duty_cycle = 0
 	ui.display_text(f"{message}\nPress A to reboot")
 	ui.beep_failure()
-	while not ui.is_a_pressed():
-		pass
-	ui.display_text("Rebooting...")
-	time.sleep(0.5)
+	while not ui.is_a_pressed(True):
+		# Short blink every 2s
+		if int(time.monotonic() * 10) % 20 == 0:
+			led.duty_cycle = 0xFFFF
+		else:
+			led.duty_cycle = 0
+	led.duty_cycle = 0
+	ui.beep_activate()
 	if hard_reset:
+		ui.display_text("Rebooting...")
+		time.sleep(0.5)
 		microcontroller.reset()
 	else:
+		ui.display_text("Soft reboot...")
+		time.sleep(0.8)
 		supervisor.reload()
 
 def rotate_log():
@@ -421,6 +425,7 @@ def report_crash(crash_exception):
 	trace = "".join(traceback.format_exception(crash_exception))
 	serial_print(trace)
 	message = "Crashed "
+	rotate_log()
 	random_number = random.randint(100, 999)
 	try:
 		with open(LOG_FILENAME, "a", encoding="utf-8") as f:
@@ -475,7 +480,6 @@ def main(led_pwm):
 	ui = wificom.ui.UserInterface(**board_config.ui_pins)
 	ui.sound_on = config["sound_on"]
 	led = led_pwm
-	rotate_log()
 
 	run_column = 0
 	if not ui.has_display:
