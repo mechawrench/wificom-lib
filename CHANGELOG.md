@@ -32,7 +32,7 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 - Screenless units can reboot by pressing the single button when failure is reported.
 - Use failure alert feature for `secrets.py` errors.
 - `boot.py` now reads button and LED pins from `board_config`.
-- Updated to CircuitPython 8.2.0.
+- Updated to CircuitPython 8.2.2.
 - Increased `pystack` size.
 ### Fixed
 - No longer crashes when `secrets.py` wireless network list has the wrong structure.
