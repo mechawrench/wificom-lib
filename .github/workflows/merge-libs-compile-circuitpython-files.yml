@@ -21,8 +21,8 @@ jobs:
 
       - name: Download mpy-cross
         run: |
-          wget https://adafruit-circuit-python.s3.amazonaws.com/bin/mpy-cross/mpy-cross.static-amd64-linux-8.0.0
-          chmod +x mpy-cross.static-amd64-linux-8.0.0
+          wget https://adafruit-circuit-python.s3.amazonaws.com/bin/mpy-cross/linux-amd64/mpy-cross-linux-amd64-8.2.2.static
+          chmod +x mpy-cross-linux-amd64-8.2.2.static
 
       - name: JSON to variables
         uses: antifree/json-to-variables@v1.0.1
@@ -66,7 +66,7 @@ jobs:
           for file in $(find ./lib -type f -name "*.py"); do
             if [ -s $file ]; then
               echo "Compiling $file..."
-              ./mpy-cross.static-amd64-linux-8.0.0 $file
+              ./mpy-cross-linux-amd64-8.2.2.static $file
             else
               echo "Skipping $file because it is empty."
             fi
@@ -97,7 +97,7 @@ jobs:
 
       - name: Remove unnecessary files
         run: |
-          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_nina_circuitpython_minimqtt sources_picow_circuitpython_minimqtt *.zip .git .github .gitignore .pylintrc mpy-cross.static-amd64-linux-8.0.0
+          rm -rf sources_dmcomm_python sources_adafruit_bundle sources_nina_circuitpython_minimqtt sources_picow_circuitpython_minimqtt *.zip .git .github .gitignore .pylintrc mpy-cross-linux-amd64-8.2.2.static
   
       - uses: actions/upload-artifact@v2
         with:
