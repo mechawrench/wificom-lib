@@ -148,15 +148,19 @@ def main_menu(play_startup_sound=True):
 	if play_startup_sound:
 		ui.beep_ready()
 	if startup_mode == nvm.MODE_DEV:
-		options_prefix = ["*Dev mode*"]
+		options_prefix = ["* Dev Mode *"]
 		results_prefix = [None]
+		options_suffix = []
+		results_suffix = []
 	else:
 		options_prefix = []
 		results_prefix = []
+		options_suffix = ["Drive"]
+		results_suffix = [menu_drive]
 	while True:
 		menu_result = ui.menu(
-			options_prefix + ["WiFi", "Serial", "Punchbag", "Drive"],
-			results_prefix + [menu_wifi, menu_serial, menu_punchbag, menu_drive],
+			options_prefix + ["WiFi", "Serial", "Punchbag"] + options_suffix,
+			results_prefix + [menu_wifi, menu_serial, menu_punchbag] + results_suffix,
 			None,
 		)
 		menu_result()
@@ -253,7 +257,7 @@ def run_wifi():
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 	ui.beep_ready()
-	ui.display_text("WiFi\nHold C to change")
+	ui.display_text("WiFi\nHold C to exit")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		new_command = mqtt.get_subscribed_output()
@@ -313,7 +317,7 @@ def run_serial():
 	'''
 	serial_print("Running serial")
 	digirom = None
-	ui.display_text("Serial\nHold C to change")
+	ui.display_text("Serial\nHold C to exit")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		if serial.in_waiting != 0:
@@ -370,7 +374,7 @@ def run_drive():
 		while True:
 			pass
 	result = ui.menu(
-		["*Drive enabled*", "WiFi", "Serial", "Punchbag"],
+		["* Drive Mode *", "WiFi", "Serial", "Punchbag"],
 		[None, menu_wifi, menu_serial, menu_punchbag],
 		None,
 	)
