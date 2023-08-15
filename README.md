@@ -8,7 +8,7 @@
 
 [![Pylint](https://github.com/mechawrench/wificom-lib/actions/workflows/pylint.yml/badge.svg)](https://github.com/mechawrench/wificom-lib/actions/workflows/pylint.yml)
 
-This library enables an RP2040+WiFi device using dmcomm-python (CircuitPython 8.x) to connect to https://wificom.dev to enable DigiRom reading and writing via HTTP API calls and MQTT for device interactions.
+This library enables an RP2040+WiFi device using dmcomm-python (CircuitPython 8.x) to connect to https://wificom.dev to enable DigiROM reading and writing via HTTP API calls and MQTT for device interactions.
 
 ## RP2040 Board Support
 
@@ -26,20 +26,27 @@ This library enables an RP2040+WiFi device using dmcomm-python (CircuitPython 8.
 
 ## Building a (WiFi) Pico-Com
 - Visit https://dmcomm.github.io/guide/pi-pico/ for more information on this topic
-- Ensure you match pins on your supported board with those found in the example "board_config.py" file.  The pins have been optimized by BladeSabre for the boards found in "board_config.py".  If you have a different board, you will need to adjust the pins in the "board_config.py" file.
+- Ensure you match pins on your supported board with those found in the example "board_config.py" file.  The pins have been optimized by BladeSabre for the boards found in "board_config.py".  If you have a different board or require a different pin layout, you will need to adjust the pins in the "board_config.py" file.
 
-## Initial Installation
+## Serial Monitoring
+- [Code with Mu](https://codewith.mu/) is recommended. Choose CircuitPython and click the "Serial" button.
+- Note that Arduino IDE has some difficulties with CircuitPython serial.
 
-1. Install CircuitPython 8.x to the board
-    - Raspberry Pi Pico W: https://circuitpython.org/board/raspberry_pi_pico_w/
-    - Arduino Nano RP2040 Connect: https://circuitpython.org/board/arduino_nano_rp2040_connect/
-    - Pico with AirLift: https://circuitpython.org/board/raspberry_pi_pico/
-1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION.zip"
+## Update Tool
+- The [WiFiCom Update Tool](https://github.com/mechawrench/wificom-update-tool) can download and install/update your choice of WiFiCom version automatically.
+- CircuitPython needs to be installed/updated separately, see below for details.
+
+## Manual Installation
+1. Install CircuitPython 8.x to the board: see `sources.json` for the exact version tested
+    - Raspberry Pi Pico W: [Latest](https://circuitpython.org/board/raspberry_pi_pico_w/) / [All](https://adafruit-circuit-python.s3.amazonaws.com/index.html?prefix=bin/raspberry_pi_pico_w/)
+    - Arduino Nano RP2040 Connect: [Latest](https://circuitpython.org/board/arduino_nano_rp2040_connect/) / [All](https://adafruit-circuit-python.s3.amazonaws.com/index.html?prefix=bin/arduino_nano_rp2040_connect/)
+    - Pico with AirLift: [Latest](https://circuitpython.org/board/raspberry_pi_pico/) / [All](https://adafruit-circuit-python.s3.amazonaws.com/index.html?prefix=bin/raspberry_pi_pico/)
+1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION_picow.zip" for Pi Pico W, or "_nina.zip" for other types
 1. Extract the zip and copy the contents into the root of the CIRCUITPY drive
     - If you are using an unsupported board or custom circuit layout, then before copying to CIRCUITPY, modify "board_config.py" so that pinouts match your board
 1. Copy the "secrets.example.py" to "secrets.py" and make changes to match your environment (you can get a prefilled version on the website https://wificom.dev)
 1. Check that the system boots, then eject CIRCUITPY from the computer and replug the USB to enable the `boot.py` configuration
-1. Test that everything works, you should see the following output from Arduino IDE Serial Monitor (Mac/Linux) / MU Editor (Windows) after the screen comes up and you select "Wifi"
+1. Test that everything works, you should see the following output on serial after the screen comes up and you select "Wifi"
     ```
     10:59:45.103 -> Connecting to WiFi network [WIFI_SSID]...
     10:59:46.387 -> Connected to WiFi network!
@@ -49,14 +56,14 @@ This library enables an RP2040+WiFi device using dmcomm-python (CircuitPython 8.
     ```
 1. If you need to change any files, put the WiFiCom into drive mode (or dev mode if necessary) using the instructions below
 
-## Upgrade Firmware
+## Manual Firmware Upgrade
 1. Backup your current files, in particular the following are commonly modified:
     - secrets.py
     - board_config.py
     - config.py (previously digiroms.py)
 1. Update CircuitPython if required
 1. Put the WiFiCom into drive mode so that the CIRCUITPY drive is writeable
-1. Download the latest release from releases page, you'll be looking for a file named "wificom-lib_RELEASEVERSION.zip"
+1. Download the latest release from releases page, named as above
 1. Extract the zip and copy the contents into the root of the CIRCUITPY drive
 1. Compare contents of your modified files with the new files and make any necessary changes
 1. Test that everything works, including connecting to WiFi and sending/receiving DigiRoms
@@ -82,9 +89,10 @@ The UI has a small screen and 3 buttons. Some features are supported on a minima
 - Raspberry Pi Pico: on-board green LED
 
 ### LED Meanings
-- Blinking indicates connecting to WiFi and MQTT
+- Fast blinking indicates connecting to WiFi and MQTT
 - Solid (dimmed) LED indicates connected and no errors
 - Solid (bright) LED indicates waiting for Digimon/Legendz device during real-time battle
+- LED OFF with short blinks indicates a managed failure, follow the instructions on the screen, or on screenless units press the button to restart
 - LED OFF indicates failure, please restart your device
 - During startup, see below
 
@@ -95,7 +103,7 @@ The UI has a small screen and 3 buttons. Some features are supported on a minima
 
 ## Dependencies
 
-Runs on CircuitPython 8.x. Check the CHANGELOG for the exact version tested with each release.
+Runs on CircuitPython 8.x. Check `sources.json` for the exact version tested with each release.
 
 ### Libraries
 
