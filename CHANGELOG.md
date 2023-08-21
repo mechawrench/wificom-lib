@@ -191,6 +191,7 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v1.0.0...main
 [1.0.0]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0-rc1...v0.10.0
 [0.10.0-rc1]: https://github.com/mechawrench/wificom-lib/compare/v0.9.0...v0.10.0-rc1
