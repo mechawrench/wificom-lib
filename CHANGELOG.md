@@ -6,6 +6,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [unreleased] commits. Notes are in the pull request descriptions.
 
+## [1.0.0] - 2023-08-21
+### Added
+- More LED and audio feedback:
+  - Beep once and blink LED 3 times when a new DigiROM or real-time battle setup request is received over WiFi or serial. (Previously just beeped on new DigiROM over WiFi.)
+  - Blink LED briefly when reporting DigiROM results, like for the Arduino version. "Interesting" results give a slightly longer blink.
+  - Play a sound when reaching main menu after completing startup.
+  - Play a sound when WiFi/MQTT is ready to receive DigiROMs from the server.
+  - Error beep on bad command via WiFi or serial.
+  - Short LED blink every 2 seconds when failure is reported.
+  - Beep on press-to-reboot after failure.
+- Report "command" and "receive" errors to server via MQTT, visible on the website alongside DigiROM results.
+- Catch unexpected exceptions and log the tracebacks to `wificom_log.txt` in CIRCUITPY. Rotate file to `wificom_log_old.txt` according to size. Can reboot with button press after a crash.
+### Changed
+- Updated dmcomm-python to v0.7.0:
+  - Finalized Data Link - removed "!" - bytes are reversed from the "!" version.
+  - Finalized Fusion Loader - removed "!!" with no changes.
+  - Added calculation features in sequence DigiROMs.
+- Real-time battle improvements:
+  - Retry final connection.
+  - LED blink for final connection.
+  - Stale messages expire.
+  - Players no longer need to press simultaneously for Legendz.
+- Rebooting after failure waits for short A press instead of holding C.
+- Screenless units can reboot by pressing the single button when failure is reported.
+- Use failure alert feature for `secrets.py` errors.
+- `boot.py` now reads button and LED pins from `board_config`.
+- Various menu text updated.
+- Removed "Drive" option from Dev Mode menu.
+- Updated to CircuitPython 8.2.2.
+- Increased `pystack` size.
+- Updated README.md credits to reflect current project contributions.
+### Fixed
+- No longer crashes when `secrets.py` wireless network list has the wrong structure.
+
 ## [0.10.0] - 2023-04-24
 - No changes from rc1.
 
@@ -157,7 +191,8 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0...main
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v1.0.0...main
+[1.0.0]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0-rc1...v0.10.0
 [0.10.0-rc1]: https://github.com/mechawrench/wificom-lib/compare/v0.9.0...v0.10.0-rc1
 [0.9.0]: https://github.com/mechawrench/wificom-lib/compare/v0.8.0...v0.9.0
