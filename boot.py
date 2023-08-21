@@ -6,7 +6,6 @@ import time
 import digitalio
 import storage
 import supervisor
-import usb_cdc
 import usb_hid
 
 from wificom import nvm
@@ -74,11 +73,5 @@ if button_pin is not None:
 	if state == STATE_DRIVE:
 		print("CIRCUITPY drive is writeable")
 	else:
-		#storage.disable_usb_drive()  # trying it read-only instead
 		storage.remount("/", False)
 		print("CIRCUITPY drive is read-only")
-	if state == STATE_SERIAL:
-		usb_cdc.enable(console=False, data=True)
-		print("Using data serial")
-	else:
-		print("Using console serial")
