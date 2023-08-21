@@ -2,24 +2,52 @@
 board_config.py
 Handles differences between boards.
 
-Pi Pico W, with BladeSabre's pin assignments. RECOMMENDED.
+WiFiCom:
+Recommended pins are assigned here for:
+- Raspberry Pi Pico W
+- Arduino Nano RP2040 Connect
+If you are using another RP2040 board with an AirLift module,
+you will need to edit this file.
 
-Arduino Nano RP2040 Connect, with BladeSabre's pin assignments.
-
-Pi Pico + AirLift, with BladeSabre's pin assignments.
-This was used for development but is no longer recommended.
-Screen is not included due to lack of pins.
-
+Non-WiFi:
+Recommended pins are assigned here for:
+- Raspberry Pi Pico
+- Seeeduino Xiao RP2040
 '''
+
 import board
 import dmcomm.hardware as hw
 
-print("Board ID: ", board.board_id)
-
-# pylint: disable=unused-import
-
-if board.board_id == "arduino_nano_rp2040_connect":
-	from wificom.wifi_nina import Wifi as WifiCls
+if board.board_id in ["raspberry_pi_pico", "raspberry_pi_pico_w"]:
+	if board.board_id == "raspberry_pi_pico_w":
+		wifi_type = "picow"
+		led_pin = board.GP10
+	else:
+		wifi_type = None
+		led_pin = board.LED
+	controller_pins = [
+		hw.ProngOutput(board.GP19, board.GP21),
+		hw.ProngInput(board.GP22),  # note this may need changed to GP26 on older builds
+		hw.InfraredOutput(board.GP16),
+		hw.InfraredInputModulated(board.GP17),
+		hw.InfraredInputRaw(board.GP14),
+		hw.TalisInputOutput(board.GP15),
+	]
+	extra_power_pins = [
+		(board.GP13, True),
+		(board.GP18, True),
+	]
+	wifi_pins = {}
+	ui_pins = {
+		"display_scl": board.GP5,
+		"display_sda": board.GP4,
+		"button_a": board.GP9,
+		"button_b": board.GP8,
+		"button_c": board.GP3,
+		"speaker": board.GP2,
+	}
+elif board.board_id == "arduino_nano_rp2040_connect":
+	wifi_type = "nina"
 	led_pin = board.LED
 	controller_pins = [
 		hw.ProngOutput(board.A0, board.A2),
@@ -52,64 +80,33 @@ if board.board_id == "arduino_nano_rp2040_connect":
 		"button_c": board.D3,
 		"speaker": board.D0,
 	}
-elif board.board_id == "raspberry_pi_pico":
-	from wificom.wifi_nina import Wifi as WifiCls
+elif board.board_id == "seeeduino_xiao_rp2040":
+	wifi_type = None
 	led_pin = board.LED
 	controller_pins = [
-		hw.ProngOutput(board.GP19, board.GP21),
-		hw.ProngInput(board.GP22), #note this may need changed to GP26 on older builds
-		hw.InfraredOutput(board.GP16),
-		hw.InfraredInputModulated(board.GP17),
-		hw.InfraredInputRaw(board.GP14),
-		hw.TalisInputOutput(board.GP15),
+		hw.ProngOutput(board.D10, board.D7),  # D10 is GP3, D9 is GP4
+		hw.ProngInput(board.D8),
+		hw.InfraredOutput(board.A1),
+		hw.InfraredInputModulated(board.A2),
+		hw.InfraredInputRaw(board.A0),
 	]
-	extra_power_pins = [
-		(board.GP13, True),
-		(board.GP18, True),
-	]
-	wifi_pins = {
-		"esp32_sck": board.GP6,
-		"esp32_mosi": board.GP7,
-		"esp32_miso": board.GP4,
-		"esp32_cs": board.GP5,
-		"esp32_busy": board.GP8,
-		"esp32_reset": board.GP9,
-	}
+	extra_power_pins = []
+	wifi_pins = {}
 	ui_pins = {
 		"display_scl": None,
 		"display_sda": None,
 		"button_a": None,
 		"button_b": None,
-		"button_c": board.GP3,
-		"speaker": board.GP11,
-	}
-	# GP0-2 for flashing AirLift (not included in this software):
-	# GP0 TX to AirLift RX
-	# GP1 RX to AirLift TX
-	# GP2 to AirLift GP0
-elif board.board_id == "raspberry_pi_pico_w":
-	from wificom.wifi_picow import Wifi as WifiCls
-	led_pin = board.GP10
-	controller_pins = [
-		hw.ProngOutput(board.GP19, board.GP21),
-		hw.ProngInput(board.GP22),
-		hw.InfraredOutput(board.GP16),
-		hw.InfraredInputModulated(board.GP17),
-		hw.InfraredInputRaw(board.GP14),
-		hw.TalisInputOutput(board.GP15),
-	]
-	extra_power_pins = [
-		(board.GP13, True),
-		(board.GP18, True),
-	]
-	wifi_pins = {}
-	ui_pins = {
-		"display_scl": board.GP5,
-		"display_sda": board.GP4,
-		"button_a": board.GP9,
-		"button_b": board.GP8,
-		"button_c": board.GP3,
-		"speaker": board.GP2,
+		"button_c": board.D6,
+		"speaker": board.D5,
 	}
 else:
-	raise ValueError("Your board is not supported.")
+	raise ValueError("Please configure pins in board_config.py")
+
+# pylint: disable=unused-import
+if wifi_type == "picow":
+	from wificom.wifi_picow import Wifi as WifiCls
+elif wifi_type == "nina":
+	from wificom.wifi_nina import Wifi as WifiCls
+else:
+	WifiCls = None  # pylint: disable=invalid-name
