@@ -35,12 +35,7 @@ controller = None
 ui = None  #pylint: disable=invalid-name
 led = None
 done_wifi_before = False
-
-# Serial port selection
-if usb_cdc.data is not None:
-	serial = usb_cdc.data
-else:
-	serial = usb_cdc.console
+serial = usb_cdc.console
 
 def serial_print(contents, end="\r\n"):
 	'''
@@ -169,7 +164,7 @@ def menu_wifi():
 	'''
 	Chosen WiFi option from the menu.
 	'''
-	if serial == usb_cdc.console and startup_mode != nvm.MODE_DRIVE:
+	if startup_mode != nvm.MODE_DRIVE:
 		run_wifi()
 	else:
 		menu_reboot(nvm.MODE_WIFI)
@@ -178,7 +173,7 @@ def menu_serial():
 	'''
 	Chosen Serial option from the menu.
 	'''
-	if serial == usb_cdc.data or startup_mode == nvm.MODE_DEV:
+	if startup_mode != nvm.MODE_DRIVE:
 		run_serial()
 	else:
 		menu_reboot(nvm.MODE_SERIAL)
@@ -187,7 +182,7 @@ def menu_punchbag():
 	'''
 	Chosen Punchbag option from the menu.
 	'''
-	if serial == usb_cdc.console and startup_mode != nvm.MODE_DRIVE:
+	if startup_mode != nvm.MODE_DRIVE:
 		run_punchbag()
 	else:
 		menu_reboot(nvm.MODE_PUNCHBAG)
@@ -196,7 +191,7 @@ def menu_drive():
 	'''
 	Chosen Drive option from the menu.
 	'''
-	if startup_mode in [nvm.MODE_DRIVE, nvm.MODE_DEV]:
+	if startup_mode == nvm.MODE_DRIVE:
 		run_drive()
 	else:
 		menu_reboot(nvm.MODE_DRIVE)
