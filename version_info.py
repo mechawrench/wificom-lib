@@ -4,4 +4,4 @@ This file is intended to be modified by the build CI.
 '''
 name = 'wificom'
 version = '?'
-platform = '?'
+variant = '?'
