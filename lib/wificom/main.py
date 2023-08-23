@@ -51,7 +51,7 @@ def get_version_info():
 	'''
 	return f'''name = "{version_info.name}"\r
 version = "{version_info.version}"\r
-platform = "{version_info.platform}"\r
+variant = "{version_info.variant}"\r
 circuitpython_version = "{os.uname().version}"\r
 circuitpython_board_id = "{board.board_id}"'''
 
