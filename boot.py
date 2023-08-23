@@ -60,8 +60,8 @@ if button_pin is not None:
 	elif button_result in (BUTTON_RELEASED, BUTTON_HELD):
 		nvm.set_mode(nvm.MODE_DEV)
 		drive_enabled = True
-
 	print("Mode:", nvm.get_mode_str())
+	print("WiFi:", "enabled" if has_wifi else "disabled")
 	if drive_enabled:
 		print("CIRCUITPY drive is writeable")
 	else:

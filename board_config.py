@@ -13,6 +13,8 @@ Non-WiFi:
 Recommended pins are assigned here for:
 - Raspberry Pi Pico
 - Seeeduino Xiao RP2040
+
+Note `wifi_type` is not present in older board_config.
 '''
 
 import board
@@ -108,6 +110,10 @@ else:
 	raise ValueError("Please configure pins in board_config.py")
 
 # pylint: disable=unused-import
+try:
+	import wificom
+except ImportError:
+	wifi_type = None  # support dmcomm-python by itself
 if wifi_type == "picow":
 	from wificom.wifi_picow import Wifi as WifiCls
 elif wifi_type == "nina":
