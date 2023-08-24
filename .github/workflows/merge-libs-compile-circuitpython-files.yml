@@ -126,6 +126,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Upload to Amazon S3
+        if: github.event_name == 'push'
         run: |
           aws s3 cp ${{ env.FILENAME }} s3://wificom-lib/archives/${{ env.FILENAME }}
 
