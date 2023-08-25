@@ -45,6 +45,33 @@ def serial_print(contents, end="\r\n"):
 	'''
 	serial.write((contents + end).encode("utf-8"))
 
+def serial_readline():
+	'''
+	Custom version of serial.readline() which accepts CR as well as LF.
+	Also converts to string and strips result. Prints errors.
+	Returns None on error or if stripped result is empty.
+	'''
+	if serial.in_waiting == 0:
+		return None
+	data_received = bytearray()
+	while True:
+		item = serial.read(1)
+		if len(item) == 0:
+			serial_print(f"too slow: {bytes(data_received)}")
+			return None
+		if item in (b"\r", b"\n"):
+			break
+		data_received.append(item[0])
+	try:
+		serial_str = data_received.decode("utf-8")
+	except UnicodeError:
+		serial_print(f"UnicodeError: {bytes(data_received)}")
+		return None
+	serial_str = serial_str.strip().strip("\0")
+	if serial_str == "":
+		return None
+	return serial_str
+
 def get_version_info():
 	'''
 	Convert version info to a TOML string.
@@ -335,16 +362,9 @@ def run_serial():
 	ui.display_text("Serial\nHold C to exit")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
-		if serial.in_waiting != 0:
+		serial_str = serial_readline()
+		if serial_str is not None:
 			digirom = None
-			serial_bytes = serial.readline()
-			serial_str = serial_bytes.decode("ascii", "ignore")
-			# readline only accepts "\n" but we can receive "\r" after timeout
-			if serial_str[-1] not in ["\r", "\n"]:
-				serial_print("too slow")
-				continue
-			serial_str = serial_str.strip()
-			serial_str = serial_str.strip("\0")
 			if serial_str in ["i", "I"]:
 				serial_print(get_version_info())
 			else:
