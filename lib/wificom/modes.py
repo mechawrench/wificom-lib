@@ -1,6 +1,6 @@
 '''
-nvm.py
-Handles the non-volatile storage.
+modes.py
+Handles the mode selected at startup.
 '''
 
 import microcontroller
