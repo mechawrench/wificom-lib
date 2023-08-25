@@ -9,6 +9,7 @@ import os
 import random
 import traceback
 
+import board
 import digitalio
 import displayio
 import microcontroller
@@ -25,6 +26,7 @@ from wificom import mqtt
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
+import version_info
 
 LED_DUTY_CYCLE_DIM=0x1000
 LOG_FILENAME = "wificom_log.txt"
@@ -42,6 +44,16 @@ def serial_print(contents, end="\r\n"):
 	Print output to the serial console
 	'''
 	serial.write((contents + end).encode("utf-8"))
+
+def get_version_info():
+	'''
+	Convert version info to a TOML string.
+	'''
+	return f'''name = "{version_info.name}"\r
+version = "{version_info.version}"\r
+variant = "{version_info.variant}"\r
+circuitpython_version = "{os.uname().version}"\r
+circuitpython_board_id = "{board.board_id}"'''
 
 def execute_digirom(rom, do_led=True):
 	'''
@@ -325,8 +337,11 @@ def run_serial():
 				continue
 			serial_str = serial_str.strip()
 			serial_str = serial_str.strip("\0")
-			serial_print(f"got {len(serial_str)} bytes: {serial_str} -> ", end="")
-			(digirom, _) = process_new_digirom(serial_str)
+			if serial_str in ["i", "I"]:
+				serial_print(get_version_info())
+			else:
+				serial_print(f"got {len(serial_str)} bytes: {serial_str} -> ", end="")
+				(digirom, _) = process_new_digirom(serial_str)
 			if digirom is not None:
 				serial_print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
 			time.sleep(1)
