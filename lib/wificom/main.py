@@ -485,11 +485,8 @@ def main(led_pwm):
 
 	startup_mode = modes.get_mode()
 	mode_was_requested = modes.was_requested()
-	serial_print("Mode: " + modes.get_mode_str(), end="; ")
-	if modes.clear_request():
-		serial_print("request cleared")
-	else:
-		serial_print("not requested")
+	serial_print("Mode: " + modes.get_mode_str())
+	modes.clear_request()
 	if startup_mode != modes.MODE_DEV:
 		supervisor.runtime.autoreload = False
 

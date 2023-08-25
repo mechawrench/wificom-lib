@@ -54,19 +54,16 @@ def was_requested():
 
 def set_mode(mode, requested=True):
 	'''
-	Set a new mode. Return True if memory was changed, False otherwise.
+	Set a new mode.
 	'''
 	if mode not in _MODES:
 		raise ValueError(str(mode) + " not a mode")
 	req = REQUESTED_YES if requested else REQUESTED_NO
 	new_mem_str = MAGIC + mode + req
-	if new_mem_str == _mem_str():
-		return False
 	alarm.sleep_memory[0:LENGTH] = bytes(new_mem_str, "ascii")
-	return True
 
 def clear_request():
 	'''
-	Clear the request flag. Return True if memory was changed, False otherwise.
+	Clear the request flag.
 	'''
-	return set_mode(get_mode(), False)
+	set_mode(get_mode(), False)
