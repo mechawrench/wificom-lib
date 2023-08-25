@@ -3,7 +3,7 @@ modes.py
 Handles the mode selected at startup.
 '''
 
-import microcontroller
+import alarm
 
 MAGIC = "wificom03"
 LENGTH = len(MAGIC) + 2
@@ -20,8 +20,8 @@ REQUESTED_NO = "n"
 
 _MODES = "mwspd*"
 
-def _nvm_str():
-	the_bytes = microcontroller.nvm[0:LENGTH]
+def _mem_str():
+	the_bytes = alarm.sleep_memory[0:LENGTH]
 	try:
 		return the_bytes.decode("ascii")
 	except UnicodeError:
@@ -31,9 +31,9 @@ def get_mode_str():
 	'''
 	Return the 2-character data, or "??" if MAGIC doesn't match.
 	'''
-	nvm_str = _nvm_str()
-	if nvm_str.startswith(MAGIC):
-		return nvm_str[-2:]
+	mem_str = _mem_str()
+	if mem_str.startswith(MAGIC):
+		return mem_str[-2:]
 	return "??"
 
 def get_mode():
@@ -54,19 +54,19 @@ def was_requested():
 
 def set_mode(mode, requested=True):
 	'''
-	Set a new mode. Return True if NVM was changed, False otherwise.
+	Set a new mode. Return True if memory was changed, False otherwise.
 	'''
 	if mode not in _MODES:
 		raise ValueError(str(mode) + " not a mode")
 	req = REQUESTED_YES if requested else REQUESTED_NO
-	new_nvm_str = MAGIC + mode + req
-	if new_nvm_str == _nvm_str():
+	new_mem_str = MAGIC + mode + req
+	if new_mem_str == _mem_str():
 		return False
-	microcontroller.nvm[0:LENGTH] = bytes(new_nvm_str, "ascii")
+	alarm.sleep_memory[0:LENGTH] = bytes(new_mem_str, "ascii")
 	return True
 
 def clear_request():
 	'''
-	Clear the request flag. Return True if NVM was changed, False otherwise.
+	Clear the request flag. Return True if memory was changed, False otherwise.
 	'''
 	return set_mode(get_mode(), False)
