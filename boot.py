@@ -15,16 +15,13 @@ BUTTON_NOT_PRESSED = 0
 BUTTON_RELEASED = 1
 BUTTON_HELD = 2
 
-STATE_NORMAL = 0
-STATE_DRIVE = 1
-STATE_SERIAL = 2
-
 supervisor.status_bar.console = False
 supervisor.status_bar.display = False
 usb_hid.disable()
 
 button_pin = board_config.ui_pins["button_c"]
 led_pin = board_config.led_pin
+has_wifi = board_config.WifiCls is not None
 
 if button_pin is not None:
 	led = digitalio.DigitalInOut(led_pin)
@@ -47,30 +44,25 @@ if button_pin is not None:
 				break
 		led.value = False
 
-	# button not pressed: WiFiCom with defaults or menu selection
-	# button released when LED came on: WiFiCom dev mode
-	# button held until LED went off: serial-only without drive or console
+	# Button not pressed: default / as requested
+	# Button released when LED came on: Dev Mode
+	# Button held until LED went off: Serial Mode (WiFiCom) / Dev Mode (P-Com)
+	drive_enabled = False
 	if button_result == BUTTON_NOT_PRESSED:
 		mode = nvm.get_mode()
-		if mode in [nvm.MODE_MENU, nvm.MODE_WIFI, nvm.MODE_PUNCHBAG]:
-			state = STATE_NORMAL
-		elif mode == nvm.MODE_SERIAL:
-			state = STATE_SERIAL
-		elif mode == nvm.MODE_DRIVE:
-			state = STATE_DRIVE
-		elif mode == nvm.MODE_DEV:
+		if mode == nvm.MODE_DRIVE and nvm.was_requested():
+			drive_enabled = True
+		elif mode in (nvm.MODE_DEV, nvm.MODE_DRIVE):
 			# this was not requested from software so reset it
 			nvm.set_mode(nvm.MODE_MENU)
-			state = STATE_NORMAL
-	elif button_result == BUTTON_RELEASED:
-		nvm.set_mode(nvm.MODE_DEV)
-		state = STATE_DRIVE
-	elif button_result == BUTTON_HELD:
+	elif has_wifi and button_result == BUTTON_HELD:
 		nvm.set_mode(nvm.MODE_SERIAL)
-		state = STATE_SERIAL
-
+	elif button_result in (BUTTON_RELEASED, BUTTON_HELD):
+		nvm.set_mode(nvm.MODE_DEV)
+		drive_enabled = True
 	print("Mode:", nvm.get_mode_str())
-	if state == STATE_DRIVE:
+	print("WiFi:", "enabled" if has_wifi else "disabled")
+	if drive_enabled:
 		print("CIRCUITPY drive is writeable")
 	else:
 		storage.remount("/", False)

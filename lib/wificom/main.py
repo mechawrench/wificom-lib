@@ -154,22 +154,24 @@ def main_menu(play_startup_sound=True):
 	serial_print("Main menu")
 	if play_startup_sound:
 		ui.beep_ready()
+	options = []
+	results = []
 	if startup_mode == nvm.MODE_DEV:
-		options_prefix = ["* Dev Mode *"]
-		results_prefix = [None]
-		options_suffix = []
-		results_suffix = []
-	else:
-		options_prefix = []
-		results_prefix = []
-		options_suffix = ["Drive"]
-		results_suffix = [menu_drive]
+		options.append("* Dev Mode *")
+		results.append(None)
+	if startup_mode == nvm.MODE_DRIVE:
+		options.append("* Drive Mode *")
+		results.append(None)
+	if board_config.WifiCls is not None:
+		options.append("WiFi")
+		results.append(menu_wifi)
+	options.extend(["Serial", "Punchbag"])
+	results.extend([menu_serial, menu_punchbag])
+	if startup_mode not in (nvm.MODE_DEV, nvm.MODE_DRIVE):
+		options.append("Drive")
+		results.append(menu_drive)
 	while True:
-		menu_result = ui.menu(
-			options_prefix + ["WiFi", "Serial", "Punchbag"] + options_suffix,
-			results_prefix + [menu_wifi, menu_serial, menu_punchbag] + results_suffix,
-			None,
-		)
+		menu_result = ui.menu(options, results, None)
 		menu_result()
 
 def menu_wifi():
@@ -226,6 +228,12 @@ def run_wifi():
 	Do the normal WiFiCom things.
 	'''
 	# pylint: disable=too-many-branches,too-many-statements
+
+	if board_config.WifiCls is None:
+		print("No WiFi specified in board_config; running serial")
+		menu_serial()
+		return
+
 	serial_print("Running WiFi")
 	gc.collect()
 	print("Free memory before WiFi:", gc.mem_free())
@@ -383,12 +391,7 @@ def run_drive():
 	if not ui.has_display:
 		while True:
 			pass
-	result = ui.menu(
-		["* Drive Mode *", "WiFi", "Serial", "Punchbag"],
-		[None, menu_wifi, menu_serial, menu_punchbag],
-		None,
-	)
-	result()
+	main_menu()
 
 def failure_alert(message, hard_reset=False):
 	'''
