@@ -52,7 +52,7 @@ if button_pin is not None:
 		mode = modes.get_mode()
 		if mode == modes.MODE_DRIVE and modes.was_requested():
 			drive_enabled = True
-		elif mode in (modes.MODE_DEV, modes.MODE_DRIVE):
+		elif mode in (modes.MODE_DEV, modes.MODE_DRIVE, modes.MODE_UNKNOWN):
 			# this was not requested from software so reset it
 			modes.set_mode(modes.MODE_MENU)
 	elif has_wifi and button_result == BUTTON_HELD:
@@ -60,8 +60,8 @@ if button_pin is not None:
 	elif button_result in (BUTTON_RELEASED, BUTTON_HELD):
 		modes.set_mode(modes.MODE_DEV)
 		drive_enabled = True
-	print("Mode:", modes.get_mode_str())
 	print("WiFi:", "enabled" if has_wifi else "disabled")
+	print("Mode:", modes.get_mode_str())
 	if drive_enabled:
 		print("CIRCUITPY drive is writeable")
 	else:

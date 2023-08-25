@@ -162,6 +162,9 @@ def main_menu(play_startup_sound=True):
 	if startup_mode == modes.MODE_DRIVE:
 		options.append("* Drive Mode *")
 		results.append(None)
+	if startup_mode == modes.MODE_UNKNOWN:
+		options.append("* First run? * ")
+		results.append(None)
 	if board_config.WifiCls is not None:
 		options.append("WiFi")
 		results.append(menu_wifi)
@@ -178,7 +181,7 @@ def menu_wifi():
 	'''
 	Chosen WiFi option from the menu.
 	'''
-	if startup_mode != modes.MODE_DRIVE:
+	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
 		run_wifi()
 	else:
 		menu_reboot(modes.MODE_WIFI)
@@ -187,7 +190,7 @@ def menu_serial():
 	'''
 	Chosen Serial option from the menu.
 	'''
-	if startup_mode != modes.MODE_DRIVE:
+	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
 		run_serial()
 	else:
 		menu_reboot(modes.MODE_SERIAL)
@@ -196,7 +199,7 @@ def menu_punchbag():
 	'''
 	Chosen Punchbag option from the menu.
 	'''
-	if startup_mode != modes.MODE_DRIVE:
+	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
 		run_punchbag()
 	else:
 		menu_reboot(modes.MODE_PUNCHBAG)
@@ -214,7 +217,7 @@ def menu_reboot(mode):
 	'''
 	Reset, confirming USB drive ejection if necessary.
 	'''
-	if startup_mode in [modes.MODE_DRIVE, modes.MODE_DEV]:
+	if startup_mode in (modes.MODE_DRIVE, modes.MODE_DEV, modes.MODE_UNKNOWN):
 		ui.display_text("Eject + press A")
 		while not ui.is_a_pressed():
 			pass
@@ -503,13 +506,14 @@ def main(led_pwm):
 		run_column += 1
 	serial_print("Run column: " + str(run_column))
 	branches = {
-		# mode:            (ui requested, ui not req, no ui req,  no ui not req)
+		# mode:              (ui requested, ui not req, no ui req,  no ui not req)
 		modes.MODE_MENU:     (main_menu,    main_menu,  run_wifi,   run_wifi),
 		modes.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
 		modes.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
 		modes.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
-		modes.MODE_DRIVE:    (run_drive,    run_drive,  run_drive,  run_drive), # last 2 unexpected
+		modes.MODE_DRIVE:    (run_drive,    run_drive,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
+		modes.MODE_UNKNOWN:  (main_menu,    main_menu,  run_wifi,   run_wifi),
 	}
 	try:
 		branches[startup_mode][run_column]()

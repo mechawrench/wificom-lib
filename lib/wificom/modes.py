@@ -5,7 +5,7 @@ Handles the mode selected at startup.
 
 import alarm
 
-MAGIC = "wificom03"
+MAGIC = "wificom_mode_01_"
 LENGTH = len(MAGIC) + 2
 
 MODE_MENU = "m"
@@ -14,11 +14,12 @@ MODE_SERIAL = "s"
 MODE_PUNCHBAG = "p"
 MODE_DRIVE = "d"
 MODE_DEV = "*"
+MODE_UNKNOWN = "?"
 
 REQUESTED_YES = "y"
 REQUESTED_NO = "n"
 
-_MODES = "mwspd*"
+_MODES = "mwspd*?"
 
 def _mem_str():
 	the_bytes = alarm.sleep_memory[0:LENGTH]
@@ -29,21 +30,21 @@ def _mem_str():
 
 def get_mode_str():
 	'''
-	Return the 2-character data, or "??" if MAGIC doesn't match.
+	Return the 2-character data, or "!!" if MAGIC doesn't match.
 	'''
 	mem_str = _mem_str()
 	if mem_str.startswith(MAGIC):
 		return mem_str[-2:]
-	return "??"
+	return "!!"
 
 def get_mode():
 	'''
-	Return the currently-set mode, defaulting to MODE_MENU.
+	Return the currently-set mode, defaulting to MODE_UNKNOWN.
 	'''
 	mode = get_mode_str()[0]
 	if mode in _MODES:
 		return mode
-	return MODE_MENU
+	return MODE_UNKNOWN
 
 def was_requested():
 	'''
