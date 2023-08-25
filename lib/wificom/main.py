@@ -209,7 +209,7 @@ def menu_drive():
 	Chosen Drive option from the menu.
 	'''
 	if startup_mode == modes.MODE_DRIVE:
-		run_drive()
+		main_menu()
 	else:
 		menu_reboot(modes.MODE_DRIVE)
 
@@ -386,16 +386,6 @@ def run_punchbag():
 		while ui.is_c_pressed():
 			pass
 
-def run_drive():
-	'''
-	Run in drive mode.
-	'''
-	serial_print("Running drive")
-	if not ui.has_display:
-		while True:
-			pass
-	main_menu()
-
 def failure_alert(message, hard_reset=False):
 	'''
 	Alert on failure and allow restart.
@@ -511,7 +501,7 @@ def main(led_pwm):
 		modes.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
 		modes.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
 		modes.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
-		modes.MODE_DRIVE:    (run_drive,    run_drive,  run_wifi,   run_wifi),  # last 2 unexpected
+		modes.MODE_DRIVE:    (main_menu,    main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
 		modes.MODE_UNKNOWN:  (main_menu,    main_menu,  run_wifi,   run_wifi),
 	}
