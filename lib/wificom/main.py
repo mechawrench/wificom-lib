@@ -352,12 +352,14 @@ def run_serial():
 				(digirom, _) = process_new_digirom(serial_str)
 			if digirom is not None:
 				serial_print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
-			time.sleep(1)
+				time.sleep(1)
 		if digirom is not None:
 			execute_digirom(digirom)
-		seconds_passed = time.monotonic() - time_start
-		if seconds_passed < 5:
-			time.sleep(5 - seconds_passed)
+			seconds_passed = time.monotonic() - time_start
+			if seconds_passed < 5:
+				time.sleep(5 - seconds_passed)
+		else:
+			time.sleep(0.1)  # Just waiting for serial
 
 def run_punchbag():
 	'''
