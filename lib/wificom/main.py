@@ -21,7 +21,7 @@ import dmcomm.hardware as hw
 import dmcomm.protocol
 import wificom.realtime as rt
 import wificom.ui
-from wificom import nvm
+from wificom import modes
 from wificom import mqtt
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
@@ -156,18 +156,21 @@ def main_menu(play_startup_sound=True):
 		ui.beep_ready()
 	options = []
 	results = []
-	if startup_mode == nvm.MODE_DEV:
+	if startup_mode == modes.MODE_DEV:
 		options.append("* Dev Mode *")
 		results.append(None)
-	if startup_mode == nvm.MODE_DRIVE:
+	if startup_mode == modes.MODE_DRIVE:
 		options.append("* Drive Mode *")
+		results.append(None)
+	if startup_mode == modes.MODE_UNKNOWN:
+		options.append("* First run? * ")
 		results.append(None)
 	if board_config.WifiCls is not None:
 		options.append("WiFi")
 		results.append(menu_wifi)
 	options.extend(["Serial", "Punchbag"])
 	results.extend([menu_serial, menu_punchbag])
-	if startup_mode not in (nvm.MODE_DEV, nvm.MODE_DRIVE):
+	if startup_mode not in (modes.MODE_DEV, modes.MODE_DRIVE):
 		options.append("Drive")
 		results.append(menu_drive)
 	while True:
@@ -178,47 +181,47 @@ def menu_wifi():
 	'''
 	Chosen WiFi option from the menu.
 	'''
-	if startup_mode != nvm.MODE_DRIVE:
+	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
 		run_wifi()
 	else:
-		menu_reboot(nvm.MODE_WIFI)
+		menu_reboot(modes.MODE_WIFI)
 
 def menu_serial():
 	'''
 	Chosen Serial option from the menu.
 	'''
-	if startup_mode != nvm.MODE_DRIVE:
+	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
 		run_serial()
 	else:
-		menu_reboot(nvm.MODE_SERIAL)
+		menu_reboot(modes.MODE_SERIAL)
 
 def menu_punchbag():
 	'''
 	Chosen Punchbag option from the menu.
 	'''
-	if startup_mode != nvm.MODE_DRIVE:
+	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
 		run_punchbag()
 	else:
-		menu_reboot(nvm.MODE_PUNCHBAG)
+		menu_reboot(modes.MODE_PUNCHBAG)
 
 def menu_drive():
 	'''
 	Chosen Drive option from the menu.
 	'''
-	if startup_mode == nvm.MODE_DRIVE:
-		run_drive()
+	if startup_mode == modes.MODE_DRIVE:
+		main_menu()
 	else:
-		menu_reboot(nvm.MODE_DRIVE)
+		menu_reboot(modes.MODE_DRIVE)
 
 def menu_reboot(mode):
 	'''
 	Reset, confirming USB drive ejection if necessary.
 	'''
-	if startup_mode in [nvm.MODE_DRIVE, nvm.MODE_DEV]:
+	if startup_mode in (modes.MODE_DRIVE, modes.MODE_DEV, modes.MODE_UNKNOWN):
 		ui.display_text("Eject + press A")
 		while not ui.is_a_pressed():
 			pass
-	nvm.set_mode(mode)
+	modes.set_mode(mode)
 	ui.display_text("Rebooting...")
 	time.sleep(0.5)
 	microcontroller.reset()
@@ -249,12 +252,12 @@ def run_wifi():
 
 	global done_wifi_before  # pylint: disable=global-statement
 	if done_wifi_before:
-		if startup_mode == nvm.MODE_DEV:
+		if startup_mode == modes.MODE_DEV:
 			ui.display_text("Soft reboot...")
 			time.sleep(0.8)
 			supervisor.reload()
 		else:
-			menu_reboot(nvm.MODE_WIFI)
+			menu_reboot(modes.MODE_WIFI)
 	done_wifi_before = True
 
 	# Connect to WiFi and MQTT
@@ -383,16 +386,6 @@ def run_punchbag():
 		while ui.is_c_pressed():
 			pass
 
-def run_drive():
-	'''
-	Run in drive mode.
-	'''
-	serial_print("Running drive")
-	if not ui.has_display:
-		while True:
-			pass
-	main_menu()
-
 def failure_alert(message, hard_reset=False):
 	'''
 	Alert on failure and allow restart.
@@ -483,14 +476,11 @@ def main(led_pwm):
 	gc.collect()
 	print("Free memory after dmcomm registrations:", gc.mem_free())
 
-	startup_mode = nvm.get_mode()
-	mode_was_requested = nvm.was_requested()
-	serial_print("Mode: " + nvm.get_mode_str(), end="; ")
-	if nvm.clear_request():
-		serial_print("request cleared")
-	else:
-		serial_print("not requested")
-	if startup_mode != nvm.MODE_DEV:
+	startup_mode = modes.get_mode()
+	mode_was_requested = modes.was_requested()
+	serial_print("Mode: " + modes.get_mode_str())
+	modes.clear_request()
+	if startup_mode != modes.MODE_DEV:
 		supervisor.runtime.autoreload = False
 
 	displayio.release_displays()
@@ -506,13 +496,14 @@ def main(led_pwm):
 		run_column += 1
 	serial_print("Run column: " + str(run_column))
 	branches = {
-		# mode:            (ui requested, ui not req, no ui req,  no ui not req)
-		nvm.MODE_MENU:     (main_menu,    main_menu,  run_wifi,   run_wifi),
-		nvm.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
-		nvm.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
-		nvm.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
-		nvm.MODE_DRIVE:    (run_drive,    run_drive,  run_drive,  run_drive), # last 2 unexpected
-		nvm.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
+		# mode:              (ui requested, ui not req, no ui req,  no ui not req)
+		modes.MODE_MENU:     (main_menu,    main_menu,  run_wifi,   run_wifi),
+		modes.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
+		modes.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
+		modes.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
+		modes.MODE_DRIVE:    (main_menu,    main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
+		modes.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
+		modes.MODE_UNKNOWN:  (main_menu,    main_menu,  run_wifi,   run_wifi),
 	}
 	try:
 		branches[startup_mode][run_column]()
