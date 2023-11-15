@@ -41,12 +41,6 @@ led = None
 done_wifi_before = False
 serial = usb_cdc.console
 
-def serial_print(contents, end="\r\n"):
-	'''
-	Print output to the serial console
-	'''
-	serial.write((contents + end).encode("utf-8"))
-
 def serial_readline():
 	'''
 	Custom version of serial.readline() which accepts CR as well as LF.
@@ -59,7 +53,7 @@ def serial_readline():
 	while True:
 		item = serial.read(1)
 		if len(item) == 0:
-			serial_print(f"too slow: {bytes(data_received)}")
+			print(f"too slow: {bytes(data_received)}")
 			return None
 		if item in (b"\r", b"\n"):
 			break
@@ -67,7 +61,7 @@ def serial_readline():
 	try:
 		serial_str = data_received.decode("utf-8")
 	except UnicodeError:
-		serial_print(f"UnicodeError: {bytes(data_received)}")
+		print(f"UnicodeError: {bytes(data_received)}")
 		return None
 	serial_str = serial_str.strip().strip("\0")
 	if serial_str == "":
@@ -99,7 +93,7 @@ def execute_digirom(rom, do_led=True):
 	if do_led:
 		led.duty_cycle=0xFFFF
 	if serial == usb_cdc.data:
-		serial_print(result)
+		print(result)
 	else:
 		mqtt.handle_result(result)
 	if do_led:
@@ -128,7 +122,7 @@ def process_new_digirom(command):
 		digirom = None
 	if digirom is None:
 		ui.beep_error()
-		serial_print(error)
+		print(error)
 	else:
 		new_digirom_alert()
 	return (digirom, error)
@@ -180,7 +174,7 @@ def main_menu(play_startup_sound=True):
 	'''
 	Show the main menu.
 	'''
-	serial_print("Main menu")
+	print("Main menu")
 	if play_startup_sound:
 		ui.beep_ready()
 	options = []
@@ -266,7 +260,7 @@ def run_wifi():
 		menu_serial()
 		return
 
-	serial_print("Running WiFi")
+	print("Running WiFi")
 	gc.collect()
 	print("Free memory before WiFi:", gc.mem_free())
 
@@ -326,7 +320,7 @@ def run_wifi():
 					)
 					rtb_status_callback(rtb.status, True)
 				else:
-					serial_print(mqtt.rtb_battle_type + " not implemented")
+					print(mqtt.rtb_battle_type + " not implemented")
 			rtb_was_active = True
 			# Heartbeat approx every 10 seconds
 			if time_start - rtb_last_ping > 10:
@@ -336,7 +330,7 @@ def run_wifi():
 			try:
 				rtb.loop()
 			except CommandError as e:
-				serial_print(repr(e))
+				print(repr(e))
 		else:
 			if rtb_was_active:
 				led.duty_cycle = LED_DUTY_CYCLE_DIM
@@ -363,7 +357,7 @@ def run_serial():
 	'''
 	Run in serial mode.
 	'''
-	serial_print("Running serial")
+	print("Running serial")
 	digirom = None
 	ui.display_text("Serial\nHold C to exit")
 	while not ui.is_c_pressed():
@@ -372,12 +366,12 @@ def run_serial():
 		if serial_str is not None:
 			digirom = None
 			if serial_str in ["i", "I"]:
-				serial_print(get_version_info())
+				print(get_version_info())
 			else:
-				serial_print(f"got {len(serial_str)} bytes: {serial_str} -> ", end="")
+				print(f"got {len(serial_str)} bytes: {serial_str} -> ", end="")
 				(digirom, _) = process_new_digirom(serial_str)
 			if digirom is not None:
-				serial_print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
+				print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
 			time.sleep(1)
 		if digirom is not None:
 			execute_digirom(digirom)
@@ -389,7 +383,7 @@ def run_punchbag():
 	'''
 	Run in punchbag mode.
 	'''
-	serial_print("Running punchbag")
+	print("Running punchbag")
 	digiroms = config["digiroms"]
 	names = [name for (name, rom) in digiroms]
 	roms = [dmcomm.protocol.parse_command(rom) for (name, rom) in digiroms]
@@ -449,34 +443,34 @@ def rotate_log():
 	try:
 		log_size = os.stat(LOG_FILENAME)[6]
 	except OSError:
-		serial_print("No log file yet")
+		print("No log file yet")
 		return
 	if log_size > LOG_MAX_SIZE:
 		try:
 			os.rename(LOG_FILENAME, LOG_FILENAME_OLD)
-			serial_print("Rotated log file")
+			print("Rotated log file")
 		except OSError as e:
-			serial_print("Cannot rotate log file: " + repr(e))
+			print("Cannot rotate log file: " + repr(e))
 	else:
-		serial_print("Log file is present")
+		print("Log file is present")
 
 def report_crash(crash_exception, connection_lost=False):
 	'''
 	Report crash which resulted in crash_exception.
 	'''
 	trace = "".join(traceback.format_exception(crash_exception))
-	serial_print(trace)
+	print(trace)
 	message = "Connection lost" if connection_lost else "Crashed"
 	rotate_log()
 	random_number = random.randint(100, 999)
 	try:
 		with open(LOG_FILENAME, "a", encoding="utf-8") as f:
 			f.write(f"Crash ID {random_number}:\r\n{trace}\r\n")
-		serial_print("Wrote log")
+		print("Wrote log")
 		message += f" #{random_number}"
 		hard_reset = True
 	except OSError as e:
-		serial_print("Cannot write log: " + repr(e))
+		print("Cannot write log: " + repr(e))
 		message += ",nolog"
 		hard_reset = False
 	failure_alert(message, hard_reset, connection_lost)
@@ -488,7 +482,7 @@ def main(led_pwm):
 	global startup_mode, controller, ui, led  # pylint: disable=global-statement
 
 	serial.timeout = 1
-	serial_print("WiFiCom starting")
+	print("WiFiCom starting")
 
 	gc.collect()
 	print("Free memory at start:", gc.mem_free())
@@ -510,7 +504,7 @@ def main(led_pwm):
 
 	startup_mode = modes.get_mode()
 	mode_was_requested = modes.was_requested()
-	serial_print("Mode: " + modes.get_mode_str())
+	print("Mode: " + modes.get_mode_str())
 	modes.clear_request()
 	if startup_mode != modes.MODE_DEV:
 		supervisor.runtime.autoreload = False
@@ -523,10 +517,10 @@ def main(led_pwm):
 	run_column = 0
 	if not ui.has_display:
 		run_column += 2
-		serial_print("Display not found: " + str(ui.display_error))
+		print("Display not found: " + str(ui.display_error))
 	if not mode_was_requested:
 		run_column += 1
-	serial_print("Run column: " + str(run_column))
+	print("Run column: " + str(run_column))
 	branches = {
 		# mode:              (ui requested, ui not req, no ui req,  no ui not req)
 		modes.MODE_MENU:     (main_menu,    main_menu,  run_wifi,   run_wifi),
