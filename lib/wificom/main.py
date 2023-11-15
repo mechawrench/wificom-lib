@@ -4,6 +4,7 @@ Handles WiFiCom main program logic.
 '''
 
 import time
+import errno
 import gc
 import os
 import random
@@ -16,6 +17,7 @@ import microcontroller
 import supervisor
 import usb_cdc
 
+from adafruit_minimqtt.adafruit_minimqtt import MMQTTException
 from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
@@ -279,12 +281,12 @@ def run_wifi():
 
 	global done_wifi_before  # pylint: disable=global-statement
 	if done_wifi_before:
-		if startup_mode == modes.MODE_DEV:
-			ui.display_text("Soft reboot...")
-			time.sleep(0.8)
-			supervisor.reload()
-		else:
-			menu_reboot(modes.MODE_WIFI)
+		if startup_mode != modes.MODE_DEV:
+			# Reconnect after reboot for wifi mode but not dev mode
+			modes.set_mode(modes.MODE_WIFI)
+		ui.display_text("Soft reboot...")
+		time.sleep(0.8)
+		supervisor.reload()
 	done_wifi_before = True
 
 	# Connect to WiFi and MQTT
@@ -294,11 +296,11 @@ def run_wifi():
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
 	if mqtt_client is None:
-		failure_alert("WiFi failed")
+		failure_alert("WiFi failed", reconnect=True)
 	ui.display_text("Connecting to MQTT")
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
-		failure_alert("MQTT failed")
+		failure_alert("MQTT failed", reconnect=True)
 	led.frequency = 1000
 	led.duty_cycle = LED_DUTY_CYCLE_DIM
 	ui.beep_ready()
@@ -355,6 +357,7 @@ def run_wifi():
 				if time.monotonic() - time_start >= 5:
 					break
 				time.sleep(0.1)
+	mqtt.quit_rtb()
 
 def run_serial():
 	'''
@@ -406,14 +409,23 @@ def run_punchbag():
 		while ui.is_c_pressed():
 			pass
 
-def failure_alert(message, hard_reset=False):
+def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
 	Alert on failure and allow restart.
 	'''
+	if startup_mode == modes.MODE_DEV:
+		reconnect = False
+	instructions = "A:Menu  B:Reconnect" if reconnect else "Press A to reboot"
 	led.duty_cycle = 0
-	ui.display_text(f"{message}\nPress A to reboot")
+	ui.display_text(f"{message}\n{instructions}")
 	ui.beep_failure()
-	while not ui.is_a_pressed(True):
+	while True:
+		if ui.is_a_pressed(True):
+			# A for screen, C for screenless
+			break
+		if ui.is_b_pressed() and reconnect:
+			modes.set_mode(modes.MODE_WIFI)
+			break
 		# Short blink every 2s
 		if int(time.monotonic() * 10) % 20 == 0:
 			led.duty_cycle = 0xFFFF
@@ -448,26 +460,26 @@ def rotate_log():
 	else:
 		serial_print("Log file is present")
 
-def report_crash(crash_exception):
+def report_crash(crash_exception, connection_lost=False):
 	'''
 	Report crash which resulted in crash_exception.
 	'''
 	trace = "".join(traceback.format_exception(crash_exception))
 	serial_print(trace)
-	message = "Crashed "
+	message = "Connection lost" if connection_lost else "Crashed"
 	rotate_log()
 	random_number = random.randint(100, 999)
 	try:
 		with open(LOG_FILENAME, "a", encoding="utf-8") as f:
 			f.write(f"Crash ID {random_number}:\r\n{trace}\r\n")
 		serial_print("Wrote log")
-		message += f"(log#{random_number})"
+		message += f" #{random_number}"
 		hard_reset = True
 	except OSError as e:
 		serial_print("Cannot write log: " + repr(e))
-		message += "(log failed)"
+		message += ",nolog"
 		hard_reset = False
-	failure_alert(message, hard_reset)
+	failure_alert(message, hard_reset, connection_lost)
 
 def main(led_pwm):
 	'''
@@ -528,5 +540,12 @@ def main(led_pwm):
 	try:
 		branches[startup_mode][run_column]()
 		main_menu(False)
+	except (ConnectionError, MMQTTException) as e:
+		report_crash(e, True)
+	except OSError as e:
+		if e.errno == errno.EHOSTUNREACH:
+			report_crash(e, True)
+		else:
+			report_crash(e)
 	except Exception as e:  #pylint: disable=broad-except
 		report_crash(e)
