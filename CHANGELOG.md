@@ -6,6 +6,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [unreleased] commits. Notes are in the pull request descriptions.
 
+## [1.1.0] - pre-release
+### Added
+* Support for non-WiFi boards (with `board_config` entries for Pi Pico and Xiao P-Coms)
+  * On non-WiFi boards, button held on startup enters Dev Mode
+* Connection lost improvements:
+  * When connection is lost, shows a specific error message on screen
+  * Press B to reconnect after connection lost or WiFi/MQTT failed to connect; press A for menu as before
+  * Dev mode unchanged
+* On screenless units, press the button to restart after crash or connection loss
+* New file `version_info.py` with version info from build CI
+* "i" version info command on serial
+### Changed
+* Stop using data serial connection; use console serial connection for everything
+* Stop rebooting between modes (except Drive Mode)
+* Use SleepMemory instead of NVM for rebooting
+* Request drive eject for fresh installs
+* Drive Mode no longer remembered when unplugged
+* Soft reboot instead of hard when running WiFi a second time (faster and doesn't drop serial)
+### Fixed
+* Serial digiroms now work reliably with CR terminator as well as LF - fixes w0rld Android
+* No longer crashes from character decoding errors on serial
+* Don't send serial data when no app is connected - resolves serial data echo on Linux
+### Removed
+* `board_config` entry for Pi Pico WiFiCom with AirLift
+### Tested with
+- CircuitPython 8.2.2
+
 ## [1.0.0] - 2023-08-21
 ### Added
 - More LED and audio feedback:
@@ -39,6 +66,8 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 - Updated README.md credits to reflect current project contributions.
 ### Fixed
 - No longer crashes when `secrets.py` wireless network list has the wrong structure.
+### Tested with
+- CircuitPython 8.2.2
 
 ## [0.10.0] - 2023-04-24
 - No changes from rc1.
@@ -191,7 +220,8 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v1.0.0...main
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v1.1.0...main
+[1.1.0]: https://github.com/mechawrench/wificom-lib/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0-rc1...v0.10.0
 [0.10.0-rc1]: https://github.com/mechawrench/wificom-lib/compare/v0.9.0...v0.10.0-rc1
