@@ -8,7 +8,7 @@ import storage
 import supervisor
 import usb_hid
 
-from wificom import nvm
+from wificom import modes
 import board_config
 
 BUTTON_NOT_PRESSED = 0
@@ -49,19 +49,19 @@ if button_pin is not None:
 	# Button held until LED went off: Serial Mode (WiFiCom) / Dev Mode (P-Com)
 	drive_enabled = False
 	if button_result == BUTTON_NOT_PRESSED:
-		mode = nvm.get_mode()
-		if mode == nvm.MODE_DRIVE and nvm.was_requested():
+		mode = modes.get_mode()
+		if mode == modes.MODE_DRIVE and modes.was_requested():
 			drive_enabled = True
-		elif mode in (nvm.MODE_DEV, nvm.MODE_DRIVE):
+		elif mode in (modes.MODE_DEV, modes.MODE_DRIVE, modes.MODE_UNKNOWN):
 			# this was not requested from software so reset it
-			nvm.set_mode(nvm.MODE_MENU)
+			modes.set_mode(modes.MODE_MENU)
 	elif has_wifi and button_result == BUTTON_HELD:
-		nvm.set_mode(nvm.MODE_SERIAL)
+		modes.set_mode(modes.MODE_SERIAL)
 	elif button_result in (BUTTON_RELEASED, BUTTON_HELD):
-		nvm.set_mode(nvm.MODE_DEV)
+		modes.set_mode(modes.MODE_DEV)
 		drive_enabled = True
-	print("Mode:", nvm.get_mode_str())
 	print("WiFi:", "enabled" if has_wifi else "disabled")
+	print("Mode:", modes.get_mode_str())
 	if drive_enabled:
 		print("CIRCUITPY drive is writeable")
 	else:
