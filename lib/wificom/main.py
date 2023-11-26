@@ -25,6 +25,7 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import modes
 from wificom import mqtt
+from wificom import settings
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
@@ -191,8 +192,8 @@ def main_menu(play_startup_sound=True):
 	if board_config.WifiCls is not None:
 		options.append("WiFi")
 		results.append(menu_wifi)
-	options.extend(["Serial", "Punchbag"])
-	results.extend([menu_serial, menu_punchbag])
+	options.extend(["Serial", "Punchbag", "Settings"])
+	results.extend([menu_serial, menu_punchbag, menu_settings ])
 	if startup_mode not in (modes.MODE_DEV, modes.MODE_DRIVE):
 		options.append("Drive")
 		results.append(menu_drive)
@@ -226,6 +227,15 @@ def menu_punchbag():
 		run_punchbag()
 	else:
 		menu_reboot(modes.MODE_PUNCHBAG)
+
+def menu_settings():
+	'''
+	Chosen Punchbag option from the menu.
+	'''
+	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
+		run_settings()
+	else:
+		menu_reboot(modes.MODE_SETTINGS)
 
 def menu_drive():
 	'''
@@ -403,6 +413,12 @@ def run_punchbag():
 		while ui.is_c_pressed():
 			pass
 
+def run_settings():
+	'''
+	Run in settings mode.
+	'''
+	settings.run_settings(ui)
+
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
 	Alert on failure and allow restart.
@@ -527,6 +543,7 @@ def main(led_pwm):
 		modes.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
 		modes.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
 		modes.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
+        modes.MODE_SETTINGS: (run_settings, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DRIVE:    (main_menu,    main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
 		modes.MODE_UNKNOWN:  (main_menu,    main_menu,  run_wifi,   run_wifi),
