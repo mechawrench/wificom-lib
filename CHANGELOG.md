@@ -6,15 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [unreleased] commits. Notes are in the pull request descriptions.
 
-## [1.1.0] - pre-release
+## [1.1.0] - 2023-11-26
 ### Added
 * Support for non-WiFi boards (with `board_config` entries for Pi Pico and Xiao P-Coms)
   * On non-WiFi boards, button held on startup enters Dev Mode
 * Connection lost improvements:
   * When connection is lost, shows a specific error message on screen
   * Press B to reconnect after connection lost or WiFi/MQTT failed to connect; press A for menu as before
-  * Dev mode unchanged
-* On screenless units, press the button to restart after crash or connection loss
+  * On screenless units, press the button to restart after crash or connection loss
 * New file `version_info.py` with version info from build CI
 * "i" version info command on serial
 ### Changed
@@ -23,7 +22,7 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 * Use SleepMemory instead of NVM for rebooting
 * Request drive eject for fresh installs
 * Drive Mode no longer remembered when unplugged
-* Soft reboot instead of hard when running WiFi a second time (faster and doesn't drop serial)
+* Soft reboot instead of hard when running WiFi a second time - faster and doesn't drop serial
 ### Fixed
 * Serial digiroms now work reliably with CR terminator as well as LF - fixes w0rld Android
 * No longer crashes from character decoding errors on serial
