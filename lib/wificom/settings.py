@@ -2,7 +2,7 @@ import os
 import re
 import time
 import version_info
-import  microcontroller
+import microcontroller
 
 def run_settings(ui):
     print("Running settings")
@@ -32,7 +32,6 @@ def displayInfo(ui):
             if ui.is_a_pressed(False):
                 index += 1
                 time.sleep(0.15)
-        ui.beep_cancel()
         while ui.is_c_pressed(True):
             return
 
@@ -55,6 +54,5 @@ def soundSetting(ui):
             ui.display_text("Saving...")
             time.sleep(0.5)
             microcontroller.reset()
-        ui.beep_cancel()
         while ui.is_c_pressed():
             pass
