@@ -8,14 +8,17 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 
 ## [1.1.0] - 2023-11-26
 ### Added
-* Support for non-WiFi boards (with `board_config` entries for Pi Pico and Xiao P-Coms)
-  * On non-WiFi boards, button held on startup enters Dev Mode
+* Support for non-WiFi boards
+  * `board_config` entries for P-Coms using Pi Pico or Xiao RP2040
+  * On non-WiFi boards (P-Coms) only:
+    * Default startup mode is Serial instead of WiFi
+    * Button held on startup enters Dev Mode even if not released before LED goes out (to allow for P-Coms with no LED)
 * Connection lost improvements:
   * When connection is lost, shows a specific error message on screen
   * Press B to reconnect after connection lost or WiFi/MQTT failed to connect; press A for menu as before
   * On screenless units, press the button to restart after crash or connection loss
-* New file `version_info.py` with version info from build CI
 * "i" version info command on serial
+  * New file `version_info.py` with version info from build CI
 ### Changed
 * Stop using data serial connection; use console serial connection for everything
 * Stop rebooting between modes (except Drive Mode)
