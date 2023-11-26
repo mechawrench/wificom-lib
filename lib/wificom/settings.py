@@ -31,6 +31,7 @@ def displayInfo(ui):
             if ui.is_a_pressed(False):
                 index += 1
                 time.sleep(0.15)
+        ui.beep_cancel()
         while ui.is_c_pressed(True):
             return
 
