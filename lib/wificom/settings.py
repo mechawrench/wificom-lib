@@ -1,5 +1,4 @@
 import os
-import re
 import time
 import version_info
 import microcontroller
