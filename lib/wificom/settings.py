@@ -15,7 +15,6 @@ def run_settings(ui):
             return
         while not ui.is_c_pressed():
             settingValue(ui)
-        ui.beep_cancel()
         while ui.is_c_pressed():
             pass
 
