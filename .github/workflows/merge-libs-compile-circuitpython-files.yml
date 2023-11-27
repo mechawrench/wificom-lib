@@ -36,8 +36,8 @@ jobs:
       - name: Download mpy-cross
         run: |
           ver=$(eval echo "\$sources_circuitpython_${PLATFORM}")
-          echo "CircuitPython version: $ver"
-          curl https://adafruit-circuit-python.s3.amazonaws.com/bin/mpy-cross/linux-amd64/mpy-cross-linux-amd64-{ver}.static > mpy-cross
+          echo "CircuitPython version: ${ver}"
+          curl "https://adafruit-circuit-python.s3.amazonaws.com/bin/mpy-cross/linux-amd64/mpy-cross-linux-amd64-${ver}.static" > mpy-cross
           chmod +x mpy-cross
 
       - name: Download and extract sources
