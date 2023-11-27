@@ -229,7 +229,7 @@ def menu_punchbag():
 
 def menu_settings():
 	'''
-	Chosen Punchbag option from the menu.
+	Chosen Setting option from the menu.
 	'''
 	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
 		run_settings()
@@ -417,32 +417,32 @@ def run_settings():
 	Run in settings mode.
 	'''
 	print("Running settings")
-	settingsMenuConfig = [
-		("Info", displayInfo)
+	settings_menu_configs = [
+		("Info", display_info)
 	]
-	names = [name for (name, value) in settingsMenuConfig]
-	values = [value for (name, value) in settingsMenuConfig]
+	names = [name for (name, value) in settings_menu_configs]
+	values = [value for (name, value) in settings_menu_configs]
 	while True:
-		settingValue = ui.menu(names, values, "")
-		if settingValue == "":
+		setting_value = ui.menu(names, values, "")
+		if setting_value == "":
 			return
 		while not ui.is_c_pressed():
-			settingValue()
+			setting_value()
 		while ui.is_c_pressed():
 			pass
 
-def displayInfo():
+def display_info():
 	'''
 	Display settings info.
 	'''
-	print("Running displayInfo")
-	infoText = [
-		f"Version: {version_info.version}\nCP Ver: {os.uname().version.split()[0]}"
+	print("Running display_info")
+	info_text = [
+		f"{version_info.version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
 	]
 	index = 0
 	while True:
 		while not ui.is_c_pressed():
-			ui.display_text(infoText[index % len(infoText)])
+			ui.display_text(info_text[index % len(info_text)])
 			if ui.is_a_pressed(False):
 				index += 1
 				time.sleep(0.15)

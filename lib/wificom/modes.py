@@ -5,22 +5,22 @@ Handles the mode selected at startup.
 
 import alarm
 
-MAGIC = "wificom_mode_01_"
+MAGIC = "wificom_mode_02_"
 LENGTH = len(MAGIC) + 2
 
 MODE_MENU = "m"
 MODE_WIFI = "w"
 MODE_SERIAL = "s"
 MODE_PUNCHBAG = "p"
-MODE_DRIVE = "d"
 MODE_SETTINGS = "~"
+MODE_DRIVE = "d"
 MODE_DEV = "*"
 MODE_UNKNOWN = "?"
 
 REQUESTED_YES = "y"
 REQUESTED_NO = "n"
 
-_MODES = "mwspd*?~"
+_MODES = "mwsp~d*?"
 
 def _mem_str():
 	the_bytes = alarm.sleep_memory[0:LENGTH]
