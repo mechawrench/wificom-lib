@@ -25,7 +25,6 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import modes
 from wificom import mqtt
-from wificom import settings
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
@@ -417,7 +416,39 @@ def run_settings():
 	'''
 	Run in settings mode.
 	'''
-	settings.run_settings(ui)
+	print("Running settings")
+	settingsMenuConfig = [
+		("Info", displayInfo)
+	]
+	names = [name for (name, value) in settingsMenuConfig]
+	values = [value for (name, value) in settingsMenuConfig]
+	while True:
+		settingValue = ui.menu(names, values, "")
+		if settingValue == "":
+			return
+		while not ui.is_c_pressed():
+			settingValue()
+		while ui.is_c_pressed():
+			pass
+
+def displayInfo():
+	'''
+	Display settings info.
+	'''
+	print("Running displayInfo")
+	infoText = [
+		f"Version: {version_info.version}\nCP Ver: {os.uname().version.split()[0]}"
+	]
+	index = 0
+	while True:
+		while not ui.is_c_pressed():
+			ui.display_text(infoText[index % len(infoText)])
+			if ui.is_a_pressed(False):
+				index += 1
+				time.sleep(0.15)
+		ui.beep_cancel()
+		while ui.is_c_pressed(True):
+			return
 
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
@@ -543,7 +574,7 @@ def main(led_pwm):
 		modes.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
 		modes.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
 		modes.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
-        modes.MODE_SETTINGS: (run_settings, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
+		modes.MODE_SETTINGS: (run_settings, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DRIVE:    (main_menu,    main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
 		modes.MODE_UNKNOWN:  (main_menu,    main_menu,  run_wifi,   run_wifi),
