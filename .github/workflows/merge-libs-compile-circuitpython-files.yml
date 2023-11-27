@@ -34,6 +34,8 @@ jobs:
           prefix: sources
 
       - name: Download mpy-cross
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
           ver=$(eval echo "\$sources_circuitpython_${PLATFORM}")
           echo "CircuitPython version: ${ver}"
