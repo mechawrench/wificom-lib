@@ -434,7 +434,6 @@ def display_info():
 	'''
 	print("Running display_info")
 	info_text =  f"{version_info.version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
-	index = 0
 	while True:
 		ui.display_text(info_text)
 		while not ui.is_c_pressed():
