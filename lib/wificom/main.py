@@ -426,26 +426,19 @@ def run_settings():
 		setting_value = ui.menu(names, values, "")
 		if setting_value == "":
 			return
-		while not ui.is_c_pressed():
-			setting_value()
-		while ui.is_c_pressed():
-			pass
+		setting_value()
 
 def display_info():
 	'''
 	Display settings info.
 	'''
 	print("Running display_info")
-	info_text = [
-		f"{version_info.version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
-	]
+	info_text =  f"{version_info.version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
 	index = 0
 	while True:
+		ui.display_text(info_text)
 		while not ui.is_c_pressed():
-			ui.display_text(info_text[index % len(info_text)])
-			if ui.is_a_pressed(False):
-				index += 1
-				time.sleep(0.15)
+			pass
 		ui.beep_cancel()
 		while ui.is_c_pressed(True):
 			return
