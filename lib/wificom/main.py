@@ -434,13 +434,10 @@ def display_info():
 	'''
 	print("Running display_info")
 	info_text =  f"{version_info.version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
-	while True:
-		ui.display_text(info_text)
-		while not ui.is_c_pressed():
-			pass
-		ui.beep_cancel()
-		while ui.is_c_pressed(True):
-			return
+	ui.display_text(info_text)
+	while not ui.is_c_pressed():
+		pass
+	ui.beep_cancel()
 
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
