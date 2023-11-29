@@ -191,8 +191,8 @@ def main_menu(play_startup_sound=True):
 	if board_config.WifiCls is not None:
 		options.append("WiFi")
 		results.append(menu_wifi)
-	options.extend(["Serial", "Punchbag"])
-	results.extend([menu_serial, menu_punchbag])
+	options.extend(["Serial", "Punchbag", "Settings"])
+	results.extend([menu_serial, menu_punchbag, menu_settings ])
 	if startup_mode not in (modes.MODE_DEV, modes.MODE_DRIVE):
 		options.append("Drive")
 		results.append(menu_drive)
@@ -226,6 +226,15 @@ def menu_punchbag():
 		run_punchbag()
 	else:
 		menu_reboot(modes.MODE_PUNCHBAG)
+
+def menu_settings():
+	'''
+	Chosen Setting option from the menu.
+	'''
+	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
+		run_settings()
+	else:
+		menu_reboot(modes.MODE_SETTINGS)
 
 def menu_drive():
 	'''
@@ -403,6 +412,33 @@ def run_punchbag():
 		while ui.is_c_pressed():
 			pass
 
+def run_settings():
+	'''
+	Run in settings mode.
+	'''
+	print("Running settings")
+	settings_menu_configs = [
+		("Info", display_info)
+	]
+	names = [name for (name, value) in settings_menu_configs]
+	values = [value for (name, value) in settings_menu_configs]
+	while True:
+		setting_value = ui.menu(names, values, "")
+		if setting_value == "":
+			return
+		setting_value()
+
+def display_info():
+	'''
+	Display settings info.
+	'''
+	print("Running display_info")
+	info_text =  f"{version_info.version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
+	ui.display_text(info_text)
+	while not ui.is_c_pressed():
+		pass
+	ui.beep_cancel()
+
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
 	Alert on failure and allow restart.
@@ -527,6 +563,7 @@ def main(led_pwm):
 		modes.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
 		modes.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
 		modes.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
+		modes.MODE_SETTINGS: (run_settings, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DRIVE:    (main_menu,    main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
 		modes.MODE_UNKNOWN:  (main_menu,    main_menu,  run_wifi,   run_wifi),
