@@ -402,8 +402,6 @@ def toggle_sound_text():
 	'''
 	Setup menu entry for toggle sound on/off.
 	'''
-	if not config["sound_on"]:
-		return "Sound config.py OFF"
 	if settings.is_sound_on():
 		return "Sound: ON"
 	else:
@@ -413,8 +411,6 @@ def toggle_sound():
 	'''
 	Toggle sound on/off from the menu.
 	'''
-	if not config["sound_on"]:
-		return
 	if settings.is_sound_on():
 		ui.beep_error()  # sounds better than cancel here
 		settings.set_sound_on(False)
@@ -560,7 +556,7 @@ def main(led_pwm):
 	displayio.release_displays()
 	ui = wificom.ui.UserInterface(**board_config.ui_pins)
 	if ui.has_display:
-		ui.sound_on = settings.is_sound_on() if config["sound_on"] else False
+		ui.sound_on = settings.is_sound_on(default=config["sound_on"])
 	else:
 		ui.sound_on = config["sound_on"]
 	led = led_pwm

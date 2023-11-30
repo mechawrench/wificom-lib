@@ -9,17 +9,18 @@ INDEX_SOUND_ON_OFF = 0
 VALUE_SOUND_OFF = 0
 VALUE_SOUND_ON = 1
 
-def is_sound_on():
+def is_sound_on(default=True):
 	'''
 	Return True if sound is on, False otherwise.
+	Set to default if not recognised.
 	'''
 	value = microcontroller.nvm[INDEX_SOUND_ON_OFF]
 	if value == VALUE_SOUND_OFF:
 		return False
 	if value == VALUE_SOUND_ON:
 		return True
-	set_sound_on(True)
-	return True
+	set_sound_on(default)
+	return default
 
 def set_sound_on(is_on):
 	'''
