@@ -398,14 +398,14 @@ def run_drive():
 	'''
 	Run in drive mode.
 	'''
-	ui.display_text("Drive Mode\nEject when done\nThen hold C to exit")
+	ui.display_text("* Drive Mode *\nEject when done\nThen hold C to exit")
 	hold_c_to_reboot()
 
 def run_unknown():
 	'''
 	Mode is unknown.
 	'''
-	ui.display_text("First run?\nEject when done\nThen hold C to reboot")
+	ui.display_text("* First run? *\nEject when done\nThen hold C to reboot")
 	hold_c_to_reboot()
 
 def hold_c_to_reboot():
