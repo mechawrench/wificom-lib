@@ -25,6 +25,7 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import modes
 from wificom import mqtt
+from wificom import settings
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
@@ -418,11 +419,14 @@ def run_settings():
 	'''
 	print("Running settings")
 	settings_menu_configs = [
-		("Info", display_info)
+		("Version Info", display_info),
+		("SOUND_TOGGLE", toggle_sound),
 	]
 	names = [name for (name, value) in settings_menu_configs]
 	values = [value for (name, value) in settings_menu_configs]
+	toggle_sound_index = names.index("SOUND_TOGGLE")
 	while True:
+		names[toggle_sound_index] = toggle_sound_text()
 		setting_value = ui.menu(names, values, "")
 		if setting_value == "":
 			return
@@ -438,6 +442,32 @@ def display_info():
 	while not ui.is_c_pressed():
 		pass
 	ui.beep_cancel()
+
+def toggle_sound_text():
+	'''
+	Setup menu entry for toggle sound on/off.
+	'''
+	if not config["sound_on"]:
+		return "Sound config.py OFF"
+	if settings.is_sound_on():
+		return "Sound: ON"
+	else:
+		return "Sound: OFF"
+
+def toggle_sound():
+	'''
+	Toggle sound on/off from the menu.
+	'''
+	if not config["sound_on"]:
+		return
+	if settings.is_sound_on():
+		ui.beep_error()  # sounds better than cancel here
+		settings.set_sound_on(False)
+		ui.sound_on = False
+	else:
+		settings.set_sound_on(True)
+		ui.sound_on = True
+		ui.beep_activate()
 
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
@@ -515,6 +545,7 @@ def main(led_pwm):
 	'''
 	WiFiCom main program.
 	'''
+	# pylint: disable=too-many-statements
 	global startup_mode, controller, ui, led  # pylint: disable=global-statement
 
 	serial.timeout = 1
@@ -547,7 +578,10 @@ def main(led_pwm):
 
 	displayio.release_displays()
 	ui = wificom.ui.UserInterface(**board_config.ui_pins)
-	ui.sound_on = config["sound_on"]
+	if ui.has_display:
+		ui.sound_on = settings.is_sound_on() if config["sound_on"] else False
+	else:
+		ui.sound_on = config["sound_on"]
 	led = led_pwm
 
 	run_column = 0
