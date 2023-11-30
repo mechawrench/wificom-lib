@@ -25,6 +25,7 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import modes
 from wificom import mqtt
+from wificom import settings
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
@@ -366,7 +367,8 @@ def run_settings():
 	'''
 	print("Running settings")
 	settings_menu_configs = [
-		("Version Info", display_info)
+		("Version Info", display_info),
+		("TOGGLE_SOUND", toggle_sound),
 	]
 	if startup_mode == modes.MODE_DEV:
 		settings_menu_configs.append(("(Dev Mode no drive)", None))
@@ -374,7 +376,9 @@ def run_settings():
 		settings_menu_configs.append(("Drive", menu_drive))
 	names = [name for (name, value) in settings_menu_configs]
 	values = [value for (name, value) in settings_menu_configs]
+	toggle_sound_index = names.index("TOGGLE_SOUND")
 	while True:
+		names[toggle_sound_index] = "Sound: ON" if settings.is_sound_on() else "Sound: OFF"
 		setting_value = ui.menu(names, values, "")
 		if setting_value == "":
 			return
@@ -393,6 +397,19 @@ def display_info():
 	while not ui.is_c_pressed():
 		pass
 	ui.beep_cancel()
+
+def toggle_sound():
+	'''
+	Toggle sound on/off from the menu.
+	'''
+	if settings.is_sound_on():
+		ui.beep_error()  # sounds better than cancel here
+		settings.set_sound_on(False)
+		ui.sound_on = False
+	else:
+		settings.set_sound_on(True)
+		ui.sound_on = True
+		ui.beep_activate()
 
 def run_drive():
 	'''
@@ -496,6 +513,7 @@ def main(led_pwm):
 	'''
 	WiFiCom main program.
 	'''
+	# pylint: disable=too-many-statements
 	global startup_mode, controller, ui, led  # pylint: disable=global-statement
 
 	serial.timeout = 1
@@ -528,7 +546,10 @@ def main(led_pwm):
 
 	displayio.release_displays()
 	ui = wificom.ui.UserInterface(**board_config.ui_pins)
-	ui.sound_on = config["sound_on"]
+	if ui.has_display:
+		ui.sound_on = settings.is_sound_on(default=config["sound_on"])
+	else:
+		ui.sound_on = config["sound_on"]
 	led = led_pwm
 
 	run_column = 0
