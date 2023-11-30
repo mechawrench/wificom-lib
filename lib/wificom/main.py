@@ -368,7 +368,7 @@ def run_settings():
 	print("Running settings")
 	settings_menu_configs = [
 		("Version Info", display_info),
-		("SOUND_TOGGLE", toggle_sound),
+		("TOGGLE_SOUND", toggle_sound),
 	]
 	if startup_mode == modes.MODE_DEV:
 		settings_menu_configs.append(("(Dev Mode no drive)", None))
@@ -376,9 +376,9 @@ def run_settings():
 		settings_menu_configs.append(("Drive", menu_drive))
 	names = [name for (name, value) in settings_menu_configs]
 	values = [value for (name, value) in settings_menu_configs]
-	toggle_sound_index = names.index("SOUND_TOGGLE")
+	toggle_sound_index = names.index("TOGGLE_SOUND")
 	while True:
-		names[toggle_sound_index] = toggle_sound_text()
+		names[toggle_sound_index] = "Sound: ON" if settings.is_sound_on() else "Sound: OFF"
 		setting_value = ui.menu(names, values, "")
 		if setting_value == "":
 			return
@@ -397,15 +397,6 @@ def display_info():
 	while not ui.is_c_pressed():
 		pass
 	ui.beep_cancel()
-
-def toggle_sound_text():
-	'''
-	Setup menu entry for toggle sound on/off.
-	'''
-	if settings.is_sound_on():
-		return "Sound: ON"
-	else:
-		return "Sound: OFF"
 
 def toggle_sound():
 	'''
