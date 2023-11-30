@@ -403,13 +403,12 @@ def toggle_sound():
 	Toggle sound on/off from the menu.
 	'''
 	if settings.is_sound_on():
-		ui.beep_error()  # sounds better than cancel here
 		settings.set_sound_on(False)
 		ui.sound_on = False
 	else:
 		settings.set_sound_on(True)
 		ui.sound_on = True
-		ui.beep_activate()
+		ui.beep_ready()
 
 def run_drive():
 	'''
