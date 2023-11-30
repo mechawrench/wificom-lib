@@ -372,8 +372,10 @@ def run_settings():
 	]
 	if startup_mode == modes.MODE_DEV:
 		settings_menu_configs.append(("(Dev Mode no drive)", None))
+		settings_menu_configs.append(("(Dev Mode no UF2)", None))
 	else:
 		settings_menu_configs.append(("Drive", menu_drive))
+		settings_menu_configs.append(("UF2 Bootloader", reboot_uf2))
 	names = [name for (name, value) in settings_menu_configs]
 	values = [value for (name, value) in settings_menu_configs]
 	toggle_sound_index = names.index("TOGGLE_SOUND")
@@ -410,6 +412,15 @@ def toggle_sound():
 		settings.set_sound_on(True)
 		ui.sound_on = True
 		ui.beep_activate()
+
+def reboot_uf2():
+	'''
+	Reboot into UF2 mode.
+	'''
+	ui.display_text("* UF2 Mode *\nCopy UF2 to RPI-RP2\nEject+reset to cancel")
+	time.sleep(0.3)
+	microcontroller.on_next_reset(microcontroller.RunMode.UF2)
+	microcontroller.reset()
 
 def run_drive():
 	'''
