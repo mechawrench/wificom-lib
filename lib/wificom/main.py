@@ -182,77 +182,25 @@ def main_menu(play_startup_sound=True):
 	if startup_mode == modes.MODE_DEV:
 		options.append("* Dev Mode *")
 		results.append(None)
-	if startup_mode == modes.MODE_DRIVE:
-		options.append("* Drive Mode *")
-		results.append(None)
-	if startup_mode == modes.MODE_UNKNOWN:
-		options.append("* First run? * ")
-		results.append(None)
 	if board_config.WifiCls is not None:
 		options.append("WiFi")
-		results.append(menu_wifi)
+		results.append(run_wifi)
 	options.extend(["Serial", "Punchbag", "Settings"])
-	results.extend([menu_serial, menu_punchbag, menu_settings ])
-	if startup_mode not in (modes.MODE_DEV, modes.MODE_DRIVE):
-		options.append("Drive")
-		results.append(menu_drive)
+	results.extend([run_serial, run_punchbag, run_settings])
 	while True:
 		menu_result = ui.menu(options, results, None)
 		menu_result()
-
-def menu_wifi():
-	'''
-	Chosen WiFi option from the menu.
-	'''
-	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
-		run_wifi()
-	else:
-		menu_reboot(modes.MODE_WIFI)
-
-def menu_serial():
-	'''
-	Chosen Serial option from the menu.
-	'''
-	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
-		run_serial()
-	else:
-		menu_reboot(modes.MODE_SERIAL)
-
-def menu_punchbag():
-	'''
-	Chosen Punchbag option from the menu.
-	'''
-	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
-		run_punchbag()
-	else:
-		menu_reboot(modes.MODE_PUNCHBAG)
-
-def menu_settings():
-	'''
-	Chosen Setting option from the menu.
-	'''
-	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
-		run_settings()
-	else:
-		menu_reboot(modes.MODE_SETTINGS)
 
 def menu_drive():
 	'''
 	Chosen Drive option from the menu.
 	'''
-	if startup_mode == modes.MODE_DRIVE:
-		main_menu()
-	else:
-		menu_reboot(modes.MODE_DRIVE)
+	mode_change_reboot(modes.MODE_DRIVE)
 
-def menu_reboot(mode):
+def mode_change_reboot(mode):
 	'''
-	Reset, confirming USB drive ejection if necessary.
+	Reset with new mode.
 	'''
-	if startup_mode in (modes.MODE_DRIVE, modes.MODE_DEV, modes.MODE_UNKNOWN):
-		ui.display_text("Eject + press A")
-		while not ui.is_a_pressed():
-			pass
 	modes.set_mode(mode)
 	ui.display_text("Rebooting...")
 	time.sleep(0.5)
@@ -266,7 +214,7 @@ def run_wifi():
 
 	if board_config.WifiCls is None:
 		print("No WiFi specified in board_config; running serial")
-		menu_serial()
+		run_serial()
 		return
 
 	print("Running WiFi")
@@ -418,8 +366,12 @@ def run_settings():
 	'''
 	print("Running settings")
 	settings_menu_configs = [
-		("Info", display_info)
+		("Version Info", display_info)
 	]
+	if startup_mode == modes.MODE_DEV:
+		settings_menu_configs.append(("(Dev Mode no drive)", None))
+	else:
+		settings_menu_configs.append(("Drive", menu_drive))
 	names = [name for (name, value) in settings_menu_configs]
 	values = [value for (name, value) in settings_menu_configs]
 	while True:
@@ -433,11 +385,40 @@ def display_info():
 	Display settings info.
 	'''
 	print("Running display_info")
-	info_text =  f"{version_info.version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
+	version = version_info.version
+	if len(version) <= 12:
+		version = "WiFiCom: " + version
+	info_text =  f"{version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
 	ui.display_text(info_text)
 	while not ui.is_c_pressed():
 		pass
 	ui.beep_cancel()
+
+def run_drive():
+	'''
+	Run in drive mode.
+	'''
+	ui.display_text("* Drive Mode *\nEject when done\nThen hold C to exit")
+	hold_c_to_reboot()
+
+def run_unknown():
+	'''
+	Mode is unknown.
+	'''
+	ui.display_text("* First run? *\nEject when done\nThen hold C to reboot")
+	hold_c_to_reboot()
+
+def hold_c_to_reboot():
+	'''
+	Hold C to reboot.
+	'''
+	while True:
+		while not ui.is_c_pressed():
+			pass
+		time_start = time.monotonic()
+		while ui.is_c_pressed():
+			if time.monotonic() - time_start > 3:
+				mode_change_reboot(modes.MODE_MENU)
 
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
@@ -564,9 +545,9 @@ def main(led_pwm):
 		modes.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
 		modes.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_SETTINGS: (run_settings, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
-		modes.MODE_DRIVE:    (main_menu,    main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
+		modes.MODE_DRIVE:    (run_drive,    run_drive,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
-		modes.MODE_UNKNOWN:  (main_menu,    main_menu,  run_wifi,   run_wifi),
+		modes.MODE_UNKNOWN:  (run_unknown,  run_unknown,run_wifi,   run_wifi),
 	}
 	try:
 		branches[startup_mode][run_column]()
