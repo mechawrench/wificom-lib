@@ -346,12 +346,12 @@ def run_serial():
 			serial_str = serial_str.strip()
 			serial_str = serial_str.strip("\0")
 			if serial_str in ["i", "I"]:
-				serial_print(get_version_info())
+				print(get_version_info())
 			else:
-				serial_print(f"got {len(serial_str)} bytes: {serial_str} -> ", end="")
+				print(f"got {len(serial_str)} bytes: {serial_str} -> ", end="")
 				(digirom, _) = process_new_digirom(serial_str)
 			if digirom is not None:
-				serial_print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
+				print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
 				time.sleep(1)
 		if digirom is not None:
 			execute_digirom(digirom)
