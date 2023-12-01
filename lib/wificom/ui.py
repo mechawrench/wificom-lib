@@ -30,9 +30,9 @@ def centre_y_start(num_rows):
 
 class UserInterface:
 	'''
-	Handles the screen, buttons and menus.
+	Handles the screen, buttons, menus, speaker and LED.
 	'''
-	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker):
+	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm):
 		self._display = None
 		self.display_error = None
 		if None in (display_scl, display_sda, button_a, button_b):
@@ -62,6 +62,7 @@ class UserInterface:
 		self._speaker = PIOSound(speaker)
 		self.sound_on = True
 		self.audio_base_freq = 1000
+		self._led = led_pwm
 	@property
 	def sound_on(self):
 		'''
@@ -163,6 +164,34 @@ class UserInterface:
 		for _ in range(3):
 			self.beep_error()
 			time.sleep(0.8)
+	def led_bright(self):
+		'''
+		Make LED bright.
+		'''
+		if self._led is not None:
+			self._led.frequency = 1000
+			self._led.duty_cycle = 0xFFFF
+	def led_dim(self):
+		'''
+		Make LED dim.
+		'''
+		if self._led is not None:
+			self._led.frequency = 1000
+			self._led.duty_cycle = 0x1000
+	def led_off(self):
+		'''
+		Turn LED off.
+		'''
+		if self._led is not None:
+			self._led.frequency = 1000
+			self._led.duty_cycle = 0
+	def led_fast_blink(self):
+		'''
+		Make LED blink quickly.
+		'''
+		if self._led is not None:
+			self._led.frequency = 1
+			self._led.duty_cycle = 0x8000
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
