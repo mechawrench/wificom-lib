@@ -25,6 +25,7 @@ import wificom.realtime as rt
 import wificom.ui
 from wificom import modes
 from wificom import mqtt
+from wificom import settings
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
@@ -182,68 +183,25 @@ def main_menu(play_startup_sound=True):
 	if startup_mode == modes.MODE_DEV:
 		options.append("* Dev Mode *")
 		results.append(None)
-	if startup_mode == modes.MODE_DRIVE:
-		options.append("* Drive Mode *")
-		results.append(None)
-	if startup_mode == modes.MODE_UNKNOWN:
-		options.append("* First run? * ")
-		results.append(None)
 	if board_config.WifiCls is not None:
 		options.append("WiFi")
-		results.append(menu_wifi)
-	options.extend(["Serial", "Punchbag"])
-	results.extend([menu_serial, menu_punchbag])
-	if startup_mode not in (modes.MODE_DEV, modes.MODE_DRIVE):
-		options.append("Drive")
-		results.append(menu_drive)
+		results.append(run_wifi)
+	options.extend(["Serial", "Punchbag", "Settings"])
+	results.extend([run_serial, run_punchbag, run_settings])
 	while True:
 		menu_result = ui.menu(options, results, None)
 		menu_result()
-
-def menu_wifi():
-	'''
-	Chosen WiFi option from the menu.
-	'''
-	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
-		run_wifi()
-	else:
-		menu_reboot(modes.MODE_WIFI)
-
-def menu_serial():
-	'''
-	Chosen Serial option from the menu.
-	'''
-	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
-		run_serial()
-	else:
-		menu_reboot(modes.MODE_SERIAL)
-
-def menu_punchbag():
-	'''
-	Chosen Punchbag option from the menu.
-	'''
-	if startup_mode not in (modes.MODE_DRIVE, modes.MODE_UNKNOWN):
-		run_punchbag()
-	else:
-		menu_reboot(modes.MODE_PUNCHBAG)
 
 def menu_drive():
 	'''
 	Chosen Drive option from the menu.
 	'''
-	if startup_mode == modes.MODE_DRIVE:
-		main_menu()
-	else:
-		menu_reboot(modes.MODE_DRIVE)
+	mode_change_reboot(modes.MODE_DRIVE)
 
-def menu_reboot(mode):
+def mode_change_reboot(mode):
 	'''
-	Reset, confirming USB drive ejection if necessary.
+	Reset with new mode.
 	'''
-	if startup_mode in (modes.MODE_DRIVE, modes.MODE_DEV, modes.MODE_UNKNOWN):
-		ui.display_text("Eject + press A")
-		while not ui.is_a_pressed():
-			pass
 	modes.set_mode(mode)
 	ui.display_text("Rebooting...")
 	time.sleep(0.5)
@@ -257,7 +215,7 @@ def run_wifi():
 
 	if board_config.WifiCls is None:
 		print("No WiFi specified in board_config; running serial")
-		menu_serial()
+		run_serial()
 		return
 
 	print("Running WiFi")
@@ -403,6 +361,92 @@ def run_punchbag():
 		while ui.is_c_pressed():
 			pass
 
+def run_settings():
+	'''
+	Run in settings mode.
+	'''
+	print("Running settings")
+	settings_menu_configs = [
+		("Version Info", display_info),
+		("TOGGLE_SOUND", toggle_sound),
+	]
+	if startup_mode == modes.MODE_DEV:
+		settings_menu_configs.append(("(Dev Mode no drive)", None))
+		settings_menu_configs.append(("(Dev Mode no UF2)", None))
+	else:
+		settings_menu_configs.append(("Drive", menu_drive))
+		settings_menu_configs.append(("UF2 Bootloader", reboot_uf2))
+	names = [name for (name, value) in settings_menu_configs]
+	values = [value for (name, value) in settings_menu_configs]
+	toggle_sound_index = names.index("TOGGLE_SOUND")
+	while True:
+		names[toggle_sound_index] = "Sound: ON" if settings.is_sound_on() else "Sound: OFF"
+		setting_value = ui.menu(names, values, "")
+		if setting_value == "":
+			return
+		setting_value()
+
+def display_info():
+	'''
+	Display settings info.
+	'''
+	print("Running display_info")
+	version = version_info.version
+	if len(version) <= 12:
+		version = "WiFiCom: " + version
+	info_text =  f"{version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
+	ui.display_text(info_text)
+	while not ui.is_c_pressed():
+		pass
+	ui.beep_cancel()
+
+def toggle_sound():
+	'''
+	Toggle sound on/off from the menu.
+	'''
+	if settings.is_sound_on():
+		settings.set_sound_on(False)
+		ui.sound_on = False
+	else:
+		settings.set_sound_on(True)
+		ui.sound_on = True
+		ui.beep_ready()
+
+def reboot_uf2():
+	'''
+	Reboot into UF2 mode.
+	'''
+	ui.display_text("* UF2 Mode *\nCopy UF2 to RPI-RP2\nEject+reset to cancel")
+	time.sleep(0.3)
+	microcontroller.on_next_reset(microcontroller.RunMode.UF2)
+	microcontroller.reset()
+
+def run_drive():
+	'''
+	Run in drive mode.
+	'''
+	ui.display_text("* Drive Mode *\nEject when done\nThen hold C to exit")
+	hold_c_to_reboot()
+
+def run_unknown():
+	'''
+	Mode is unknown.
+	'''
+	ui.display_text("* First run? *\nEject when done\nThen hold C to reboot")
+	hold_c_to_reboot()
+
+def hold_c_to_reboot():
+	'''
+	Hold C to reboot.
+	'''
+	while True:
+		while not ui.is_c_pressed():
+			pass
+		time_start = time.monotonic()
+		while ui.is_c_pressed():
+			if time.monotonic() - time_start > 3:
+				mode_change_reboot(modes.MODE_MENU)
+
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
 	Alert on failure and allow restart.
@@ -479,6 +523,7 @@ def main(led_pwm):
 	'''
 	WiFiCom main program.
 	'''
+	# pylint: disable=too-many-statements
 	global startup_mode, controller, ui, led  # pylint: disable=global-statement
 
 	serial.timeout = 1
@@ -511,7 +556,10 @@ def main(led_pwm):
 
 	displayio.release_displays()
 	ui = wificom.ui.UserInterface(**board_config.ui_pins)
-	ui.sound_on = config["sound_on"]
+	if ui.has_display:
+		ui.sound_on = settings.is_sound_on(default=config["sound_on"])
+	else:
+		ui.sound_on = config["sound_on"]
 	led = led_pwm
 
 	run_column = 0
@@ -527,9 +575,10 @@ def main(led_pwm):
 		modes.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
 		modes.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
 		modes.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
-		modes.MODE_DRIVE:    (main_menu,    main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
+		modes.MODE_SETTINGS: (run_settings, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
+		modes.MODE_DRIVE:    (run_drive,    run_drive,  run_wifi,   run_wifi),  # last 2 unexpected
 		modes.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
-		modes.MODE_UNKNOWN:  (main_menu,    main_menu,  run_wifi,   run_wifi),
+		modes.MODE_UNKNOWN:  (run_unknown,  run_unknown,run_wifi,   run_wifi),
 	}
 	try:
 		branches[startup_mode][run_column]()
