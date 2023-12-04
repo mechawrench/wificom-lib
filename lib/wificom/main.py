@@ -42,6 +42,11 @@ led = None
 done_wifi_before = False
 serial = usb_cdc.console
 
+COMMAND_DIGIROM = 0
+COMMAND_ERROR = 1
+COMMAND_P = 2
+COMMAND_I = 3
+
 def serial_readline():
 	'''
 	Custom version of serial.readline() which accepts CR as well as LF.
@@ -109,24 +114,32 @@ def process_new_digirom(command):
 	'''
 	Parse the command and show success/failure.
 
-	Returns (digirom, "") if successful, (None, error_string) otherwise.
+	Returns (command_type, output) where:
+	command_type=    output=
+	COMMAND_DIGIROM  DigiROM object
+	COMMAND_ERROR    error string
+	COMMAND_P        "[pause]"
+	COMMAND_I        version info string
 	'''
-	digirom = None
-	error = ""
 	try:
 		digirom = dmcomm.protocol.parse_command(command)
 	except CommandError as e:
-		error = repr(e)
-	if hasattr(digirom, "op"):
-		# No OtherCommand implemented yet
-		error = "NotImplementedError:op=" + digirom.op
-		digirom = None
-	if digirom is None:
 		ui.beep_error()
-		print(error)
-	else:
-		new_digirom_alert()
-	return (digirom, error)
+		return (COMMAND_ERROR, repr(e))
+	if digirom.signal_type is None:
+		# It's an OtherCommand
+		if digirom.op == "P":
+			# silent
+			return (COMMAND_P, "[pause]")
+		elif digirom.op == "I":
+			new_digirom_alert()
+			return (COMMAND_I, get_version_info())
+		else:
+			ui.beep_error()
+			return (COMMAND_ERROR, "NotImplementedError:op=" + digirom.op)
+	# It's a DigiROM
+	new_digirom_alert()
+	return (COMMAND_DIGIROM, digirom)
 
 def new_digirom_alert():
 	'''
@@ -211,7 +224,7 @@ def run_wifi():
 	'''
 	Do the normal WiFiCom things.
 	'''
-	# pylint: disable=too-many-branches,too-many-statements
+	# pylint: disable=too-many-branches,too-many-statements,too-many-locals
 
 	if board_config.WifiCls is None:
 		print("No WiFi specified in board_config; running serial")
@@ -261,9 +274,13 @@ def run_wifi():
 		time_start = time.monotonic()
 		new_command = mqtt.get_subscribed_output()
 		if new_command is not None:
-			(digirom, error) = process_new_digirom(new_command)
-			if digirom is None:
-				mqtt.send_digirom_output(error)
+			digirom = None
+			(command_type, output) = process_new_digirom(new_command)
+			if command_type == COMMAND_DIGIROM:
+				digirom = output
+			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
+				print(output)
+				mqtt.send_digirom_output(output)
 		if mqtt.rtb_active:
 			rtb_type_id_new = (mqtt.rtb_battle_type, mqtt.rtb_user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
@@ -323,14 +340,15 @@ def run_serial():
 		serial_str = serial_readline()
 		if serial_str is not None:
 			digirom = None
-			if serial_str in ["i", "I"]:
-				print(get_version_info())
-			else:
+			(command_type, output) = process_new_digirom(serial_str)
+			if command_type != COMMAND_I:
 				print(f"got {len(serial_str)} bytes: {serial_str} -> ", end="")
-				(digirom, _) = process_new_digirom(serial_str)
-			if digirom is not None:
+			if command_type == COMMAND_DIGIROM:
+				digirom = output
 				print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
 				time.sleep(1)
+			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
+				print(output)
 		if digirom is not None:
 			execute_digirom(digirom)
 			seconds_passed = time.monotonic() - time_start
