@@ -31,14 +31,12 @@ from config import config
 import board_config
 import version_info
 
-LED_DUTY_CYCLE_DIM=0x1000
 LOG_FILENAME = "wificom_log.txt"
 LOG_FILENAME_OLD = "wificom_log_old.txt"
 LOG_MAX_SIZE = 2000
 startup_mode = None
 controller = None
 ui = None  #pylint: disable=invalid-name
-led = None
 done_wifi_before = False
 serial = usb_cdc.console
 
@@ -92,7 +90,7 @@ def execute_digirom(rom, do_led=True):
 			result += " "
 		result += repr(e)
 	if do_led:
-		led.duty_cycle=0xFFFF
+		ui.led_bright()
 	if serial == usb_cdc.data:
 		print(result)
 	else:
@@ -102,7 +100,7 @@ def execute_digirom(rom, do_led=True):
 			time.sleep(0.2)
 		else:
 			time.sleep(0.05)
-		led.duty_cycle=LED_DUTY_CYCLE_DIM
+		ui.led_dim()
 	return result
 
 def process_new_digirom(command):
@@ -134,9 +132,9 @@ def new_digirom_alert():
 	'''
 	ui.beep_activate()
 	for _ in range(3):
-		led.duty_cycle = 0xFFFF
+		ui.led_bright()
 		time.sleep(0.05)
-		led.duty_cycle = LED_DUTY_CYCLE_DIM
+		ui.led_dim()
 		time.sleep(0.05)
 
 rtb_types = {
@@ -165,11 +163,11 @@ def rtb_status_callback(status, changed):
 	Called when a RTB object updates the status display.
 	'''
 	if status == rt.STATUS_PUSH:
-		led.duty_cycle = 0xFFFF
+		ui.led_bright()
 		if changed:
 			ui.beep_activate()
 	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
-		led.duty_cycle = LED_DUTY_CYCLE_DIM
+		ui.led_dim()
 
 def main_menu(play_startup_sound=True):
 	'''
@@ -242,8 +240,7 @@ def run_wifi():
 	done_wifi_before = True
 
 	# Connect to WiFi and MQTT
-	led.frequency = 1
-	led.duty_cycle = 0x8000
+	ui.led_fast_blink()
 	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
@@ -253,8 +250,7 @@ def run_wifi():
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
 		failure_alert("MQTT failed", reconnect=True)
-	led.frequency = 1000
-	led.duty_cycle = LED_DUTY_CYCLE_DIM
+	ui.led_dim()
 	ui.beep_ready()
 	ui.display_text("WiFi\nHold C to exit")
 	while not ui.is_c_pressed():
@@ -291,7 +287,7 @@ def run_wifi():
 				print(repr(e))
 		else:
 			if rtb_was_active:
-				led.duty_cycle = LED_DUTY_CYCLE_DIM
+				ui.led_dim()
 			rtb_was_active = False
 			last_output = None
 			if digirom is not None:
@@ -454,7 +450,7 @@ def failure_alert(message, hard_reset=False, reconnect=False):
 	if startup_mode == modes.MODE_DEV:
 		reconnect = False
 	instructions = "A:Menu  B:Reconnect" if reconnect else "Press A to reboot"
-	led.duty_cycle = 0
+	ui.led_off()
 	ui.display_text(f"{message}\n{instructions}")
 	ui.beep_failure()
 	while True:
@@ -466,10 +462,10 @@ def failure_alert(message, hard_reset=False, reconnect=False):
 			break
 		# Short blink every 2s
 		if int(time.monotonic() * 10) % 20 == 0:
-			led.duty_cycle = 0xFFFF
+			ui.led_bright()
 		else:
-			led.duty_cycle = 0
-	led.duty_cycle = 0
+			ui.led_off()
+	ui.led_off()
 	ui.beep_activate()
 	if hard_reset:
 		ui.display_text("Rebooting...")
@@ -524,7 +520,7 @@ def main(led_pwm):
 	WiFiCom main program.
 	'''
 	# pylint: disable=too-many-statements
-	global startup_mode, controller, ui, led  # pylint: disable=global-statement
+	global startup_mode, controller, ui  # pylint: disable=global-statement
 
 	serial.timeout = 1
 	print("WiFiCom starting")
@@ -555,12 +551,11 @@ def main(led_pwm):
 		supervisor.runtime.autoreload = False
 
 	displayio.release_displays()
-	ui = wificom.ui.UserInterface(**board_config.ui_pins)
+	ui = wificom.ui.UserInterface(**board_config.ui_pins, led_pwm=led_pwm)
 	if ui.has_display:
 		ui.sound_on = settings.is_sound_on(default=config["sound_on"])
 	else:
 		ui.sound_on = config["sound_on"]
-	led = led_pwm
 
 	run_column = 0
 	if not ui.has_display:
