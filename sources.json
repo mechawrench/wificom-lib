@@ -1,9 +1,9 @@
 {
     "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/83df7e6.zip",
-    "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20221111/adafruit-circuitpython-bundle-8.x-mpy-20221111.zip",
+    "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20231121/adafruit-circuitpython-bundle-8.x-mpy-20231121.zip",
     "circuitpython_minimqtt": {
-        "nina": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/5.5.1/adafruit-circuitpython-minimqtt-8.x-mpy-5.5.1.zip",
-        "picow": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/7.3.2/adafruit-circuitpython-minimqtt-8.x-mpy-7.3.2.zip"
+        "nina": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/7.4.4/adafruit-circuitpython-minimqtt-8.x-mpy-7.4.4.zip",
+        "picow": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/7.4.4/adafruit-circuitpython-minimqtt-8.x-mpy-7.4.4.zip"
         },
     "circuitpython": {
         "nina": "8.2.2",
