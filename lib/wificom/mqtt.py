@@ -49,17 +49,17 @@ def connect_to_mqtt(mqtt_client):
 	# Initialize MQTT interface
 	_data.mqtt_client = mqtt_client
 
-	_data.mqtt_client.on_connect = connect
-	_data.mqtt_client.on_disconnect = disconnect
-	_data.mqtt_client.on_subscribe = subscribe
-	_data.mqtt_client.on_unsubscribe = unsubscribe
+	mqtt_client.on_connect = connect
+	mqtt_client.on_disconnect = disconnect
+	mqtt_client.on_subscribe = subscribe
+	mqtt_client.on_unsubscribe = unsubscribe
 
 	# Connect to MQTT Broker
 	attempt = 0
 	while attempt < 3:
 		try:
 			print(f"Connecting to MQTT Broker (attempt {attempt+1})...")
-			_data.mqtt_client.connect()
+			mqtt_client.connect()
 			break
 		except Exception as e:  # pylint: disable=broad-except
 			print(f"Failed to connect to MQTT Broker: {type(e)} - {e}")
@@ -69,11 +69,11 @@ def connect_to_mqtt(mqtt_client):
 		print("Unable to connect to MQTT Broker after 3 attempts.")
 		return False
 
-	# Use _data.mqtt_client to subscribe to the mqtt_topic_input feed
-	_data.mqtt_client.subscribe(_mqtt_topic_input)
+	# Use mqtt_client to subscribe to the mqtt_topic_input feed
+	mqtt_client.subscribe(_mqtt_topic_input)
 
 	# Set up a callback for the topic/feed
-	_data.mqtt_client.add_topic_callback(_mqtt_topic_input, on_app_feed_callback)
+	mqtt_client.add_topic_callback(_mqtt_topic_input, on_app_feed_callback)
 
 	return True
 
