@@ -24,6 +24,13 @@ if board.board_id in ["raspberry_pi_pico", "raspberry_pi_pico_w"]:
 	if board.board_id == "raspberry_pi_pico_w":
 		wifi_type = "picow"
 		led_pin = board.GP10
+		# optional; on Pico W, VSYS is divided by 3, and ADC reads 0xffff at 3.3V
+		battery_monitor = {
+			"pin": board.VOLTAGE_MONITOR,
+			"empty":    21000,  # 3.2V
+			"full":     24500,  # 3.7V
+			"charging": 28000,  # 4.25V
+		}
 	else:
 		wifi_type = None
 		led_pin = board.LED

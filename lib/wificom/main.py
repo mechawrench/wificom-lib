@@ -463,6 +463,18 @@ def hold_c_to_reboot():
 			if time.monotonic() - time_start > 3:
 				mode_change_reboot(modes.MODE_MENU)
 
+def setup_battery_monitor():
+	'''
+	Set up the battery monitor if configured.
+	'''
+	try:
+		info = board_config.battery_monitor
+	except AttributeError:
+		print("No battery monitor configured")
+		return
+	print("Set up battery monitor")
+	ui.setup_battery_monitor(**info)
+
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
 	Alert on failure and allow restart.
@@ -576,6 +588,7 @@ def main(led_pwm):
 		ui.sound_on = settings.is_sound_on(default=config["sound_on"])
 	else:
 		ui.sound_on = config["sound_on"]
+	setup_battery_monitor()
 
 	run_column = 0
 	if not ui.has_display:
