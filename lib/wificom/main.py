@@ -239,8 +239,8 @@ def run_wifi():
 	rtb_last_ping = 0
 
 	if not secrets_imported:
+		print(secrets_error)
 		if ui.has_display:
-			print(secrets_error)
 			failure_alert(secrets_error_display)
 		else:
 			raise ValueError(secrets_error)
