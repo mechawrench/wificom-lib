@@ -239,14 +239,18 @@ def run_wifi():
 	rtb_last_ping = 0
 
 	if not secrets_imported:
-		print(secrets_error)
-		failure_alert(secrets_error_display)
+		if ui.has_display:
+			print(secrets_error)
+			failure_alert(secrets_error_display)
+		else:
+			raise ValueError(secrets_error)
 
 	global done_wifi_before  # pylint: disable=global-statement
 	if done_wifi_before:
 		if startup_mode != modes.MODE_DEV:
 			# Reconnect after reboot for wifi mode but not dev mode
 			modes.set_mode(modes.MODE_WIFI)
+		print("*** Soft reboot to reinitialize WiFi ***")
 		ui.display_text("Soft reboot...")
 		time.sleep(0.8)
 		supervisor.reload()
@@ -255,14 +259,19 @@ def run_wifi():
 	# Connect to WiFi and MQTT
 	ui.led_fast_blink()
 	ui.display_text("Connecting to WiFi")
+	def fail(message):
+		if ui.has_display:
+			failure_alert(message, reconnect=True)
+		else:
+			raise ConnectionError(message)
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
 	if mqtt_client is None:
-		failure_alert("WiFi failed", reconnect=True)
+		fail("WiFi failed")
 	ui.display_text("Connecting to MQTT")
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
-		failure_alert("MQTT failed", reconnect=True)
+		fail("MQTT failed")
 	ui.led_dim()
 	ui.beep_ready()
 	ui.display_text("WiFi\nHold C to exit")
