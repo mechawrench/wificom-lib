@@ -3,7 +3,7 @@ mqtt.py
 Handle MQTT connections, subscriptions, and callbacks
 '''
 
-# pylint: disable=global-statement,unused-argument
+# pylint: disable=unused-argument
 
 import time
 import json
@@ -11,44 +11,55 @@ from wificom.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
 
-last_application_id = None
-is_output_hidden = None
-api_response = None
-new_digirom = None
-rtb_user_type = None
-rtb_active = False
-rtb_host = None
-rtb_battle_type = None
-rtb_topic = None
-rtb_digirom = None
-
 _mqtt_io_prefix = secrets_mqtt_username.lower() + "/f/"
 _mqtt_topic_identifier = secrets_user_uuid + '-' + secrets_device_uuid
 _mqtt_topic_input = _mqtt_io_prefix + _mqtt_topic_identifier + '/wificom-input'
 _mqtt_topic_output =  _mqtt_io_prefix + _mqtt_topic_identifier + "/wificom-output"
 
-_io = None
-_mqtt_client = None
+class MQTT_data:  #pylint:disable=invalid-name
+	'''
+	Stores data for the MQTT connection.
+	'''
+	def __init__(self):
+		self.mqtt_client = None
+		self.last_application_id = None
+		self.is_output_hidden = None
+		self.api_response = None
+		self.new_digirom = None
+
+class RTB_data:  #pylint:disable=invalid-name
+	'''
+	Stores data for real-time battles.
+	'''
+	def __init__(self):
+		self.user_type = None
+		self.active = False
+		self.host = None
+		self.battle_type = None
+		self.topic = None
+		self.digirom = None
+
+_data = MQTT_data()
+rtb = RTB_data()
 
 def connect_to_mqtt(mqtt_client):
 	'''
 	Connect to the MQTT broker
 	'''
 	# Initialize MQTT interface
-	global _mqtt_client
-	_mqtt_client = mqtt_client
+	_data.mqtt_client = mqtt_client
 
-	_mqtt_client.on_connect = connect
-	_mqtt_client.on_disconnect = disconnect
-	_mqtt_client.on_subscribe = subscribe
-	_mqtt_client.on_unsubscribe = unsubscribe
+	mqtt_client.on_connect = connect
+	mqtt_client.on_disconnect = disconnect
+	mqtt_client.on_subscribe = subscribe
+	mqtt_client.on_unsubscribe = unsubscribe
 
 	# Connect to MQTT Broker
 	attempt = 0
 	while attempt < 3:
 		try:
 			print(f"Connecting to MQTT Broker (attempt {attempt+1})...")
-			_mqtt_client.connect()
+			mqtt_client.connect()
 			break
 		except Exception as e:  # pylint: disable=broad-except
 			print(f"Failed to connect to MQTT Broker: {type(e)} - {e}")
@@ -58,11 +69,11 @@ def connect_to_mqtt(mqtt_client):
 		print("Unable to connect to MQTT Broker after 3 attempts.")
 		return False
 
-	# Use _mqtt_client to subscribe to the mqtt_topic_input feed
-	_mqtt_client.subscribe(_mqtt_topic_input)
+	# Use mqtt_client to subscribe to the mqtt_topic_input feed
+	mqtt_client.subscribe(_mqtt_topic_input)
 
 	# Set up a callback for the topic/feed
-	_mqtt_client.add_topic_callback(_mqtt_topic_input, on_app_feed_callback)
+	mqtt_client.add_topic_callback(_mqtt_topic_input, on_app_feed_callback)
 
 	return True
 
@@ -70,17 +81,16 @@ def loop():
 	'''
 	Loop IO MQTT client
 	'''
-	_mqtt_client.loop()
+	_data.mqtt_client.loop()
 
 def get_subscribed_output(clear_rom=True):
 	'''
 	Get the output from the MQTT broker, and load in new Digirom (and clear if clear_rom is True)
 	'''
-	global new_digirom
-	returned_digirom = new_digirom
+	returned_digirom = _data.new_digirom
 
 	if clear_rom:
-		new_digirom = None
+		_data.new_digirom = None
 
 	return returned_digirom
 
@@ -93,15 +103,15 @@ def send_digirom_output(output):
 
 	# create json object containing output and device_uuid
 	mqtt_message = {
-		"application_uuid": last_application_id,
+		"application_uuid": _data.last_application_id,
 		"device_uuid": secrets_device_uuid,
 		"output": str(output)
 	}
 
 	mqtt_message_json = json.dumps(mqtt_message)
 
-	if _mqtt_client.is_connected:
-		_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
+	if _data.mqtt_client.is_connected:
+		_data.mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 
 def send_rtb_digirom_output(output):
 	'''
@@ -114,13 +124,13 @@ def send_rtb_digirom_output(output):
 			"application_id": 1,
 			"device_uuid": secrets_device_uuid,
 			"output": str(output),
-			"user_type": rtb_user_type,
+			"user_type": rtb.user_type,
 		}
 
 		mqtt_message_json = json.dumps(mqtt_message)
 
-		if rtb_active:
-			_mqtt_client.publish(rtb_host + '/f/' + rtb_topic, mqtt_message_json)
+		if rtb.active:
+			_data.mqtt_client.publish(rtb.host + '/f/' + rtb.topic, mqtt_message_json)
 		else:
 			print("RTB not active, shouldn't be calling this callback while RTB is inactive")
 
@@ -128,7 +138,7 @@ def handle_result(result):
 	'''
 	Handle the DigiROM result according to settings
 	'''
-	if not api_response:
+	if not _data.api_response:
 		print(result)
 	else:
 		print("DigiROM executed")
@@ -137,18 +147,15 @@ def quit_rtb():
 	'''
 	Exit from any real-time battle
 	'''
-	global rtb_user_type, rtb_active, rtb_host, rtb_battle_type, rtb_topic, rtb_digirom
-	if rtb_topic is not None:
-		try:
-			_mqtt_client.unsubscribe(rtb_host + "/f/" + rtb_topic)
-		except Exception as e:  # pylint: disable=broad-except
-			print(e)
-	rtb_user_type = None
-	rtb_active = False
-	rtb_host = None
-	rtb_battle_type = None
-	rtb_topic = None
-	rtb_digirom = None
+	if rtb.topic is not None:
+		_data.mqtt_client.unsubscribe(rtb.host + "/f/" + rtb.topic)
+	_data.api_response = None
+	rtb.user_type = None
+	rtb.active = False
+	rtb.host = None
+	rtb.battle_type = None
+	rtb.topic = None
+	rtb.digirom = None
 
 def on_app_feed_callback(client, topic, message):
 	'''
@@ -177,24 +184,21 @@ def on_app_feed_callback(client, topic, message):
 
 	if not message_json["api_response"]:
 		print(":", message, end="")
-	if is_output_hidden:
+	if _data.is_output_hidden:
 		print("check the App", end="")
 	print()
-
-	global last_application_id, api_response, new_digirom, rtb_user_type, \
-			rtb_active, rtb_host, rtb_topic, rtb_battle_type
 
 	# If message has an ack_id, acknowledge it
 	if "ack_id" in message_json:
 		mqtt_message = {
-			"application_uuid": last_application_id,
+			"application_uuid": _data.last_application_id,
 			"device_uuid": secrets_device_uuid,
 			"ack_id": message_json["ack_id"]
 		}
 
 		mqtt_message_json = json.dumps(mqtt_message)
-		if _mqtt_client.is_connected:
-			_mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
+		if _data.mqtt_client.is_connected:
+			_data.mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)
 
 	# If message_json contains topic_action, then we have a realtime battle request
 	topic_action = message_json.get('topic_action', None)
@@ -205,24 +209,24 @@ def on_app_feed_callback(client, topic, message):
 
 	# Subscribe to realtime battle topic
 	if topic_action == "subscribe":
-		rtb_topic = message_json['topic']
-		rtb_active = True
-		rtb_user_type = message_json['user_type']
-		rtb_host = message_json['host']
-		rtb_battle_type = message_json['battle_type']
-		_mqtt_client.subscribe(rtb_host + "/f/" + message_json['topic'])
-		_mqtt_client.add_topic_callback(
-			rtb_host + "/f/" + message_json['topic'],
+		rtb.topic = message_json['topic']
+		rtb.active = True
+		rtb.user_type = message_json['user_type']
+		rtb.host = message_json['host']
+		rtb.battle_type = message_json['battle_type']
+		_data.mqtt_client.subscribe(rtb.host + "/f/" + message_json['topic'])
+		_data.mqtt_client.add_topic_callback(
+			rtb.host + "/f/" + message_json['topic'],
 			on_realtime_battle_feed_callback
 		)
 	else:
 		# Here we deal with a normal message, one without a topic sub/unsub action
-		api_response = message_json['api_response']
-		last_application_id = message_json['application_id']
-		new_digirom = message_json['digirom']
+		_data.api_response = message_json['api_response']
+		_data.last_application_id = message_json['application_id']
+		_data.new_digirom = message_json['digirom']
 		print("Received new DigiROM", end="")
-		if not api_response:
-			print(":", new_digirom, end="")
+		if not _data.api_response:
+			print(":", _data.new_digirom, end="")
 		print()
 
 def on_realtime_battle_feed_callback(client, topic, message):
@@ -240,15 +244,13 @@ def on_realtime_battle_feed_callback(client, topic, message):
 	# parse message as json
 	message_json = json.loads(message)
 
-	global last_application_id, rtb_digirom
-
-	if rtb_active:
+	if rtb.active:
 		if 'user_type' in message_json:
-			if message_json['user_type'] is not None and message_json['user_type'] != rtb_user_type:
-				last_application_id = message_json['application_id']
-				rtb_digirom = message_json['output']
+			if message_json['user_type'] is not None and message_json['user_type'] != rtb.user_type:
+				_data.last_application_id = message_json['application_id']
+				rtb.digirom = message_json['output']
 			else:
-				print('(user_type is [' + rtb_user_type + ']; ignoring message from self)')
+				print('(user_type is [' + rtb.user_type + ']; ignoring message from self)')
 	else:
 		print("realtime battle is not active, shouldn't be receiving data to this callback..")
 
