@@ -1,4 +1,4 @@
-# wificom-lib (Using dmcomm-python)
+# wificom-lib
 
 <p align="center">
     <a href="https://discord.gg/yJ4Ub64zrP">
