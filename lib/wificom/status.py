@@ -17,18 +17,20 @@ class BatteryMonitor:
 
 class StatusDisplay:
 	'''
-	Handles status display for WiFi/Serial.
+	Handles status display for WiFi/Serial/Punchbag.
 	'''
 	def __init__(self, ui, battery_monitor):  #pylint:disable=invalid-name
 		self._ui = ui
 		self._battery_monitor = battery_monitor
 		self._mode = ""
+		self._line2 = ""
 		self._status = ""
-	def change(self, mode, status):
+	def change(self, mode, line2, status):
 		'''
-		Set mode and status and redraw.
+		Set mode, line2 and status and redraw.
 		'''
 		self._mode = mode
+		self._line2 = line2
 		self.do(status)
 	def do(self, status):  #pylint:disable=invalid-name
 		'''
@@ -46,5 +48,5 @@ class StatusDisplay:
 		'''
 		self._ui.display_rows([
 			f"{self._mode}: {self._status}",
-			"Hold C to exit",
+			self._line2,
 		])
