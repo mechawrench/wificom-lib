@@ -4,7 +4,6 @@ Handles the user interface components.
 '''
 
 import time
-import analogio
 import busio
 import digitalio
 import displayio
@@ -33,7 +32,6 @@ class UserInterface:
 	'''
 	Handles the screen, buttons, menus, speaker and LED.
 	'''
-	#pylint:disable=too-many-instance-attributes
 	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm):
 		self._display = None
 		self.display_error = None
@@ -65,18 +63,6 @@ class UserInterface:
 		self.sound_on = True
 		self.audio_base_freq = 1000
 		self._led = led_pwm
-		self._battery_monitor = None
-		self._battery_empty = None
-		self._battery_full = None
-		self._battery_charging = None
-	def setup_battery_monitor(self, pin, empty, full, charging):
-		'''
-		Set up the battery monitor.
-		'''
-		self._battery_monitor = analogio.AnalogIn(pin)
-		self._battery_empty = empty
-		self._battery_full = full
-		self._battery_charging = charging
 	@property
 	def sound_on(self):
 		'''

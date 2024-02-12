@@ -22,6 +22,7 @@ from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
 import wificom.realtime as rt
+import wificom.status
 import wificom.ui
 from wificom import modes
 from wificom import mqtt
@@ -37,6 +38,7 @@ LOG_MAX_SIZE = 2000
 startup_mode = None
 controller = None
 ui = None  #pylint: disable=invalid-name
+status_display = None
 done_wifi_before = False
 serial = usb_cdc.console
 
@@ -265,7 +267,7 @@ def run_wifi():
 		failure_alert("MQTT failed", reconnect=True)
 	ui.led_dim()
 	ui.beep_ready()
-	ui.display_text("WiFi\nHold C to exit")
+	status_display.change("WiFi", "paused")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		new_command = mqtt.get_subscribed_output()
@@ -274,9 +276,11 @@ def run_wifi():
 			(command_type, output) = process_new_digirom(new_command)
 			if command_type == COMMAND_DIGIROM:
 				digirom = output
+				status_display.do(digirom)
 			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
 				print(output)
 				mqtt.send_digirom_output(output)
+				status_display.do("paused")
 		if mqtt.rtb_active:
 			rtb_type_id_new = (mqtt.rtb_battle_type, mqtt.rtb_user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
@@ -290,8 +294,10 @@ def run_wifi():
 						rtb_status_callback,
 					)
 					rtb_status_callback(rtb.status, True)
+					status_display.do("RTB")
 				else:
 					print(mqtt.rtb_battle_type + " not implemented")
+					status_display.do("paused")
 			rtb_was_active = True
 			# Heartbeat approx every 10 seconds
 			if time_start - rtb_last_ping > 10:
@@ -330,7 +336,7 @@ def run_serial():
 	'''
 	print("Running serial")
 	digirom = None
-	ui.display_text("Serial\nHold C to exit")
+	status_display.change("Serial", "paused")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		serial_str = serial_readline()
@@ -342,9 +348,11 @@ def run_serial():
 			if command_type == COMMAND_DIGIROM:
 				digirom = output
 				print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
+				status_display.do(digirom)
 				time.sleep(1)
 			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
 				print(output)
+				status_display.do("paused")
 		if digirom is not None:
 			execute_digirom(digirom)
 			seconds_passed = time.monotonic() - time_start
@@ -471,9 +479,9 @@ def setup_battery_monitor():
 		info = board_config.battery_monitor
 	except AttributeError:
 		print("No battery monitor configured")
-		return
+		return None
 	print("Set up battery monitor")
-	ui.setup_battery_monitor(**info)
+	return wificom.status.BatteryMonitor(**info)
 
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
@@ -552,7 +560,7 @@ def main(led_pwm):
 	WiFiCom main program.
 	'''
 	# pylint: disable=too-many-statements
-	global startup_mode, controller, ui  # pylint: disable=global-statement
+	global startup_mode, controller, ui, status_display  # pylint: disable=global-statement
 
 	serial.timeout = 1
 	print("WiFiCom starting")
@@ -588,7 +596,7 @@ def main(led_pwm):
 		ui.sound_on = settings.is_sound_on(default=config["sound_on"])
 	else:
 		ui.sound_on = config["sound_on"]
-	setup_battery_monitor()
+	status_display = wificom.status.StatusDisplay(ui, setup_battery_monitor())
 
 	run_column = 0
 	if not ui.has_display:
