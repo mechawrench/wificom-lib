@@ -26,6 +26,7 @@ import wificom.status
 import wificom.ui
 from wificom import modes
 from wificom import mqtt
+from wificom.mqtt import rtb
 from wificom import settings
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
@@ -168,9 +169,9 @@ def rtb_receive_callback():
 	'''
 	Called when a RTB object checks for messages received.
 	'''
-	if mqtt.rtb_digirom is not None:
-		msg = mqtt.rtb_digirom
-		mqtt.rtb_digirom = None
+	if rtb.digirom is not None:
+		msg = rtb.digirom
+		rtb.digirom = None
 		return msg
 	return None
 def rtb_status_callback(status, changed):
@@ -281,22 +282,22 @@ def run_wifi():
 				print(output)
 				mqtt.send_digirom_output(output)
 				status_display.do("paused")
-		if mqtt.rtb_active:
-			rtb_type_id_new = (mqtt.rtb_battle_type, mqtt.rtb_user_type)
+		if rtb.active:
+			rtb_type_id_new = (rtb.battle_type, rtb.user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
 				new_digirom_alert()
 				rtb_type_id = rtb_type_id_new
 				if rtb_type_id in rtb_types:
-					rtb = rtb_types[rtb_type_id](
+					rtb_runner = rtb_types[rtb_type_id](
 						execute_digirom,
 						rtb_send_callback,
 						rtb_receive_callback,
 						rtb_status_callback,
 					)
-					rtb_status_callback(rtb.status, True)
+					rtb_status_callback(rtb_runner.status, True)
 					status_display.do("RTB")
 				else:
-					print(mqtt.rtb_battle_type + " not implemented")
+					print(rtb.battle_type + " not implemented")
 					status_display.do("paused")
 			rtb_was_active = True
 			# Heartbeat approx every 10 seconds
@@ -305,7 +306,7 @@ def run_wifi():
 				rtb_last_ping = time_start
 			mqtt.loop()
 			try:
-				rtb.loop()
+				rtb_runner.loop()
 			except CommandError as e:
 				print(repr(e))
 		else:
