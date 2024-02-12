@@ -7,6 +7,7 @@ Handle MQTT connections, subscriptions, and callbacks
 
 import time
 import json
+from wificom import version
 from wificom.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
 secrets_user_uuid
@@ -15,6 +16,9 @@ _mqtt_io_prefix = secrets_mqtt_username.lower() + "/f/"
 _mqtt_topic_identifier = secrets_user_uuid + '-' + secrets_device_uuid
 _mqtt_topic_input = _mqtt_io_prefix + _mqtt_topic_identifier + '/wificom-input'
 _mqtt_topic_output =  _mqtt_io_prefix + _mqtt_topic_identifier + "/wificom-output"
+
+_cached_digirom_output = version.dictionary()
+_cached_digirom_output["device_uuid"] = secrets_device_uuid
 
 class MQTT_data:  #pylint:disable=invalid-name
 	'''
@@ -97,18 +101,14 @@ def get_subscribed_output(clear_rom=True):
 def send_digirom_output(output):
 	'''
 	Send the output to the MQTT broker
-	Set last_application_id for use server side
+	Set last_application_id and version info for use server side
 	'''
-	# 8 or less characters is the loaded digirom
 
-	# create json object containing output and device_uuid
-	mqtt_message = {
-		"application_uuid": _data.last_application_id,
-		"device_uuid": secrets_device_uuid,
-		"output": str(output)
-	}
+	# update json object with output and application_id
+	_cached_digirom_output["application_uuid"] = _data.last_application_id
+	_cached_digirom_output["output"] = str(output)
 
-	mqtt_message_json = json.dumps(mqtt_message)
+	mqtt_message_json = json.dumps(_cached_digirom_output)
 
 	if _data.mqtt_client.is_connected:
 		_data.mqtt_client.publish(_mqtt_topic_output, mqtt_message_json)

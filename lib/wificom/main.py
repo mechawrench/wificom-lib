@@ -10,7 +10,6 @@ import os
 import random
 import traceback
 
-import board
 import digitalio
 import displayio
 import microcontroller
@@ -27,10 +26,10 @@ from wificom import modes
 from wificom import mqtt
 from wificom.mqtt import rtb
 from wificom import settings
+from wificom import version
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
-import version_info
 
 LOG_FILENAME = "wificom_log.txt"
 LOG_FILENAME_OLD = "wificom_log_old.txt"
@@ -72,16 +71,6 @@ def serial_readline():
 	if serial_str == "":
 		return None
 	return serial_str
-
-def get_version_info():
-	'''
-	Convert version info to a TOML string.
-	'''
-	return f'''name = "{version_info.name}"\r
-version = "{version_info.version}"\r
-variant = "{version_info.variant}"\r
-circuitpython_version = "{os.uname().version}"\r
-circuitpython_board_id = "{board.board_id}"'''
 
 def execute_digirom(rom, do_led=True):
 	'''
@@ -132,7 +121,7 @@ def process_new_digirom(command):
 			return (COMMAND_P, "[pause]")
 		elif digirom.op == "I":
 			new_digirom_alert()
-			return (COMMAND_I, get_version_info())
+			return (COMMAND_I, version.toml())
 		else:
 			ui.beep_error()
 			return (COMMAND_ERROR, "NotImplementedError:op=" + digirom.op)
@@ -408,11 +397,7 @@ def display_info():
 	Display settings info.
 	'''
 	print("Running display_info")
-	version = version_info.version
-	if len(version) <= 12:
-		version = "WiFiCom: " + version
-	info_text =  f"{version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
-	ui.display_text(info_text)
+	ui.display_text(version.onscreen())
 	while not ui.is_c_pressed():
 		pass
 	ui.beep_cancel()
