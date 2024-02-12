@@ -14,6 +14,29 @@ class BatteryMonitor:
 		self._empty = empty
 		self._full = full
 		self._charging = charging
+	def ratio(self):
+		'''
+		Return battery fullness 0-1, or None if charging.
+		'''
+		reading = self._monitor.value
+		if reading >= self._charging:
+			return None
+		if reading < self._empty:
+			reading = self._empty
+		if reading > self._full:
+			reading = self._full
+		return (reading - self._empty) / (self._full - self._empty)
+	def meter(self):
+		'''
+		Return text representing fullness, or a message if charging.
+		'''
+		sections = 10
+		ratio = self.ratio()
+		if ratio is None:
+			return "(On USB)"
+		filled = (int)(sections * ratio)
+		unfilled = sections - filled
+		return "[" + "=" * filled + " " * unfilled + "]"
 
 class StatusDisplay:
 	'''
@@ -46,7 +69,10 @@ class StatusDisplay:
 		'''
 		Redraw screen.
 		'''
-		self._ui.display_rows([
+		rows = [
 			f"{self._mode}: {self._status}",
 			self._line2,
-		])
+		]
+		if self._battery_monitor is not None:
+			rows.append(self._battery_monitor.meter())
+		self._ui.display_rows(rows)
