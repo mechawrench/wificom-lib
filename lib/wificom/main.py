@@ -329,6 +329,7 @@ def run_wifi():
 				if time.monotonic() - time_start >= 5:
 					break
 				time.sleep(0.1)
+		status_display.redraw()
 	mqtt.quit_rtb()
 
 def run_serial():
@@ -337,7 +338,7 @@ def run_serial():
 	'''
 	print("Running serial")
 	digirom = None
-	status_display.change("Serial", "Hold C to exit", "paused")
+	status_display.change("Serial", "Hold C to exit", "paused", show_battery=False)
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		serial_str = serial_readline()
@@ -381,6 +382,7 @@ def run_punchbag():
 			seconds_passed = time.monotonic() - time_start
 			if seconds_passed < 5:
 				time.sleep(5 - seconds_passed)
+			status_display.redraw()
 		ui.beep_cancel()
 		ui.display_text("Exiting\n(Release button)")
 		while ui.is_c_pressed():

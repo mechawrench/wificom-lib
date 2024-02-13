@@ -48,12 +48,14 @@ class StatusDisplay:
 		self._mode = ""
 		self._line2 = ""
 		self._status = ""
-	def change(self, mode, line2, status):
+		self._show_battery = True
+	def change(self, mode, line2, status, show_battery=True):
 		'''
 		Set mode, line2 and status and redraw.
 		'''
 		self._mode = mode
 		self._line2 = line2
+		self._show_battery = show_battery
 		self.do(status)
 	def do(self, status):  #pylint:disable=invalid-name
 		'''
@@ -73,6 +75,6 @@ class StatusDisplay:
 			f"{self._mode}: {self._status}",
 			self._line2,
 		]
-		if self._battery_monitor is not None:
+		if self._show_battery and self._battery_monitor is not None:
 			rows.append(self._battery_monitor.meter())
 		self._ui.display_rows(rows)
