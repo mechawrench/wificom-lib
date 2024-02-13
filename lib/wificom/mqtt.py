@@ -5,7 +5,6 @@ Handle MQTT connections, subscriptions, and callbacks
 
 # pylint: disable=unused-argument
 
-import time
 import json
 from wificom.import_secrets import secrets_mqtt_username, \
 secrets_device_uuid, \
@@ -55,18 +54,11 @@ def connect_to_mqtt(mqtt_client):
 	mqtt_client.on_unsubscribe = unsubscribe
 
 	# Connect to MQTT Broker
-	attempt = 0
-	while attempt < 3:
-		try:
-			print(f"Connecting to MQTT Broker (attempt {attempt+1})...")
-			mqtt_client.connect()
-			break
-		except Exception as e:  # pylint: disable=broad-except
-			print(f"Failed to connect to MQTT Broker: {type(e)} - {e}")
-			attempt += 1
-			time.sleep(1)
-	else:
-		print("Unable to connect to MQTT Broker after 3 attempts.")
+	try:
+		print("Connecting to MQTT Broker...")
+		mqtt_client.connect()
+	except Exception as e:  # pylint: disable=broad-except
+		print(f"Failed to connect to MQTT Broker: {repr(e)}")
 		return False
 
 	# Use mqtt_client to subscribe to the mqtt_topic_input feed
