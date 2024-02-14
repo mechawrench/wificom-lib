@@ -8,6 +8,14 @@ import os
 import board
 import version_info
 
+_has_display = None
+def set_display(value):
+	'''
+	Set whether we have a display.
+	'''
+	global _has_display  #pylint:disable=global-statement
+	_has_display = value
+
 def dictionary():
 	'''
 	Convert version info to an OrderedDict.
@@ -17,14 +25,23 @@ def dictionary():
 	result["version"] = version_info.version
 	result["circuitpython_version"] = os.uname().version
 	result["circuitpython_board_id"] = board.board_id
+	result["has_display"] = _has_display
 	return result
+
+def _toml_value(value):
+	if value is True:
+		return 'true'
+	elif value is False:
+		return 'false'
+	else:
+		return f'"{value}"'
 
 def toml():
 	'''
 	Convert version info to a TOML string.
 	'''
 	dic = dictionary()
-	items = [f'{key} = "{dic[key]}"' for key in dic]
+	items = [f'{key} = {_toml_value(dic[key])}' for key in dic]
 	return "\r\n".join(items)
 
 def onscreen():

@@ -562,6 +562,7 @@ def main(led_pwm):
 		ui.sound_on = settings.is_sound_on(default=config["sound_on"])
 	else:
 		ui.sound_on = config["sound_on"]
+	version.set_display(ui.has_display)
 
 	run_column = 0
 	if not ui.has_display:
