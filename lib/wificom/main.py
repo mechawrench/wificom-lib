@@ -461,7 +461,11 @@ def hold_c_to_reboot():
 			pass
 		time_start = time.monotonic()
 		while ui.is_c_pressed():
-			if time.monotonic() - time_start > 3:
+			if time.monotonic() - time_start > 2:
+				ui.beep_cancel()
+				ui.display_text("Rebooting\n(Release button)")
+				while ui.is_c_pressed():
+					pass
 				mode_change_reboot(modes.MODE_MENU)
 
 def failure_alert(message, hard_reset=False, reconnect=False):
