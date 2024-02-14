@@ -13,10 +13,10 @@ from adafruit_display_text.bitmap_label import Label
 from wificom.sound import PIOSound
 
 SCREEN_WIDTH=128
-SCREEN_HEIGHT=32
+SCREEN_HEIGHT=64
 SCREEN_ADDRESS=0x3c
-TEXT_ROW_Y_STEP = 11
-TEXT_MENU_Y_START = 8
+TEXT_ROW_Y_STEP = 15
+TEXT_MENU_Y_START = 12
 
 def centre_y_start(num_rows):
 	'''
