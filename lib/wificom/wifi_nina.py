@@ -41,6 +41,8 @@ class Wifi:
 						broker=secrets_mqtt_broker,
 						username=secrets_mqtt_username.lower(),
 						password=secrets_mqtt_password,
+						keep_alive=15,
+						connect_retries=3,
 					)
 
 					MQTT.set_socket(socket, self.esp)
