@@ -266,7 +266,7 @@ def run_wifi():
 		fail("MQTT failed")
 	ui.led_dim()
 	ui.beep_ready()
-	status_display.change("WiFi", "Hold C to exit", "paused")
+	status_display.change("WiFi", "Hold C to exit", "Paused")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		new_command = mqtt.get_subscribed_output()
@@ -279,7 +279,7 @@ def run_wifi():
 			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
 				print(output)
 				mqtt.send_digirom_output(output)
-				status_display.do("paused")
+				status_display.do("Paused")
 		if rtb.active:
 			rtb_type_id_new = (rtb.battle_type, rtb.user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
@@ -296,7 +296,7 @@ def run_wifi():
 					status_display.do("RTB")
 				else:
 					print(rtb.battle_type + " not implemented")
-					status_display.do("paused")
+					status_display.do("Paused")
 			rtb_was_active = True
 			# Heartbeat approx every 10 seconds
 			if time_start - rtb_last_ping > 10:
@@ -336,7 +336,7 @@ def run_serial():
 	'''
 	print("Running serial")
 	digirom = None
-	status_display.change("Serial", "Hold C to exit", "paused", show_battery=False)
+	status_display.change("Serial", "Hold C to exit", "Paused", show_battery=False)
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		serial_str = serial_readline()
@@ -352,7 +352,7 @@ def run_serial():
 				time.sleep(1)
 			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
 				print(output)
-				status_display.do("paused")
+				status_display.do("Paused")
 		if digirom is not None:
 			execute_digirom(digirom)
 			seconds_passed = time.monotonic() - time_start

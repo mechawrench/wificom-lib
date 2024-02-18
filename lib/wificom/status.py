@@ -62,7 +62,8 @@ class StatusDisplay:
 		Set status and redraw trying digirom then string.
 		'''
 		try:
-			status = f"{status.signal_type}{status.turn}"
+			guide = "hold vpet steady" if status.turn == 1 else "push vpet button"
+			status = f"{status.signal_type}{status.turn}: {guide}"
 		except AttributeError:
 			pass
 		self._status = status
@@ -72,9 +73,10 @@ class StatusDisplay:
 		Redraw screen.
 		'''
 		rows = [
-			f"{self._mode}: {self._status}",
+			self._mode,
 			self._line2,
+			self._status,
 		]
 		if self._show_battery and self._battery_monitor is not None:
-			rows.append(self._battery_monitor.meter())
+			rows[0] += " " + self._battery_monitor.meter()
 		self._ui.display_rows(rows)
