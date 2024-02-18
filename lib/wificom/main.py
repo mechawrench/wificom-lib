@@ -10,7 +10,6 @@ import os
 import random
 import traceback
 
-import board
 import digitalio
 import displayio
 import microcontroller
@@ -28,10 +27,10 @@ from wificom import modes
 from wificom import mqtt
 from wificom.mqtt import rtb
 from wificom import settings
+from wificom import version
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
-import version_info
 
 LOG_FILENAME = "wificom_log.txt"
 LOG_FILENAME_OLD = "wificom_log_old.txt"
@@ -74,16 +73,6 @@ def serial_readline():
 	if serial_str == "":
 		return None
 	return serial_str
-
-def get_version_info():
-	'''
-	Convert version info to a TOML string.
-	'''
-	return f'''name = "{version_info.name}"\r
-version = "{version_info.version}"\r
-variant = "{version_info.variant}"\r
-circuitpython_version = "{os.uname().version}"\r
-circuitpython_board_id = "{board.board_id}"'''
 
 def execute_digirom(rom, do_led=True):
 	'''
@@ -134,7 +123,7 @@ def process_new_digirom(command):
 			return (COMMAND_P, "[pause]")
 		elif digirom.op == "I":
 			new_digirom_alert()
-			return (COMMAND_I, get_version_info())
+			return (COMMAND_I, version.toml())
 		else:
 			ui.beep_error()
 			return (COMMAND_ERROR, "NotImplementedError:op=" + digirom.op)
@@ -243,13 +232,17 @@ def run_wifi():
 
 	if not secrets_imported:
 		print(secrets_error)
-		failure_alert(secrets_error_display)
+		if ui.has_display:
+			failure_alert(secrets_error_display)
+		else:
+			raise ValueError(secrets_error)
 
 	global done_wifi_before  # pylint: disable=global-statement
 	if done_wifi_before:
 		if startup_mode != modes.MODE_DEV:
 			# Reconnect after reboot for wifi mode but not dev mode
 			modes.set_mode(modes.MODE_WIFI)
+		print("*** Soft reboot to reinitialize WiFi ***")
 		ui.display_text("Soft reboot...")
 		time.sleep(0.8)
 		supervisor.reload()
@@ -258,14 +251,19 @@ def run_wifi():
 	# Connect to WiFi and MQTT
 	ui.led_fast_blink()
 	ui.display_text("Connecting to WiFi")
+	def fail(message):
+		if ui.has_display:
+			failure_alert(message, reconnect=True)
+		else:
+			raise ConnectionError(message)
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
 	if mqtt_client is None:
-		failure_alert("WiFi failed", reconnect=True)
+		fail("WiFi failed")
 	ui.display_text("Connecting to MQTT")
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
-		failure_alert("MQTT failed", reconnect=True)
+		fail("MQTT failed")
 	ui.led_dim()
 	ui.beep_ready()
 	status_display.change("WiFi", "Hold C to exit", "paused")
@@ -418,11 +416,7 @@ def display_info():
 	Display settings info.
 	'''
 	print("Running display_info")
-	version = version_info.version
-	if len(version) <= 12:
-		version = "WiFiCom: " + version
-	info_text =  f"{version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
-	ui.display_text(info_text)
+	ui.display_text(version.onscreen())
 	while not ui.is_c_pressed():
 		pass
 	ui.beep_cancel()
@@ -471,7 +465,11 @@ def hold_c_to_reboot():
 			pass
 		time_start = time.monotonic()
 		while ui.is_c_pressed():
-			if time.monotonic() - time_start > 3:
+			if time.monotonic() - time_start > 2:
+				ui.beep_cancel()
+				ui.display_text("Rebooting\n(Release button)")
+				while ui.is_c_pressed():
+					pass
 				mode_change_reboot(modes.MODE_MENU)
 
 def setup_battery_monitor():
@@ -600,6 +598,7 @@ def main(led_pwm):
 	else:
 		ui.sound_on = config["sound_on"]
 	status_display = wificom.status.StatusDisplay(ui, setup_battery_monitor())
+	version.set_display(ui.has_display)
 
 	run_column = 0
 	if not ui.has_display:
