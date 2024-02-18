@@ -293,7 +293,7 @@ def run_wifi():
 						rtb_status_callback,
 					)
 					rtb_status_callback(rtb_runner.status, True)
-					status_display.do("RTB")
+					status_display.do("RTB: follow LED")
 				else:
 					print(rtb.battle_type + " not implemented")
 					status_display.do("Paused")
