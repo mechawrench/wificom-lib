@@ -14,23 +14,32 @@ Recommended pins are assigned here for:
 - Raspberry Pi Pico
 - Seeeduino Xiao RP2040
 
-Note `wifi_type` is not present in older board_config.
+Note:
+- `wifi_type` is not present in older `board_config`
+- `battery_monitor` is optional
 '''
 
 import board
 import dmcomm.hardware as hw
 
+def picow_voltage_monitor(voltage):
+	'''
+	Return PicoW VSYS voltage monitor result for `voltage`.
+
+	VSYS is divided by 3, then given to the ADC, which reads 0xFFFF at 3.3V.
+	'''
+	return (int) (0xFFFF * voltage / 9.9)
+
 if board.board_id in ["raspberry_pi_pico", "raspberry_pi_pico_w"]:
 	if board.board_id == "raspberry_pi_pico_w":
 		wifi_type = "picow"
 		led_pin = board.GP10
-		# optional; on Pico W, VSYS is divided by 3, and ADC reads 0xffff at 3.3V
-		battery_monitor = {
-			"pin": board.VOLTAGE_MONITOR,
-			"empty":    21000,  # 3.2V
-			"full":     24500,  # 3.7V
-			"charging": 28000,  # 4.25V
-		}
+		#battery_monitor = {
+		#	"pin":      board.VOLTAGE_MONITOR,
+		#	"empty":    picow_voltage_monitor(3.2),
+		#	"full":     picow_voltage_monitor(4.1),
+		#	"charging": picow_voltage_monitor(4.3),
+		#}
 	else:
 		wifi_type = None
 		led_pin = board.LED
