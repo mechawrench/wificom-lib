@@ -30,11 +30,11 @@ class BatteryMonitor:
 		'''
 		Return text representing fullness, or a message if charging.
 		'''
-		sections = 10
+		sections = 5
 		ratio = self.ratio()
 		if ratio is None:
 			return "(On USB)"
-		filled = (int)(sections * ratio)
+		filled = (int)(sections * ratio + 0.5)
 		unfilled = sections - filled
 		return "[" + "=" * filled + " " * unfilled + "]"
 
