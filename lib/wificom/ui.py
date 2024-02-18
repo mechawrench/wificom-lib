@@ -15,18 +15,8 @@ from wificom.sound import PIOSound
 SCREEN_WIDTH=128
 SCREEN_HEIGHT=64
 SCREEN_ADDRESS=0x3c
-TEXT_ROW_Y_STEP = 15
-TEXT_MENU_Y_START = 12
-
-def centre_y_start(num_rows):
-	'''
-	Decide where to place text depending on number of rows.
-	'''
-	if num_rows == 1:
-		return 15
-	if num_rows == 2:
-		return 8
-	return 4
+TEXT_ROW_Y_STEP = 16
+TEXT_MENU_Y_START = 14
 
 class UserInterface:
 	'''
@@ -85,7 +75,7 @@ class UserInterface:
 		if not self.has_display:
 			return
 		if y_start is None:
-			y_start = centre_y_start(len(rows))
+			y_start = TEXT_MENU_Y_START
 		group = displayio.Group()
 		y = y_start
 		for row in rows:
