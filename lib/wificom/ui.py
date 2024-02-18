@@ -15,8 +15,8 @@ from wificom.sound import PIOSound
 SCREEN_WIDTH=128
 SCREEN_HEIGHT=64
 SCREEN_ADDRESS=0x3c
-TEXT_ROW_Y_STEP = 16
-TEXT_MENU_Y_START = 14
+TEXT_ROW_Y_STEP = 17
+TEXT_MENU_Y_START = 11
 
 class UserInterface:
 	'''
