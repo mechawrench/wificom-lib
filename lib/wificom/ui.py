@@ -13,20 +13,10 @@ from adafruit_display_text.bitmap_label import Label
 from wificom.sound import PIOSound
 
 SCREEN_WIDTH=128
-SCREEN_HEIGHT=32
+SCREEN_HEIGHT=64
 SCREEN_ADDRESS=0x3c
-TEXT_ROW_Y_STEP = 11
-TEXT_MENU_Y_START = 8
-
-def centre_y_start(num_rows):
-	'''
-	Decide where to place text depending on number of rows.
-	'''
-	if num_rows == 1:
-		return 15
-	if num_rows == 2:
-		return 8
-	return 4
+TEXT_ROW_Y_STEP = 17
+TEXT_MENU_Y_START = 11
 
 class UserInterface:
 	'''
@@ -85,14 +75,14 @@ class UserInterface:
 		if not self.has_display:
 			return
 		if y_start is None:
-			y_start = centre_y_start(len(rows))
+			y_start = TEXT_MENU_Y_START
 		group = displayio.Group()
 		y = y_start
 		for row in rows:
 			label = Label(terminalio.FONT, text=row, color=0xFFFFFF, x=0, y=y)
 			group.append(label)
 			y += TEXT_ROW_Y_STEP
-		self._display.show(group)
+		self._display.root_group = group
 	def display_text(self, text, y_start=None):
 		'''
 		Display text on the screen, lines divided with linefeeds.
@@ -106,7 +96,7 @@ class UserInterface:
 		if not self.has_display:
 			return
 		group = displayio.Group()
-		self._display.show(group)
+		self._display.root_group = group
 	def _is_button_pressed(self, button_id, do_no_display):
 		button = self._buttons[button_id]
 		if self._display is None and not do_no_display:
