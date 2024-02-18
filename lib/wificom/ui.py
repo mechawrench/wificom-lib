@@ -82,7 +82,7 @@ class UserInterface:
 			label = Label(terminalio.FONT, text=row, color=0xFFFFFF, x=0, y=y)
 			group.append(label)
 			y += TEXT_ROW_Y_STEP
-		self._display.show(group)
+		self._display.root_group = group
 	def display_text(self, text, y_start=None):
 		'''
 		Display text on the screen, lines divided with linefeeds.
@@ -96,7 +96,7 @@ class UserInterface:
 		if not self.has_display:
 			return
 		group = displayio.Group()
-		self._display.show(group)
+		self._display.root_group = group
 	def _is_button_pressed(self, button_id, do_no_display):
 		button = self._buttons[button_id]
 		if self._display is None and not do_no_display:
