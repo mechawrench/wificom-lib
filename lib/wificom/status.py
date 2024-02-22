@@ -62,7 +62,7 @@ class StatusDisplay:
 		Set status and redraw trying digirom then string.
 		'''
 		try:
-			guide = "hold vpet steady" if status.turn == 1 else "push vpet button"
+			guide = "wait for start" if status.turn == 1 else "push vpet button"
 			status = f"{status.signal_type}{status.turn}: {guide}"
 		except AttributeError:
 			pass
