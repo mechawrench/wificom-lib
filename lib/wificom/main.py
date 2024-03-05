@@ -93,11 +93,11 @@ def execute_digirom(rom, do_led=True):
 	else:
 		mqtt.handle_result(result)
 	if do_led:
-		if "r:" in result:
-			ui.beep_ready()
-			time.sleep(0.2)
-		elif "Error" in result:
+		if "Error" in result:
 			ui.beep_error()
+			time.sleep(0.2)
+		elif "r:" in result:
+			ui.beep_ready()
 			time.sleep(0.2)
 		else:
 			time.sleep(0.05)
