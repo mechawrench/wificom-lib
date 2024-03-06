@@ -6,6 +6,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [unreleased] commits. Notes are in the pull request descriptions.
 
+## 1.2.0
+### Added
+* "Settings" section in main menu
+  * Version info
+  * Sound ON/OFF setting
+  * Drive (moved here from main menu)
+  * UF2 Bootloader - for updating CircuitPython
+* "i" command ("info") now works on WiFi as well as serial, and now beeps
+* New "p" command ("pause") on WiFi or serial, does not beep
+* Version info is reported to server with heartbeat
+* Battery monitor display when in WiFi/Punchbag modes (if configured in `board_config`)
+* Status and brief instructions displayed on-screen for different types of DigiROM
+* Sounds to indicate "interesting" DigiROM results or errors executing the DigiROM
+### Changed
+* Updated dmcomm-python to v0.8.0: see [CHANGELOG](https://github.com/dmcomm/dmcomm-python/blob/main/CHANGELOG.md)
+* Drive moved into Settings
+* Drive no longer shows a menu, just "Hold C to exit"
+* Serial mode responds immediately when no DigiROM is active
+### Fixed
+* Now using the device's native screen resolution
+* Network failures detected more quickly
+* Incorrect MQTT credentials detected more quickly
+* Initial connection failure now logged on screenless units
+### Removed
+* "variant" from version info
+### Tested with
+* CircuitPython 8.2.2
+
 ## [1.1.0] - 2023-11-26
 ### Added
 * Support for non-WiFi boards
