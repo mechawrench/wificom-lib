@@ -451,6 +451,7 @@ def run_drive():
 	Run in drive mode.
 	'''
 	ui.display_text("* Drive Mode *\nEject when done\nThen hold C to exit")
+	ui.beep_ready()
 	hold_c_to_reboot()
 
 def run_unknown():
