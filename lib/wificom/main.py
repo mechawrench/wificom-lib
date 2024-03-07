@@ -74,10 +74,11 @@ def serial_readline():
 		return None
 	return serial_str
 
-def execute_digirom(rom, do_led=True):
+def execute_digirom(rom, do_led=True, do_beep=True):
 	'''
 	Execute the digirom and report results.
 	'''
+	#pylint: disable=too-many-branches
 	try:
 		controller.execute(rom)
 		result = str(rom.result)
@@ -92,12 +93,16 @@ def execute_digirom(rom, do_led=True):
 		print(result)
 	else:
 		mqtt.handle_result(result)
-	if do_led:
+	if do_beep:
 		if "Error" in result:
 			ui.beep_error()
-			time.sleep(0.2)
 		elif "r:" in result:
-			ui.beep_ready()
+			if len(rom.result) < len(rom):
+				ui.beep_error()
+			else:
+				ui.beep_ready()
+	if do_led:
+		if "r:" in result or "Error" in result:
 			time.sleep(0.2)
 		else:
 			time.sleep(0.05)
