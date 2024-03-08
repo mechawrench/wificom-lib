@@ -34,11 +34,11 @@ class RealTime:
 		self.received_message = None
 		self.received_digirom = None
 		self.comm_attempts = 0  # for host only
-	def execute(self, digirom, do_led=False):
+	def execute(self, digirom, do_led, do_beep):
 		'''
 		Execute digirom using the execute callback, and store result.
 		'''
-		self._execute_callback(digirom, do_led)
+		self._execute_callback(digirom, do_led, do_beep)
 		self.result = digirom.result
 	def modify_received_digirom(self):
 		'''
@@ -123,7 +123,7 @@ class RealTimeHost(RealTime):
 		elif self.time_start is None:
 			self.update_status(STATUS_PUSH)
 			digirom = dmcomm.protocol.parse_command(self.scan_str)
-			self.execute(digirom)
+			self.execute(digirom, do_led=False, do_beep=False)
 			if self.scan_successful():
 				self.send_message()
 				self.time_start = time.monotonic()
@@ -139,7 +139,7 @@ class RealTimeHost(RealTime):
 				self.comm_attempts = 0
 				self._attempt_second_comm()
 	def _attempt_second_comm(self):
-		self.execute(self.received_digirom, True)
+		self.execute(self.received_digirom, do_led=True, do_beep=True)
 		if self.comm_successful():
 			self.received_digirom = None
 			self.time_start = None
@@ -167,7 +167,7 @@ class RealTimeGuest(RealTime):
 		self.receive_digirom()
 		if self.received_digirom is not None:
 			self.update_status(STATUS_PUSH)
-			self.execute(self.received_digirom)
+			self.execute(self.received_digirom, do_led=False, do_beep=True)
 			self.update_status(STATUS_WAIT)
 			if self.comm_successful():
 				self.send_message()
