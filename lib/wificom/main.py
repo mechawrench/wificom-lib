@@ -97,7 +97,9 @@ def execute_digirom(rom, do_led=True, do_beep=True):
 		if "Error" in result:
 			ui.beep_error()
 		elif "r:" in result:
-			if len(rom.result) < len(rom):
+			if len(rom.result) < 2 * len(rom):
+				ui.beep_error()
+			elif rom.turn == 1 and " t" in result:
 				ui.beep_error()
 			else:
 				ui.beep_ready()
