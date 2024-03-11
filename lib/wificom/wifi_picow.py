@@ -64,6 +64,8 @@ class Wifi:
 			password=secrets_mqtt_password,
 			socket_pool=pool,
 			ssl_context=ssl.create_default_context(),
+			keep_alive=15,
+			connect_retries=3,
 		)
 
 		return mqtt_client

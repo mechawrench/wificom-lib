@@ -13,26 +13,16 @@ from adafruit_display_text.bitmap_label import Label
 from wificom.sound import PIOSound
 
 SCREEN_WIDTH=128
-SCREEN_HEIGHT=32
+SCREEN_HEIGHT=64
 SCREEN_ADDRESS=0x3c
-TEXT_ROW_Y_STEP = 11
-TEXT_MENU_Y_START = 8
-
-def centre_y_start(num_rows):
-	'''
-	Decide where to place text depending on number of rows.
-	'''
-	if num_rows == 1:
-		return 15
-	if num_rows == 2:
-		return 8
-	return 4
+TEXT_ROW_Y_STEP = 17
+TEXT_MENU_Y_START = 11
 
 class UserInterface:
 	'''
-	Handles the screen, buttons and menus.
+	Handles the screen, buttons, menus, speaker and LED.
 	'''
-	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker):
+	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm):
 		self._display = None
 		self.display_error = None
 		if None in (display_scl, display_sda, button_a, button_b):
@@ -62,6 +52,7 @@ class UserInterface:
 		self._speaker = PIOSound(speaker)
 		self.sound_on = True
 		self.audio_base_freq = 1000
+		self._led = led_pwm
 	@property
 	def sound_on(self):
 		'''
@@ -84,14 +75,14 @@ class UserInterface:
 		if not self.has_display:
 			return
 		if y_start is None:
-			y_start = centre_y_start(len(rows))
+			y_start = TEXT_MENU_Y_START
 		group = displayio.Group()
 		y = y_start
 		for row in rows:
 			label = Label(terminalio.FONT, text=row, color=0xFFFFFF, x=0, y=y)
 			group.append(label)
 			y += TEXT_ROW_Y_STEP
-		self._display.show(group)
+		self._display.root_group = group
 	def display_text(self, text, y_start=None):
 		'''
 		Display text on the screen, lines divided with linefeeds.
@@ -105,7 +96,7 @@ class UserInterface:
 		if not self.has_display:
 			return
 		group = displayio.Group()
-		self._display.show(group)
+		self._display.root_group = group
 	def _is_button_pressed(self, button_id, do_no_display):
 		button = self._buttons[button_id]
 		if self._display is None and not do_no_display:
@@ -163,6 +154,34 @@ class UserInterface:
 		for _ in range(3):
 			self.beep_error()
 			time.sleep(0.8)
+	def led_bright(self):
+		'''
+		Make LED bright.
+		'''
+		if self._led is not None:
+			self._led.frequency = 1000
+			self._led.duty_cycle = 0xFFFF
+	def led_dim(self):
+		'''
+		Make LED dim.
+		'''
+		if self._led is not None:
+			self._led.frequency = 1000
+			self._led.duty_cycle = 0x1000
+	def led_off(self):
+		'''
+		Turn LED off.
+		'''
+		if self._led is not None:
+			self._led.frequency = 1000
+			self._led.duty_cycle = 0
+	def led_fast_blink(self):
+		'''
+		Make LED blink quickly.
+		'''
+		if self._led is not None:
+			self._led.frequency = 1
+			self._led.duty_cycle = 0x8000
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
