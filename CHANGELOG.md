@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [unreleased] commits. Notes are in the pull request descriptions.
 
-## 1.2.0
+## [1.2.0] - 2024-04-18
 ### Added
 * "Settings" section in main menu
   * Version info
@@ -250,7 +250,8 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v1.1.0...main
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v1.2.0...main
+[1.2.0]: https://github.com/mechawrench/wificom-lib/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/mechawrench/wificom-lib/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0...v1.0.0
 [0.10.0]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0-rc1...v0.10.0
