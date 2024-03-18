@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [unreleased] commits. Notes are in the pull request descriptions.
 
-## [1.2.0] - 2024-04-18
+## [1.2.0] - 2024-03-18
 ### Added
 * "Settings" section in main menu
   * Version info
