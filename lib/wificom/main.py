@@ -10,7 +10,6 @@ import os
 import random
 import traceback
 
-import board
 import digitalio
 import displayio
 import microcontroller
@@ -22,15 +21,16 @@ from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
 import wificom.realtime as rt
+import wificom.status
 import wificom.ui
 from wificom import modes
 from wificom import mqtt
 from wificom.mqtt import rtb
 from wificom import settings
+from wificom import version
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
-import version_info
 
 LOG_FILENAME = "wificom_log.txt"
 LOG_FILENAME_OLD = "wificom_log_old.txt"
@@ -38,6 +38,7 @@ LOG_MAX_SIZE = 2000
 startup_mode = None
 controller = None
 ui = None  #pylint: disable=invalid-name
+status_display = None
 done_wifi_before = False
 serial = usb_cdc.console
 
@@ -73,20 +74,11 @@ def serial_readline():
 		return None
 	return serial_str
 
-def get_version_info():
-	'''
-	Convert version info to a TOML string.
-	'''
-	return f'''name = "{version_info.name}"\r
-version = "{version_info.version}"\r
-variant = "{version_info.variant}"\r
-circuitpython_version = "{os.uname().version}"\r
-circuitpython_board_id = "{board.board_id}"'''
-
-def execute_digirom(rom, do_led=True):
+def execute_digirom(rom, do_led=True, do_beep=True):
 	'''
 	Execute the digirom and report results.
 	'''
+	#pylint: disable=too-many-branches
 	try:
 		controller.execute(rom)
 		result = str(rom.result)
@@ -101,6 +93,16 @@ def execute_digirom(rom, do_led=True):
 		print(result)
 	else:
 		mqtt.handle_result(result)
+	if do_beep:
+		if "Error" in result:
+			ui.beep_error()
+		elif "r:" in result:
+			if len(rom.result) < 2 * len(rom):
+				ui.beep_error()
+			elif rom.turn == 1 and " t" in result:
+				ui.beep_error()
+			else:
+				ui.beep_ready()
 	if do_led:
 		if "r:" in result or "Error" in result:
 			time.sleep(0.2)
@@ -132,7 +134,7 @@ def process_new_digirom(command):
 			return (COMMAND_P, "[pause]")
 		elif digirom.op == "I":
 			new_digirom_alert()
-			return (COMMAND_I, get_version_info())
+			return (COMMAND_I, version.toml())
 		else:
 			ui.beep_error()
 			return (COMMAND_ERROR, "NotImplementedError:op=" + digirom.op)
@@ -241,13 +243,17 @@ def run_wifi():
 
 	if not secrets_imported:
 		print(secrets_error)
-		failure_alert(secrets_error_display)
+		if ui.has_display:
+			failure_alert(secrets_error_display)
+		else:
+			raise ValueError(secrets_error)
 
 	global done_wifi_before  # pylint: disable=global-statement
 	if done_wifi_before:
 		if startup_mode != modes.MODE_DEV:
 			# Reconnect after reboot for wifi mode but not dev mode
 			modes.set_mode(modes.MODE_WIFI)
+		print("*** Soft reboot to reinitialize WiFi ***")
 		ui.display_text("Soft reboot...")
 		time.sleep(0.8)
 		supervisor.reload()
@@ -256,17 +262,22 @@ def run_wifi():
 	# Connect to WiFi and MQTT
 	ui.led_fast_blink()
 	ui.display_text("Connecting to WiFi")
+	def fail(message):
+		if ui.has_display:
+			failure_alert(message, reconnect=True)
+		else:
+			raise ConnectionError(message)
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
 	if mqtt_client is None:
-		failure_alert("WiFi failed", reconnect=True)
+		fail("WiFi failed")
 	ui.display_text("Connecting to MQTT")
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
-		failure_alert("MQTT failed", reconnect=True)
+		fail("MQTT failed")
 	ui.led_dim()
 	ui.beep_ready()
-	ui.display_text("WiFi\nHold C to exit")
+	status_display.change("WiFi", "Hold C to exit", "Paused")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		new_command = mqtt.get_subscribed_output()
@@ -275,9 +286,11 @@ def run_wifi():
 			(command_type, output) = process_new_digirom(new_command)
 			if command_type == COMMAND_DIGIROM:
 				digirom = output
+				status_display.do(digirom)
 			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
 				print(output)
 				mqtt.send_digirom_output(output)
+				status_display.do("Paused")
 		if rtb.active:
 			rtb_type_id_new = (rtb.battle_type, rtb.user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
@@ -291,8 +304,10 @@ def run_wifi():
 						rtb_status_callback,
 					)
 					rtb_status_callback(rtb_runner.status, True)
+					status_display.do("RTB: follow LED")
 				else:
 					print(rtb.battle_type + " not implemented")
+					status_display.do("Paused")
 			rtb_was_active = True
 			# Heartbeat approx every 10 seconds
 			if time_start - rtb_last_ping > 10:
@@ -323,6 +338,7 @@ def run_wifi():
 				if time.monotonic() - time_start >= 5:
 					break
 				time.sleep(0.1)
+		status_display.redraw()
 	mqtt.quit_rtb()
 
 def run_serial():
@@ -331,7 +347,7 @@ def run_serial():
 	'''
 	print("Running serial")
 	digirom = None
-	ui.display_text("Serial\nHold C to exit")
+	status_display.change("Serial", "Hold C to exit", "Paused", show_battery=False)
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		serial_str = serial_readline()
@@ -343,9 +359,11 @@ def run_serial():
 			if command_type == COMMAND_DIGIROM:
 				digirom = output
 				print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
+				status_display.do(digirom)
 				time.sleep(1)
 			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
 				print(output)
+				status_display.do("Paused")
 		if digirom is not None:
 			execute_digirom(digirom)
 			seconds_passed = time.monotonic() - time_start
@@ -366,13 +384,14 @@ def run_punchbag():
 		rom = ui.menu(names, roms, "")
 		if rom == "":
 			return
-		ui.display_text("Punchbag\nHold C to change")
+		status_display.change("Punchbag", "Hold C to change", rom)
 		while not ui.is_c_pressed():
 			time_start = time.monotonic()
 			execute_digirom(rom)
 			seconds_passed = time.monotonic() - time_start
 			if seconds_passed < 5:
 				time.sleep(5 - seconds_passed)
+			status_display.redraw()
 		ui.beep_cancel()
 		ui.display_text("Exiting\n(Release button)")
 		while ui.is_c_pressed():
@@ -408,11 +427,7 @@ def display_info():
 	Display settings info.
 	'''
 	print("Running display_info")
-	version = version_info.version
-	if len(version) <= 12:
-		version = "WiFiCom: " + version
-	info_text =  f"{version}\nCP: {os.uname().version.split()[0]}\n{board.board_id}"
-	ui.display_text(info_text)
+	ui.display_text(version.onscreen())
 	while not ui.is_c_pressed():
 		pass
 	ui.beep_cancel()
@@ -443,6 +458,7 @@ def run_drive():
 	Run in drive mode.
 	'''
 	ui.display_text("* Drive Mode *\nEject when done\nThen hold C to exit")
+	ui.beep_ready()
 	hold_c_to_reboot()
 
 def run_unknown():
@@ -467,6 +483,18 @@ def hold_c_to_reboot():
 				while ui.is_c_pressed():
 					pass
 				mode_change_reboot(modes.MODE_MENU)
+
+def setup_battery_monitor():
+	'''
+	Set up the battery monitor if configured.
+	'''
+	try:
+		info = board_config.battery_monitor
+	except AttributeError:
+		print("No battery monitor configured")
+		return None
+	print("Set up battery monitor")
+	return wificom.status.BatteryMonitor(**info)
 
 def failure_alert(message, hard_reset=False, reconnect=False):
 	'''
@@ -545,7 +573,7 @@ def main(led_pwm):
 	WiFiCom main program.
 	'''
 	# pylint: disable=too-many-statements
-	global startup_mode, controller, ui  # pylint: disable=global-statement
+	global startup_mode, controller, ui, status_display  # pylint: disable=global-statement
 
 	serial.timeout = 1
 	print("WiFiCom starting")
@@ -581,6 +609,8 @@ def main(led_pwm):
 		ui.sound_on = settings.is_sound_on(default=config["sound_on"])
 	else:
 		ui.sound_on = config["sound_on"]
+	status_display = wificom.status.StatusDisplay(ui, setup_battery_monitor())
+	version.set_display(ui.has_display)
 
 	run_column = 0
 	if not ui.has_display:
