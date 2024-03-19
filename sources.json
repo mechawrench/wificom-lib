@@ -6,7 +6,7 @@
         "picow": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/7.4.4/adafruit-circuitpython-minimqtt-9.x-mpy-7.4.4.zip"
         },
     "circuitpython": {
-        "nina": "9.0.0-rc.1",
-        "picow": "9.0.0-rc.1"
+        "nina": "9.0.0",
+        "picow": "9.0.0"
         }
     } 
