@@ -240,10 +240,7 @@ def run_wifi():
 
 	if not secrets_imported:
 		print(secrets_error)
-		if ui.has_display:
-			failure_alert(secrets_error_display)
-		else:
-			raise ValueError(secrets_error)
+		failure_alert(secrets_error_display)
 
 	global done_wifi_before  # pylint: disable=global-statement
 	if done_wifi_before:
@@ -259,19 +256,14 @@ def run_wifi():
 	# Connect to WiFi and MQTT
 	ui.led_fast_blink()
 	ui.display_text("Connecting to WiFi")
-	def fail(message):
-		if ui.has_display:
-			failure_alert(message, reconnect=True)
-		else:
-			raise ConnectionError(message)
 	wifi = board_config.WifiCls(**board_config.wifi_pins)
 	mqtt_client = wifi.connect()
 	if mqtt_client is None:
-		fail("WiFi failed")
+		failure_alert("WiFi failed", reconnect=True)
 	ui.display_text("Connecting to MQTT")
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
-		fail("MQTT failed")
+		failure_alert("MQTT failed", reconnect=True)
 	ui.led_dim()
 	ui.beep_ready()
 	status_display.change("WiFi", "Hold C to exit", "Paused")
