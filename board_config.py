@@ -15,7 +15,7 @@ Recommended pins are assigned here for:
 Note:
 - `battery_monitor` is optional.
 - `wifi_type` is not present in older `board_config`.
-- v2.0.0+:
+- WiFiCom v2.0.0+:
   - `wifi_pins` will be ignored.
   - On devices other than Pi Pico W with screen,
     `wifi_type`, screen, and buttons A/B will be ignored.
