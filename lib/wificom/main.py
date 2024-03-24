@@ -224,11 +224,6 @@ def run_wifi():
 	'''
 	# pylint: disable=too-many-branches,too-many-statements,too-many-locals
 
-	if board_config.WifiCls is None:
-		print("No WiFi specified in board_config; running serial")
-		run_serial()
-		return
-
 	print("Running WiFi")
 	gc.collect()
 	print("Free memory before WiFi:", gc.mem_free())
@@ -256,7 +251,7 @@ def run_wifi():
 	# Connect to WiFi and MQTT
 	ui.led_fast_blink()
 	ui.display_text("Connecting to WiFi")
-	wifi = board_config.WifiCls(**board_config.wifi_pins)
+	wifi = board_config.WifiCls()
 	mqtt_client = wifi.connect()
 	if mqtt_client is None:
 		failure_alert("WiFi failed", reconnect=True)
