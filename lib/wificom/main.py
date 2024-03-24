@@ -616,6 +616,7 @@ def main(led_pwm):
 			branches[startup_mode][run_column]()
 			main_menu(False)
 		else:
+			ui.beep_ready()
 			run_serial()
 	except (ConnectionError, MMQTTException) as e:
 		report_crash(e, True)
