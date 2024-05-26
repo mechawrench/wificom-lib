@@ -197,11 +197,8 @@ def main_menu(play_startup_sound=True):
 	if startup_mode == modes.MODE_DEV:
 		options.append("* Dev Mode *")
 		results.append(None)
-	if board_config.WifiCls is not None:
-		options.append("WiFi")
-		results.append(run_wifi)
-	options.extend(["Serial", "Punchbag", "Settings"])
-	results.extend([run_serial, run_punchbag, run_settings])
+	options.extend(["WiFi", "Serial", "Punchbag", "Settings"])
+	results.extend([run_wifi, run_serial, run_punchbag, run_settings])
 	while True:
 		menu_result = ui.menu(options, results, None)
 		menu_result()
@@ -227,11 +224,6 @@ def run_wifi():
 	'''
 	# pylint: disable=too-many-branches,too-many-statements,too-many-locals
 
-	if board_config.WifiCls is None:
-		print("No WiFi specified in board_config; running serial")
-		run_serial()
-		return
-
 	print("Running WiFi")
 	gc.collect()
 	print("Free memory before WiFi:", gc.mem_free())
@@ -243,10 +235,7 @@ def run_wifi():
 
 	if not secrets_imported:
 		print(secrets_error)
-		if ui.has_display:
-			failure_alert(secrets_error_display)
-		else:
-			raise ValueError(secrets_error)
+		failure_alert(secrets_error_display)
 
 	global done_wifi_before  # pylint: disable=global-statement
 	if done_wifi_before:
@@ -262,19 +251,14 @@ def run_wifi():
 	# Connect to WiFi and MQTT
 	ui.led_fast_blink()
 	ui.display_text("Connecting to WiFi")
-	def fail(message):
-		if ui.has_display:
-			failure_alert(message, reconnect=True)
-		else:
-			raise ConnectionError(message)
-	wifi = board_config.WifiCls(**board_config.wifi_pins)
+	wifi = board_config.WifiCls()
 	mqtt_client = wifi.connect()
 	if mqtt_client is None:
-		fail("WiFi failed")
+		failure_alert("WiFi failed", reconnect=True)
 	ui.display_text("Connecting to MQTT")
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
-		fail("MQTT failed")
+		failure_alert("MQTT failed", reconnect=True)
 	ui.led_dim()
 	ui.beep_ready()
 	status_display.change("WiFi", "Hold C to exit", "Paused")
@@ -572,7 +556,7 @@ def main(led_pwm):
 	'''
 	WiFiCom main program.
 	'''
-	# pylint: disable=too-many-statements
+	# pylint: disable=too-many-statements,too-many-branches
 	global startup_mode, controller, ui, status_display  # pylint: disable=global-statement
 
 	serial.timeout = 1
@@ -603,6 +587,8 @@ def main(led_pwm):
 	if startup_mode != modes.MODE_DEV:
 		supervisor.runtime.autoreload = False
 
+	if board_config.WifiCls is None:
+		board_config.ui_pins["display_scl"] = None  # no display without wifi
 	displayio.release_displays()
 	ui = wificom.ui.UserInterface(**board_config.ui_pins, led_pwm=led_pwm)
 	if ui.has_display:
@@ -612,27 +598,26 @@ def main(led_pwm):
 	status_display = wificom.status.StatusDisplay(ui, setup_battery_monitor())
 	version.set_display(ui.has_display)
 
-	run_column = 0
-	if not ui.has_display:
-		run_column += 2
-		print("Display not found: " + str(ui.display_error))
-	if not mode_was_requested:
-		run_column += 1
-	print("Run column: " + str(run_column))
+	run_column = 0 if mode_was_requested else 1
 	branches = {
-		# mode:              (ui requested, ui not req, no ui req,  no ui not req)
-		modes.MODE_MENU:     (main_menu,    main_menu,  run_wifi,   run_wifi),
-		modes.MODE_WIFI:     (run_wifi,     main_menu,  run_wifi,   run_wifi),
-		modes.MODE_SERIAL:   (run_serial,   main_menu,  run_serial, run_serial),
-		modes.MODE_PUNCHBAG: (run_punchbag, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
-		modes.MODE_SETTINGS: (run_settings, main_menu,  run_wifi,   run_wifi),  # last 2 unexpected
-		modes.MODE_DRIVE:    (run_drive,    run_drive,  run_wifi,   run_wifi),  # last 2 unexpected
-		modes.MODE_DEV:      (main_menu,    main_menu,  run_wifi,   run_wifi),
-		modes.MODE_UNKNOWN:  (run_unknown,  run_unknown,run_wifi,   run_wifi),
+		# mode:              (requested,    not requested)
+		modes.MODE_MENU:     (main_menu,    main_menu),
+		modes.MODE_WIFI:     (run_wifi,     main_menu),
+		modes.MODE_SERIAL:   (run_serial,   main_menu),
+		modes.MODE_PUNCHBAG: (run_punchbag, main_menu),
+		modes.MODE_SETTINGS: (run_settings, main_menu),
+		modes.MODE_DRIVE:    (run_drive,    run_drive),
+		modes.MODE_DEV:      (main_menu,    main_menu),
+		modes.MODE_UNKNOWN:  (run_unknown,  run_unknown),
 	}
 	try:
-		branches[startup_mode][run_column]()
-		main_menu(False)
+		if ui.has_display:
+			print("Run column: " + str(run_column))
+			branches[startup_mode][run_column]()
+			main_menu(False)
+		else:
+			ui.beep_ready()
+			run_serial()
 	except (ConnectionError, MMQTTException) as e:
 		report_crash(e, True)
 	except OSError as e:
