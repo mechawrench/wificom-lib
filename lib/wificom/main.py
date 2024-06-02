@@ -403,8 +403,8 @@ def run_punchbag():
 					pass
 	except (OSError, ValueError) as e:
 		print(repr(e))
-		ui.display_rows(str(e), "Press C to exit")
-		while ui.is_c_pressed():
+		ui.display_rows([str(e), "Press C to exit"])
+		while not ui.is_c_pressed():
 			pass
 
 def run_settings():
