@@ -376,6 +376,7 @@ def run_punchbag():
 						return
 					tree.back()
 					continue
+				print("Selected:", node.text)
 				rom_text = tree.digirom(node)
 				if rom_text is None:
 					tree.pick(node)
