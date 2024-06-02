@@ -386,8 +386,9 @@ def run_punchbag():
 				except CommandError as e:
 					print(rom_text, repr(e))
 					ui.display_text("CommandError\nPress C to return")
-					while ui.is_c_pressed():
+					while not ui.is_c_pressed():
 						pass
+					ui.beep_cancel()
 					continue
 				# want to use node.text too ?
 				status_display.change("Punchbag", "Hold C to change", rom)
@@ -407,6 +408,7 @@ def run_punchbag():
 		ui.display_rows([str(e), "Press C to exit"])
 		while not ui.is_c_pressed():
 			pass
+		ui.beep_cancel()
 
 def run_settings():
 	'''
