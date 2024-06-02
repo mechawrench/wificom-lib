@@ -1,0 +1,60 @@
+# This file contains the DigiROMs for the punchbag menu.
+# Indent using tabs (not spaces). Comments must be on their own line.
+# Note: having more than 6 entries in any submenu may cause slowness or crashing.
+
+Classic Punchbags
+	# Credit: BladeSabre
+	DMOG you win
+		V1-FC03-FD02
+	DMOG you lose
+		V1-FC03-FE01
+	PenOG you win
+		V1-211F-000F-080F-EABF
+	PenOG you lose
+		V1-211F-000F-09FF-EABF
+	PenX you win
+		X1-0159-4379-2E49-@4009
+	PenX you lose
+		X1-0159-4379-2AA9-@41F9
+Infrared
+	D-Scanner
+		# Credit: Da_Duke2000
+		Cure Box barcode
+			BC1-0200000002711
+		PowerBoost barcode
+			BC1-0200000000811
+		SuperCharge barcode
+			BC1-0200000002511
+		Hyper EXE barcode
+			BC1-0200000000711
+		Battle barcode
+			BC1-0000092001011
+	iC you win
+		# Credit: BladeSabre
+		IC1-C067-4257-0197-0007-@F007
+	Twin battle/event
+		# Credit: joushiikuta
+		IC2-0007-^0^207-0007-@400F-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000
+	Data Link 2000pt
+		# Credit: BladeSabre
+		DL2-1301002000AA>>+?-1301002000AA>>+?
+DMC
+	# Credit: joushiikuta and Humulos
+	V1, J Cres->AS
+		C1-47444C4300000000000E00AA00019440-47444C430002003000000000000093B9
+	V2, J Blitz->AS
+		C1-47444C4300000001000F00730001940B-47444C4300020002000000000000938B
+	V3, J Mugen->Mille
+		C1-47444C4300000002000E00730002940C-47444C4300020011000000000000939A
+	V3, J Dark->Chaos
+		C1-47444C4300000002001100B400039451-47444C4300020006000000000000938F
+	V4, J w/Darkdra
+		C1-47444C4300000003000E00AA00019443-47444C430002006900000000000093F2
+	V5, J w/Mugen
+		C1-47444C4300000004000E00AA00019444-47444C430002001E00000000000093A7
+Legendz
+	# Credit: SigmaDolphin and BladeSabre
+	Pod test battle
+		LT2-11________06050C020302020202E3______01++-AA____++-AA____++-AA____++
+	Dam test battle
+		LT2-12________06050C020302020202E3______01000A050504010611050502++-AA____++-AA____++-AA____++
