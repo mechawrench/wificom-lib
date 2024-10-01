@@ -5,18 +5,20 @@ Handles differences between boards.
 WiFiCom:
 Recommended pins are assigned here for:
 - Raspberry Pi Pico W
-- Arduino Nano RP2040 Connect
-If you are using another RP2040 board with an AirLift module,
-you will need to edit this file.
 
-Non-WiFi:
+P-Com (serial only):
 Recommended pins are assigned here for:
 - Raspberry Pi Pico
 - Seeeduino Xiao RP2040
+- Arduino Nano RP2040 Connect (WiFi in v1.x.x)
 
 Note:
-- `wifi_type` is not present in older `board_config`
-- `battery_monitor` is optional
+- `battery_monitor` is optional.
+- `wifi_type` is not present in older `board_config`.
+- WiFiCom v2.0.0+:
+  - `wifi_pins` will be ignored.
+  - On devices other than Pi Pico W with screen,
+    `wifi_type`, screen, and buttons A/B will be ignored.
 '''
 
 import board

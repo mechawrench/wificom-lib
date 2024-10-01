@@ -112,7 +112,7 @@ jobs:
         run: |
           rm -rf sources_dmcomm_python sources_adafruit_bundle sources_nina_circuitpython_minimqtt sources_picow_circuitpython_minimqtt *.zip .git .github .gitignore .pylintrc mpy-cross
   
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: wificom_libs_merged_${{ matrix.platform }}.zip
           path: .
