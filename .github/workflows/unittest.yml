@@ -13,6 +13,9 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: 3.11
+        cache: 'pip'
     - name: Run tests
       run: |
-        python -m unittest discover
+        pip install pytest==8.3.3
+        cd tests
+        python -m pytest
