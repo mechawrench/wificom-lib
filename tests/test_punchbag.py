@@ -67,9 +67,16 @@ def test_dscan_supercharge(data):
 	assert data.digirom("SuperCharge barcode") == "BC1-0200000002511"
 
 def test_ic(data):
-	'''Stepping out; weirdly indented comment'''
+	'''Stepping out; overly indented comment'''
 	data.pick("Infrared")
 	assert data.digirom("iC you win") == "IC1-C067-4257-0197-0007-@F007"
+
+def test_twin(data):
+	'''Stepping out; unindented comment'''
+	data.pick("Infrared")
+	rom = data.digirom("Twin battle/event")
+	assert rom.startswith("IC2")
+	assert rom.endswith("FFFF")
 
 def test_dl(data):
 	'''Top-level digirom at end'''

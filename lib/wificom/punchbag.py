@@ -65,6 +65,8 @@ class DigiROM_Tree:  #pylint:disable=invalid-name
 			line = f.readline()
 			if line == "":
 				# EOF
+				if prev_tabs == 0:
+					self._error("Layout error", pos)
 				break
 			tabs = count_tabs(line)
 			if tabs == LEADING_SPACE:
