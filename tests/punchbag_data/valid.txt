@@ -3,7 +3,7 @@
 
 Classic Punchbags
 	# Credit: BladeSabre
-	DMOG you win
+	DMOG you win	
 		V1-FC03-FD02	
 	DMOG you lose
 		V1-FC03-FE01    
