@@ -1,3 +1,4 @@
+'''Sets up paths for tests.'''
 
 import os
 import sys
