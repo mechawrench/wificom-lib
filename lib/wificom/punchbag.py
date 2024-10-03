@@ -91,6 +91,8 @@ class DigiROM_Tree:  #pylint:disable=invalid-name
 				item.leaf_pos = item.leaf_pos[0]
 			else:
 				item.leaf_pos = None
+		if not result:
+			self._error("Nothing here", pos)
 		return result
 	def digirom(self, node):
 		'''Get the digirom at the chosen node, or None if not existing.'''
