@@ -26,12 +26,14 @@ import wificom.ui
 from wificom import modes
 from wificom import mqtt
 from wificom.mqtt import rtb
+from wificom import punchbag
 from wificom import settings
 from wificom import version
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
 from config import config
 import board_config
 
+DIGIROMS_FILENAME = "digiroms.txt"
 LOG_FILENAME = "wificom_log.txt"
 LOG_FILENAME_OLD = "wificom_log_old.txt"
 LOG_MAX_SIZE = 2000
@@ -361,25 +363,52 @@ def run_punchbag():
 	Run in punchbag mode.
 	'''
 	print("Running punchbag")
-	digiroms = config["digiroms"]
-	names = [name for (name, rom) in digiroms]
-	roms = [dmcomm.protocol.parse_command(rom) for (name, rom) in digiroms]
-	while True:
-		rom = ui.menu(names, roms, "")
-		if rom == "":
-			return
-		status_display.change("Punchbag", "Hold C to change", rom)
+	try:
+		with open(DIGIROMS_FILENAME, encoding="UTF-8") as digiroms_file:
+			tree = punchbag.DigiROM_Tree(digiroms_file)
+			while True:
+				ui.display_text("Loading...")
+				options = tree.children()
+				names = [option.text for option in options]
+				node = ui.menu(names, options, "")
+				if node == "":
+					if tree.depth() == 0:
+						return
+					tree.back()
+					continue
+				print("Selected:", node.text)
+				rom_text = tree.digirom(node)
+				if rom_text is None:
+					tree.pick(node)
+					continue
+				try:
+					rom = dmcomm.protocol.parse_command(rom_text)
+				except CommandError as e:
+					print(rom_text, repr(e))
+					ui.display_text("CommandError\nPress C to return")
+					while not ui.is_c_pressed():
+						pass
+					ui.beep_cancel()
+					continue
+				# want to use node.text too ?
+				status_display.change("Punchbag", "Hold C to change", rom)
+				while not ui.is_c_pressed():
+					time_start = time.monotonic()
+					execute_digirom(rom)
+					seconds_passed = time.monotonic() - time_start
+					if seconds_passed < 5:
+						time.sleep(5 - seconds_passed)
+					status_display.redraw()
+				ui.beep_cancel()
+				ui.display_text("Exiting\n(Release button)")
+				while ui.is_c_pressed():
+					pass
+	except (OSError, ValueError) as e:
+		print(repr(e))
+		ui.display_rows([str(e), "Press C to exit"])
 		while not ui.is_c_pressed():
-			time_start = time.monotonic()
-			execute_digirom(rom)
-			seconds_passed = time.monotonic() - time_start
-			if seconds_passed < 5:
-				time.sleep(5 - seconds_passed)
-			status_display.redraw()
-		ui.beep_cancel()
-		ui.display_text("Exiting\n(Release button)")
-		while ui.is_c_pressed():
 			pass
+		ui.beep_cancel()
 
 def run_settings():
 	'''
