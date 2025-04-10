@@ -1,0 +1,49 @@
+# This is a comment.
+	# This is another comment.
+
+Classic Punchbags
+	# Credit: BladeSabre
+	DMOG you win	
+		V1-FC03-FD02	
+	DMOG you lose
+		V1-FC03-FE01    
+	PenOG you win
+		V1-211F-000F-080F-EABF
+	PenOG you lose
+		V1-211F-000F-09FF-EABF
+	Make
+		It
+			Longer
+				PenX you win
+					X1-0159-4379-2E49-@4009
+				PenX you lose
+					X1-0159-4379-2AA9-@41F9
+Infrared
+	D-Scanner
+		# Credit: Da_Duke2000
+		Cure Box barcode
+			BC1-0200000002711
+		PowerBoost barcode
+
+			BC1-0200000000811
+	
+		SuperCharge barcode
+		
+			BC1-0200000002511
+				
+		Hyper EXE barcode
+			BC1-0200000000711
+		Battle barcode
+			BC1-0000092001011
+
+	iC you win
+				# Credit: BladeSabre
+		IC1-C067-4257-0197-0007-@F007
+	
+	Twin battle/event
+# Credit: joushiikuta
+		IC2-0007-^0^207-0007-@400F-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-0000-FFFF
+		
+Data Link 2000pt
+	# Credit: BladeSabre
+	DL2-1301002000AA>>+?-1301002000AA>>+?
