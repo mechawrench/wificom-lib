@@ -78,7 +78,7 @@ def loop():
 	'''
 	Loop IO MQTT client
 	'''
-	_data.mqtt_client.loop()
+	_data.mqtt_client.loop(1)
 
 def get_subscribed_output(clear_rom=True):
 	'''
