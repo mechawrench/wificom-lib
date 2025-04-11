@@ -1,9 +1,9 @@
 {
     "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/abb62c4.zip",
-    "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20241012/adafruit-circuitpython-bundle-9.x-mpy-20241012.zip",
+    "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20250409/adafruit-circuitpython-bundle-9.x-mpy-20250409.zip",
     "circuitpython_minimqtt": {
-        "nina": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/7.10.4/adafruit-circuitpython-minimqtt-9.x-mpy-7.10.4.zip",
-        "picow": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/7.10.4/adafruit-circuitpython-minimqtt-9.x-mpy-7.10.4.zip"
+        "nina": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/8.0.0/adafruit-circuitpython-minimqtt-9.x-mpy-8.0.0.zip",
+        "picow": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/8.0.0/adafruit-circuitpython-minimqtt-9.x-mpy-8.0.0.zip"
         },
     "circuitpython": {
         "nina": "9.2.7",
