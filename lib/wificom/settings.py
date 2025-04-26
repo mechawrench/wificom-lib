@@ -24,7 +24,7 @@ class Settings:
 		except OSError as e:
 			if e.errno == 2:
 				self._changed = True
-				self.save(error_default=f"{self._filepath} not found: using and saving defaults")
+				self.save(error_default=f"{self._filepath} not found: creating with defaults")
 			else:
 				self.error = f"Error reading {self._filepath}: {str(e)}"
 				self._try_write = False
@@ -33,14 +33,16 @@ class Settings:
 			self._try_write = False
 	def save(self, error_default=None):
 		'''
-		Write settings back to file. `error` property becomes string or None.
+		Write settings back to file.
+		Return True if there were changes to save, False if not.
+		`error` property becomes string or None.
 		'''
 		self.error = error_default
 		if not self._changed:
-			return
+			return False
 		if not self._try_write:
 			self.error = "Not overwriting bad file"
-			return
+			return True
 		data = {"sound_on": self._sound_on}
 		try:
 			with open(self._filepath, "w", encoding="utf-8") as json_file:
@@ -48,6 +50,7 @@ class Settings:
 			self._changed = False
 		except OSError as e:
 			self.error = "Can't save settings: " + str(e)
+		return True
 	@property
 	def sound_on(self):
 		'''

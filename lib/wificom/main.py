@@ -433,6 +433,7 @@ def run_settings():
 		names[toggle_sound_index] = "Sound: ON" if settings.sound_on else "Sound: OFF"
 		setting_value = ui.menu(names, values, "")
 		if setting_value == "":
+			save_settings()
 			return
 		setting_value()
 
@@ -457,14 +458,15 @@ def toggle_sound():
 		settings.sound_on = True
 		ui.sound_on = True
 		ui.beep_ready()
-	save_settings()
 
 def save_settings():
 	'''
 	Try to save settings when exiting settings menu.
 	'''
-	settings.save()
-	if settings.error is None:
+	changed = settings.save()
+	if not changed:
+		print("Settings unchanged")
+	elif settings.error is None:
 		print("Settings saved!")
 	else:
 		print(settings.error)
@@ -479,6 +481,7 @@ def reboot_uf2():
 	'''
 	Reboot into UF2 mode.
 	'''
+	save_settings()
 	ui.display_text("* UF2 Mode *\nCopy UF2 to RPI-RP2\nEject+reset to cancel")
 	time.sleep(0.3)
 	microcontroller.on_next_reset(microcontroller.RunMode.UF2)
@@ -488,6 +491,7 @@ def run_drive():
 	'''
 	Run in drive mode.
 	'''
+	save_settings()
 	ui.display_text("* Drive Mode *\nEject when done\nThen hold C to exit")
 	ui.beep_ready()
 	hold_c_to_reboot()
