@@ -21,24 +21,25 @@ from dmcomm import CommandError, ReceiveError
 import dmcomm.hardware as hw
 import dmcomm.protocol
 import wificom.realtime as rt
+import wificom.settings
 import wificom.status
 import wificom.ui
 from wificom import modes
 from wificom import mqtt
 from wificom.mqtt import rtb
 from wificom import punchbag
-from wificom import settings
 from wificom import version
 from wificom.import_secrets import secrets_imported, secrets_error, secrets_error_display
-from config import config
 import board_config
 
 DIGIROMS_FILENAME = "digiroms.txt"
+CONFIG_FILENAME = "config.json"
 LOG_FILENAME = "wificom_log.txt"
 LOG_FILENAME_OLD = "wificom_log_old.txt"
 LOG_MAX_SIZE = 2000
 startup_mode = None
 controller = None
+settings = None
 ui = None  #pylint: disable=invalid-name
 status_display = None
 done_wifi_before = False
@@ -429,7 +430,7 @@ def run_settings():
 	values = [value for (name, value) in settings_menu_configs]
 	toggle_sound_index = names.index("TOGGLE_SOUND")
 	while True:
-		names[toggle_sound_index] = "Sound: ON" if settings.is_sound_on() else "Sound: OFF"
+		names[toggle_sound_index] = "Sound: ON" if settings.sound_on else "Sound: OFF"
 		setting_value = ui.menu(names, values, "")
 		if setting_value == "":
 			return
@@ -449,13 +450,30 @@ def toggle_sound():
 	'''
 	Toggle sound on/off from the menu.
 	'''
-	if settings.is_sound_on():
-		settings.set_sound_on(False)
+	if settings.sound_on:
+		settings.sound_on = False
 		ui.sound_on = False
 	else:
-		settings.set_sound_on(True)
+		settings.sound_on = True
 		ui.sound_on = True
 		ui.beep_ready()
+	save_settings()
+
+def save_settings():
+	'''
+	Try to save settings when exiting settings menu.
+	'''
+	settings.save()
+	if settings.error is None:
+		print("Settings saved!")
+	else:
+		print(settings.error)
+		ui.display_text("Can't save settings\nPress C to exit")
+		while ui.is_c_pressed():
+			pass
+		while not ui.is_c_pressed():
+			pass
+		ui.beep_cancel()
 
 def reboot_uf2():
 	'''
@@ -585,8 +603,8 @@ def main(led_pwm):
 	'''
 	WiFiCom main program.
 	'''
-	# pylint: disable=too-many-statements,too-many-branches
-	global startup_mode, controller, ui, status_display  # pylint: disable=global-statement
+	# pylint: disable=too-many-statements
+	global startup_mode, controller, settings, ui, status_display  # pylint: disable=global-statement
 
 	serial.timeout = 1
 	print("WiFiCom starting")
@@ -616,14 +634,15 @@ def main(led_pwm):
 	if startup_mode != modes.MODE_DEV:
 		supervisor.runtime.autoreload = False
 
+	settings = wificom.settings.Settings(CONFIG_FILENAME)
+	if settings.error is not None:
+		print(settings.error)
+
 	if board_config.WifiCls is None:
 		board_config.ui_pins["display_scl"] = None  # no display without wifi
 	displayio.release_displays()
 	ui = wificom.ui.UserInterface(**board_config.ui_pins, led_pwm=led_pwm)
-	if ui.has_display:
-		ui.sound_on = settings.is_sound_on(default=config["sound_on"])
-	else:
-		ui.sound_on = config["sound_on"]
+	ui.sound_on = settings.sound_on
 	status_display = wificom.status.StatusDisplay(ui, setup_battery_monitor())
 	version.set_display(ui.has_display)
 
