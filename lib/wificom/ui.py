@@ -3,6 +3,7 @@ ui.py
 Handles the user interface components.
 '''
 
+import random
 import time
 import busio
 import digitalio
@@ -15,13 +16,13 @@ from wificom.sound import PIOSound
 SCREEN_WIDTH=128
 SCREEN_HEIGHT=64
 SCREEN_ADDRESS=0x3c
-TEXT_ROW_Y_STEP = 17
-TEXT_MENU_Y_START = 11
+TEXT_ROW_Y_STEP = 15
 
 class UserInterface:
 	'''
 	Handles the screen, buttons, menus, speaker and LED.
 	'''
+	#pylint:disable=too-many-instance-attributes
 	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm):
 		self._display = None
 		self.display_error = None
@@ -53,6 +54,7 @@ class UserInterface:
 		self.sound_on = True
 		self.audio_base_freq = 1000
 		self._led = led_pwm
+		self._text_y_start = random.randint(4, 13)
 	@property
 	def sound_on(self):
 		'''
@@ -75,7 +77,7 @@ class UserInterface:
 		if not self.has_display:
 			return
 		if y_start is None:
-			y_start = TEXT_MENU_Y_START
+			y_start = self._text_y_start
 		group = displayio.Group()
 		y = y_start
 		for row in rows:
@@ -190,14 +192,9 @@ class UserInterface:
 		Should only be called if there is a screen.
 		'''
 		selection = 0
-		text_rows = options[:]
 		while True:
-			for i in range(len(options)):  # pylint: disable=consider-using-enumerate
-				if i == selection:
-					text_rows[i] = "> " + options[i]
-				else:
-					text_rows[i] = "  " + options[i]
-			self.display_rows(text_rows, TEXT_MENU_Y_START - selection * TEXT_ROW_Y_STEP)
+			text_rows = make_menu_text(options, selection)
+			self.display_rows(text_rows)
 			time.sleep(0.15)
 			while True:
 				if self.is_a_pressed():
@@ -219,3 +216,20 @@ class UserInterface:
 						return cancel_result
 					self.beep_error()
 					break
+
+def make_menu_text(options, selection):
+	'''
+	Create the text for the menu display.
+	'''
+	remaining = len(options) - selection
+	text_rows = ["", "", "", ""]
+	text_rows[0] = "> " + options[selection]
+	if remaining >= 2:
+		text_rows[1] = "  " + options[selection + 1]
+	if remaining >= 3:
+		text_rows[2] = "  " + options[selection + 2]
+	if remaining == 4:
+		text_rows[3] = "  " + options[selection + 3]
+	if remaining > 4:
+		text_rows[3] = "  ..."
+	return text_rows
