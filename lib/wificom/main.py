@@ -333,6 +333,9 @@ def run_serial():
 	Run in serial mode.
 	'''
 	print("Running serial")
+	# Discard backlog
+	while serial.in_waiting > 0:
+		serial.read(1)
 	digirom = None
 	status_display.change("Serial", "Hold C to exit", "Paused", show_battery=False)
 	while not ui.is_c_pressed():
