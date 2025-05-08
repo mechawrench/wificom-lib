@@ -1,6 +1,5 @@
 # This file contains the DigiROMs for the punchbag menu.
 # Indent using tabs (not spaces). Comments must be on their own line.
-# Note: having more than 6 entries in any submenu may cause slowness or crashing.
 
 Classic Punchbags
 	# Credit: BladeSabre
