@@ -67,11 +67,10 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
         run: |
           cp -r sources_dmcomm_python/*/lib/* lib/
-          cp -r sources_adafruit_bundle/*/lib/adafruit_bus_device lib/
           cp -r sources_adafruit_bundle/*/lib/adafruit_display_text lib/
           cp -r sources_adafruit_bundle/*/lib/adafruit_displayio_ssd1306.mpy lib/
-          cp -r sources_adafruit_bundle/*/lib/adafruit_requests.mpy lib/
-          cp -r sources_adafruit_bundle/*/lib/adafruit_esp32spi lib/
+          cp -r sources_adafruit_bundle/*/lib/adafruit_connection_manager.mpy lib/
+          cp -r sources_adafruit_bundle/*/lib/adafruit_ticks.mpy lib/
           cp -r sources_${PLATFORM}_circuitpython_minimqtt/*/lib/* lib/
 
       - name: Compile CircuitPython files to .mpy files
