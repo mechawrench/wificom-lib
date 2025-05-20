@@ -1,12 +1,12 @@
 {
     "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/refs/tags/v0.9.0.zip",
-    "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20250409/adafruit-circuitpython-bundle-9.x-mpy-20250409.zip",
+    "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20250409/adafruit-circuitpython-bundle-10.x-mpy-20250409.zip",
     "circuitpython_minimqtt": {
-        "nina": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/8.0.0/adafruit-circuitpython-minimqtt-9.x-mpy-8.0.0.zip",
-        "picow": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/8.0.0/adafruit-circuitpython-minimqtt-9.x-mpy-8.0.0.zip"
+        "nina": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/8.0.1/adafruit-circuitpython-minimqtt-10.x-mpy-8.0.1.zip",
+        "picow": "https://github.com/adafruit/Adafruit_CircuitPython_MiniMQTT/releases/download/8.0.1/adafruit-circuitpython-minimqtt-10.x-mpy-8.0.1.zip"
         },
     "circuitpython": {
-        "nina": "9.2.7",
-        "picow": "9.2.7"
+        "nina": "10.0.0-alpha.6",
+        "picow": "10.0.0-alpha.6"
         }
     } 
