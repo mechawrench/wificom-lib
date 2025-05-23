@@ -8,6 +8,7 @@ import time
 import busio
 import digitalio
 import displayio
+import i2cdisplaybus
 import terminalio
 import adafruit_displayio_ssd1306
 from adafruit_display_text.bitmap_label import Label
@@ -31,7 +32,7 @@ class UserInterface:
 		else:
 			try:
 				i2c = busio.I2C(display_scl, display_sda)
-				display_bus = displayio.I2CDisplay(
+				display_bus = i2cdisplaybus.I2CDisplayBus(
 					i2c, device_address=SCREEN_ADDRESS)
 				self._display = adafruit_displayio_ssd1306.SSD1306(
 					display_bus, width=SCREEN_WIDTH, height=SCREEN_HEIGHT)

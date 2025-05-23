@@ -3,6 +3,7 @@ status.py
 Handles status monitoring.
 '''
 
+import time
 import analogio
 
 class BatteryMonitor:
@@ -80,3 +81,4 @@ class StatusDisplay:
 		if self._show_battery and self._battery_monitor is not None:
 			rows[0] += " " + self._battery_monitor.meter()
 		self._ui.display_rows(rows)
+		time.sleep(0.1)  # May wait longer
