@@ -48,7 +48,7 @@ jobs:
           BUILD: ${{ matrix.build }}
         run: |
           for key in dmcomm_python adafruit_bundle; do
-            value=$(eval echo "\$sources_builds_$BUILD_$key")
+            value=$(eval echo "\$sources_builds_${BUILD}_$key")
             echo "Downloading and extracting $key..."
             wget $value -O sources_$key.zip
             unzip -q sources_$key.zip -d sources_$key
