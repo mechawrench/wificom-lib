@@ -99,8 +99,7 @@ jobs:
 
       - name: Remove unnecessary files
         run: |
-          rm -rf sources_dmcomm_python sources_adafruit_bundle
-          rm *.zip .git .github .gitignore .pylintrc mpy-cross
+          rm -rf sources_dmcomm_python sources_adafruit_bundle *.zip .git .github .gitignore .pylintrc mpy-cross
 
       - name: Create archive
         env:
