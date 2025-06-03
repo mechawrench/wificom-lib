@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        build: [default, circpy9, circpy10]
+        build: [default]
 
     steps:
       - uses: actions/checkout@v3
