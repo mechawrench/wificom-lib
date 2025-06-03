@@ -5,19 +5,16 @@
   },
   "builds": {
     "default": {
-      "filename": "",
       "circuitpython": "8.2.2",
       "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/refs/tags/v0.9.0.zip",
       "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20231121/adafruit-circuitpython-bundle-8.x-mpy-20231121.zip"
     },
     "circpy10": {
-      "filename": "_circpy10",
       "circuitpython": "10.0.0-alpha.6",
       "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/refs/tags/v0.9.0.zip",
       "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20250409/adafruit-circuitpython-bundle-10.x-mpy-20250409.zip"
     },
     "circpy9": {
-      "filename": "_circpy9",
       "circuitpython": "9.2.7",
       "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/refs/tags/v0.9.0.zip",
       "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20250409/adafruit-circuitpython-bundle-9.x-mpy-20250409.zip"
