@@ -1,4 +1,4 @@
-name: Merge libs and compile CircuitPython files
+name: Build archives
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     types: [published]
 
 jobs:
-  merge_and_compile:
+  build_archives:
     runs-on: ubuntu-latest
     strategy:
       matrix:
