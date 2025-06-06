@@ -3,9 +3,9 @@
   },
   "builds": {
     "default": {
-      "circuitpython": "8.2.2",
+      "circuitpython": "9.2.8",
       "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/refs/tags/v0.9.0.zip",
-      "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20231121/adafruit-circuitpython-bundle-8.x-mpy-20231121.zip"
+      "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20250409/adafruit-circuitpython-bundle-9.x-mpy-20250409.zip"
     }
   }
 }
