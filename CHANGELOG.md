@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [unreleased] commits. Notes are in the pull request descriptions.
 
-## [2.0.0] - unreleased
+## [2.0.0] - 2025-06-12
 ### Added
 * New punchbag system, in `digiroms.txt`. Supports large menu trees.
 ### Changed
@@ -14,7 +14,7 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 * Installation packages adjusted. You will need `wificom-update-tool` v0.7.0+.
 * To enter Dev Mode, hold the C button at startup for both wificom and P-Com (no longer need to release the button when the LED comes on).
 * Menu text y-coordinate randomised at startup to help avoid screen burn.
-* Updated dmcomm-python to v0.9.0: see [CHANGELOG](https://github.com/dmcomm/dmcomm-python/blob/main/CHANGELOG.md)
+* Updated dmcomm-python to v0.9.0: see [CHANGELOG](https://github.com/dmcomm/dmcomm-python/blob/main/CHANGELOG.md).
 ### Fixed
 * Serial backlog discarded when entering serial mode (which previously could cause large delays).
 ### Removed
@@ -266,7 +266,8 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v1.2.0...main
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v2.0.0...main
+[2.0.0]: https://github.com/mechawrench/wificom-lib/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/mechawrench/wificom-lib/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/mechawrench/wificom-lib/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/mechawrench/wificom-lib/compare/v0.10.0...v1.0.0
