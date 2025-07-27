@@ -350,15 +350,28 @@ def run_serial():
 				digirom = output
 				print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
 				status_display.do(digirom)
-				time.sleep(1)
+				time.sleep(settings.initial_delay(digirom.turn, True))
 			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
 				print(output)
 				status_display.do("Paused")
 		if digirom is not None:
-			execute_digirom(digirom)
-			seconds_passed = time.monotonic() - time_start
-			if seconds_passed < 5:
-				time.sleep(5 - seconds_passed)
+			was_c_pressed = False
+			timed_out = False
+			if digirom.turn == 1 and settings.turn_1_button:
+				while True:
+					if ui.is_b_pressed(True):
+						break
+					if ui.is_c_pressed():
+						was_c_pressed = True
+						break
+					if time.monotonic() - time_start > 5:
+						timed_out = True
+						break
+			if not was_c_pressed and not timed_out:
+				execute_digirom(digirom)
+				seconds_passed = time.monotonic() - time_start
+				if seconds_passed < 5:
+					time.sleep(5 - seconds_passed)
 		else:
 			time.sleep(0.1)  # Just waiting for serial
 

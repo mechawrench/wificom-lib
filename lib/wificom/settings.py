@@ -14,6 +14,8 @@ class Settings:
 	def __init__(self, filepath):
 		self._filepath = filepath
 		self._sound_on = True
+		self._turn_1_delay = 1
+		self._turn_1_button = False
 		self._try_write = True
 		self._changed = False
 		self.error = None
@@ -21,6 +23,9 @@ class Settings:
 			with open(self._filepath, encoding="utf-8") as json_file:
 				data = json.load(json_file)
 			self._sound_on = data.get("sound_on", True)
+			self._turn_1_delay = data.get("turn_1_delay", 1)
+			#TODO validate
+			self._turn_1_button = data.get("turn_1_button", False)
 		except OSError as e:
 			if e.errno == 2:
 				self._changed = True
@@ -43,7 +48,11 @@ class Settings:
 		if not self._try_write:
 			self.error = "Not overwriting bad file"
 			return True
-		data = {"sound_on": self._sound_on}
+		data = {
+			"sound_on": self._sound_on,
+			"turn_1_delay": self._turn_1_delay,
+			"turn_1_button": self._turn_1_button,
+		}
 		try:
 			with open(self._filepath, "w", encoding="utf-8") as json_file:
 				json.dump(data, json_file)
@@ -61,3 +70,34 @@ class Settings:
 	def sound_on(self, value):
 		self._sound_on = value
 		self._changed = True
+	@property
+	def turn_1_delay(self):
+		'''
+		Delay in seconds between receiving a turn 1 digirom and first execution.
+		Ignored if turn_1_button is True.
+		'''
+		return self._turn_1_delay
+	@turn_1_delay.setter
+	def turn_1_delay(self, value):
+		self._turn_1_delay = value
+		self._changed = True
+	@property
+	def turn_1_button(self):
+		'''
+		Whether user presses the button for a turn 1 digirom.
+		'''
+		return self._turn_1_button
+	@turn_1_button.setter
+	def turn_1_button(self, value):
+		self._turn_1_button = value
+		self._changed = True
+	def initial_delay(self, turn, on_serial):
+		'''
+		Delay before first execution of new digirom.
+		'''
+		delay = self.turn_1_delay
+		if turn != 1 or self.turn_1_button:
+			delay = 0
+		if delay < 1 and on_serial:
+			delay = 1
+		return delay
