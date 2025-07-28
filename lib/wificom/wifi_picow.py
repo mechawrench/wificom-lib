@@ -66,6 +66,7 @@ class Wifi:
 			ssl_context=ssl.create_default_context(),
 			keep_alive=15,
 			connect_retries=3,
+			#socket_timeout=0.3,
 		)
 
 		return mqtt_client

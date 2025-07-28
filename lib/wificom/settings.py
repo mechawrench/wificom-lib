@@ -26,6 +26,7 @@ class Settings:
 			self._turn_1_delay = data.get("turn_1_delay", 1)
 			#TODO validate
 			self._turn_1_button = data.get("turn_1_button", False)
+			#TODO write file if new settings were created
 		except OSError as e:
 			if e.errno == 2:
 				self._changed = True
