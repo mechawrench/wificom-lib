@@ -264,7 +264,7 @@ def run_wifi():
 		failure_alert("MQTT failed", reconnect=True)
 	ui.led_dim()
 	ui.beep_ready()
-	status_display.change("WiFi", "Hold C to exit", "Paused")
+	status_display.change("WiFi", None, "Hold C to exit", "Paused")
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		new_command = mqtt.get_subscribed_output()
@@ -337,7 +337,7 @@ def run_serial():
 	while serial.in_waiting > 0:
 		serial.read(1)
 	digirom = None
-	status_display.change("Serial", "Hold C to exit", "Paused", show_battery=False)
+	status_display.change("Serial", None, "Hold C to exit", "Paused", show_battery=False)
 	while not ui.is_c_pressed():
 		time_start = time.monotonic()
 		serial_str = serial_readline()
@@ -394,8 +394,7 @@ def run_punchbag():
 						pass
 					ui.beep_cancel()
 					continue
-				# want to use node.text too ?
-				status_display.change("Punchbag", "Hold C to change", rom)
+				status_display.change("Punchbag", node.text, "Hold C to change", rom)
 				while not ui.is_c_pressed():
 					time_start = time.monotonic()
 					execute_digirom(rom)
