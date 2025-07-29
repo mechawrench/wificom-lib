@@ -124,7 +124,7 @@ def execute_digirom_loop(rom, is_wifi):
 	button_timed_out = False
 	if rom.turn == 1 and settings.turn_1_button:
 		while True:
-			if ui.is_b_pressed(True):
+			if ui.is_a_pressed() or ui.is_b_pressed(True):
 				break
 			if ui.is_c_pressed():
 				was_c_pressed = True
@@ -669,7 +669,7 @@ def main(led_pwm):
 	displayio.release_displays()
 	ui = wificom.ui.UserInterface(**board_config.ui_pins, led_pwm=led_pwm)
 	ui.sound_on = settings.sound_on
-	status_display = wificom.status.StatusDisplay(ui, setup_battery_monitor())
+	status_display = wificom.status.StatusDisplay(ui, settings, setup_battery_monitor())
 	version.set_display(ui.has_display)
 
 	run_column = 0 if mode_was_requested else 1

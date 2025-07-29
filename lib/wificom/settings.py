@@ -6,6 +6,7 @@ Handles the stored settings.
 import json
 
 class Settings:
+	#pylint:disable=too-many-instance-attributes
 	'''
 	Stores settings.
 	Init: load json file from filepath. Try to save it if not present.
