@@ -47,15 +47,18 @@ class StatusDisplay:
 		self._ui = ui
 		self._battery_monitor = battery_monitor
 		self._mode = ""
-		self._line2 = ""
+		self._desc = None
+		self._instruction = ""
 		self._status = ""
 		self._show_battery = True
-	def change(self, mode, line2, status, show_battery=True):
+	def change(self, mode, desc, instruction, status, show_battery=True):
 		'''
-		Set mode, line2 and status and redraw.
+		Set mode, extra description (can be None), instruction,
+		status (digirom or string), then redraw.
 		'''
 		self._mode = mode
-		self._line2 = line2
+		self._desc = desc
+		self._instruction = instruction
 		self._show_battery = show_battery
 		self.do(status)
 	def do(self, status):  #pylint:disable=invalid-name
@@ -73,12 +76,12 @@ class StatusDisplay:
 		'''
 		Redraw screen.
 		'''
-		rows = [
-			self._mode,
-			self._line2,
-			self._status,
-		]
+		rows = [self._mode]
+		if self._desc is not None:
+			rows.append(self._desc)
+		rows.append(self._instruction)
+		rows.append(self._status)
 		if self._show_battery and self._battery_monitor is not None:
 			rows[0] += " " + self._battery_monitor.meter()
 		self._ui.display_rows(rows)
-		time.sleep(0.1)  # May wait longer
+		time.sleep(0.1)  # Avoid interfering with dmcomm. May stall for longer than specified.
