@@ -6,28 +6,40 @@ Handles the stored settings.
 import json
 
 class Settings:
-	#pylint:disable=too-many-instance-attributes
 	'''
 	Stores settings.
-	Init: load json file from filepath. Try to save it if not present.
+	Init: load json file from filepath. Try to save it if not present, or if keys added.
 	`error` property becomes string or None.
 	'''
 	def __init__(self, filepath):
 		self._filepath = filepath
 		self._sound_on = True
-		self._turn_1_delay = 1
-		self._turn_1_button = False
+		self._turn_1_delay = 3
+		self._turn_1_delay_options = [0, 3, 5, -1]
 		self._try_write = True
 		self._changed = False
 		self.error = None
 		try:
 			with open(self._filepath, encoding="utf-8") as json_file:
 				data = json.load(json_file)
-			self._sound_on = data.get("sound_on", True)
-			self._turn_1_delay = data.get("turn_1_delay", 1)
-			#TODO validate
-			self._turn_1_button = data.get("turn_1_button", False)
-			#TODO write file if new settings were created
+			if "sound_on" in data:
+				self._sound_on = bool(data["sound_on"])
+			else:
+				self._changed = True
+			if "turn_1_delay" in data:
+				delay = data["turn_1_delay"]
+				_ = delay + 1  # Type check
+				self._turn_1_delay = delay
+			else:
+				self._changed = True
+			if "turn_1_delay_options" in data:
+				opts = data["turn_1_delay_options"]
+				for opt in opts:
+					_ = opt + 1  # Type check
+				self._turn_1_delay_options = opts
+			else:
+				self._changed = True
+			self.save()  # Save if new keys were added
 		except OSError as e:
 			if e.errno == 2:
 				self._changed = True
@@ -35,8 +47,8 @@ class Settings:
 			else:
 				self.error = f"Error reading {self._filepath}: {str(e)}"
 				self._try_write = False
-		except ValueError:
-			self.error = f"Syntax error in {self._filepath}"
+		except (ValueError, TypeError) as e:
+			self.error = f"Error in {self._filepath}: {str(e)}"
 			self._try_write = False
 	def save(self, error_default=None):
 		'''
@@ -53,7 +65,7 @@ class Settings:
 		data = {
 			"sound_on": self._sound_on,
 			"turn_1_delay": self._turn_1_delay,
-			"turn_1_button": self._turn_1_button,
+			"turn_1_delay_options": self._turn_1_delay_options,
 		}
 		try:
 			with open(self._filepath, "w", encoding="utf-8") as json_file:
@@ -73,26 +85,36 @@ class Settings:
 		self._sound_on = value
 		self._changed = True
 	@property
+	def turn_1_button(self):
+		'''
+		Whether user presses the button for a turn 1 digirom. Read-only.
+		'''
+		return self._turn_1_delay < 0
+	@property
 	def turn_1_delay(self):
 		'''
 		Delay in seconds between receiving a turn 1 digirom and first execution.
-		Ignored if turn_1_button is True.
+		Negative number for button press.
 		'''
 		return self._turn_1_delay
 	@turn_1_delay.setter
 	def turn_1_delay(self, value):
 		self._turn_1_delay = value
 		self._changed = True
-	@property
-	def turn_1_button(self):
+	def turn_1_delay_options(self):
 		'''
-		Whether user presses the button for a turn 1 digirom.
+		(Current index, turn 1 delays) for menu.
+		List includes current value if not already present.
 		'''
-		return self._turn_1_button
-	@turn_1_button.setter
-	def turn_1_button(self, value):
-		self._turn_1_button = value
-		self._changed = True
+		current = self._turn_1_delay
+		current_tenths = round(current * 10)
+		options = self._turn_1_delay_options[:]  # Copy
+		options_tenths = [round(opt * 10) for opt in options]
+		try:
+			current_index = options_tenths.index(current_tenths)
+			return (current_index, options)
+		except ValueError:
+			return (0, [current] + options)
 	def initial_delay(self, turn, on_serial):
 		'''
 		Delay before first execution of new digirom.
