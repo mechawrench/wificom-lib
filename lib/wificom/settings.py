@@ -3,8 +3,6 @@ settings.py
 Handles the stored settings.
 '''
 
-#pylint:disable=too-many-instance-attributes
-
 import json
 
 class Settings:

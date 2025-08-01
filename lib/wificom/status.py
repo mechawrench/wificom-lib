@@ -40,7 +40,6 @@ class BatteryMonitor:
 		return "[" + "=" * filled + " " * unfilled + "]"
 
 class StatusDisplay:
-	#pylint:disable=too-many-instance-attributes
 	'''
 	Handles status display for WiFi/Serial/Punchbag.
 	'''
