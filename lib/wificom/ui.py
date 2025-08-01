@@ -185,13 +185,14 @@ class UserInterface:
 		if self._led is not None:
 			self._led.frequency = 1
 			self._led.duty_cycle = 0x8000
-	def menu(self, options, results, cancel_result, selection=0):
+	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
 
 		If a result is None, that option cannot be activated.
 		Should only be called if there is a screen.
 		'''
+		selection = 0
 		while True:
 			text_rows = make_menu_text(options, selection)
 			self.display_rows(text_rows)

@@ -3,6 +3,8 @@ settings.py
 Handles the stored settings.
 '''
 
+#pylint:disable=too-many-instance-attributes
+
 import json
 
 class Settings:
@@ -34,6 +36,7 @@ class Settings:
 				self._changed = True
 			if "turn_1_delay_options" in data:
 				opts = data["turn_1_delay_options"]
+				_ = opts[0]  # Type check
 				for opt in opts:
 					_ = opt + 1  # Type check
 				self._turn_1_delay_options = opts
@@ -47,7 +50,7 @@ class Settings:
 			else:
 				self.error = f"Error reading {self._filepath}: {str(e)}"
 				self._try_write = False
-		except (ValueError, TypeError) as e:
+		except (ValueError, TypeError, IndexError) as e:
 			self.error = f"Error in {self._filepath}: {str(e)}"
 			self._try_write = False
 	def save(self, error_default=None):
@@ -103,18 +106,19 @@ class Settings:
 		self._changed = True
 	def turn_1_delay_options(self):
 		'''
-		(Current index, turn 1 delays) for menu.
-		List includes current value if not already present.
+		Turn 1 delays for menu.
+		Current value is first, added if not already present.
 		'''
 		current = self._turn_1_delay
 		current_tenths = round(current * 10)
-		options = self._turn_1_delay_options[:]  # Copy
+		options = self._turn_1_delay_options
 		options_tenths = [round(opt * 10) for opt in options]
 		try:
-			current_index = options_tenths.index(current_tenths)
-			return (current_index, options)
+			i = options_tenths.index(current_tenths)
+			options = options[:i] + options[i+1:]  # Remove current
 		except ValueError:
-			return (0, [current] + options)
+			options = options[:]  # Copy
+		return [current] + options
 	def initial_delay(self, turn, on_serial):
 		'''
 		Delay before first execution of new digirom.

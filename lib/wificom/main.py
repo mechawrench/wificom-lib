@@ -486,14 +486,14 @@ def pick_delay():
 	'''
 	Pick turn 1 delay from the menu.
 	'''
-	(current_index, values) = settings.turn_1_delay_options()
+	values = settings.turn_1_delay_options()
 	names = []
 	for value in values:
 		if value < 0:
 			names.append("Button")
 		else:
 			names.append(f"{value} seconds")
-	settings.turn_1_delay = ui.menu(names, values, values[current_index], current_index)
+	settings.turn_1_delay = ui.menu(names, values, values[0])
 
 def save_settings():
 	'''
