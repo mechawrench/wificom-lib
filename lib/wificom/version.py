@@ -16,6 +16,14 @@ def set_display(value):
 	global _has_display  #pylint:disable=global-statement
 	_has_display = value
 
+_settings = None
+def set_settings(obj):
+	'''
+	Link the settings object.
+	'''
+	global _settings  #pylint:disable=global-statement
+	_settings = obj
+
 def dictionary():
 	'''
 	Convert version info to an OrderedDict.
@@ -26,6 +34,8 @@ def dictionary():
 	result["circuitpython_version"] = os.uname().version
 	result["circuitpython_board_id"] = board.board_id
 	result["has_display"] = _has_display
+	if _settings is not None:
+		result["turn_1_button"] = _settings.turn_1_button
 	return result
 
 def _toml_value(value):

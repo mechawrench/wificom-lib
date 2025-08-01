@@ -685,6 +685,7 @@ def main(led_pwm):
 	ui.sound_on = settings.sound_on
 	status_display = wificom.status.StatusDisplay(ui, settings, setup_battery_monitor())
 	version.set_display(ui.has_display)
+	version.set_settings(settings)
 
 	run_column = 0 if mode_was_requested else 1
 	branches = {
