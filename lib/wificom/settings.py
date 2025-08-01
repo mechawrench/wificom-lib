@@ -5,6 +5,12 @@ Handles the stored settings.
 
 import json
 
+def tenths(value):
+	'''
+	Convert float to integer number of tenths.
+	'''
+	return round(value * 10)
+
 class Settings:
 	'''
 	Stores settings.
@@ -83,6 +89,8 @@ class Settings:
 		return self._sound_on
 	@sound_on.setter
 	def sound_on(self, value):
+		if self._sound_on == value:
+			return
 		self._sound_on = value
 		self._changed = True
 	@property
@@ -100,6 +108,8 @@ class Settings:
 		return self._turn_1_delay
 	@turn_1_delay.setter
 	def turn_1_delay(self, value):
+		if tenths(self._turn_1_delay) == tenths(value):
+			return
 		self._turn_1_delay = value
 		self._changed = True
 	def turn_1_delay_options(self):
@@ -108,9 +118,9 @@ class Settings:
 		Current value is first, added if not already present.
 		'''
 		current = self._turn_1_delay
-		current_tenths = round(current * 10)
+		current_tenths = tenths(current)
 		options = self._turn_1_delay_options
-		options_tenths = [round(opt * 10) for opt in options]
+		options_tenths = [tenths(opt) for opt in options]
 		try:
 			i = options_tenths.index(current_tenths)
 			options = options[:i] + options[i+1:]  # Remove current

@@ -441,7 +441,7 @@ def run_settings():
 	settings_menu_configs = [
 		("Version Info", display_info),
 		("TOGGLE_SOUND", toggle_sound),
-		("Turn 1 delay", pick_delay),
+		("Turn 1 Delay", pick_delay),
 	]
 	if startup_mode == modes.MODE_DEV:
 		settings_menu_configs.append(("(Dev Mode no drive)", None))
@@ -490,7 +490,7 @@ def pick_delay():
 	names = []
 	for value in values:
 		if value < 0:
-			names.append("Button")
+			names.append("Button Press")
 		else:
 			names.append(f"{value} seconds")
 	settings.turn_1_delay = ui.menu(names, values, values[0])
