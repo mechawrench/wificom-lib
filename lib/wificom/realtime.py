@@ -14,7 +14,6 @@ STATUS_PUSH = 2
 _MESSAGE_EXPIRY_TIME = 30
 
 class RealTime:
-	#pylint: disable=too-many-instance-attributes
 	'''
 	Abstract base class for real-time battles.
 
