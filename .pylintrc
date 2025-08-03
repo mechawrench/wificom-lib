@@ -158,6 +158,7 @@ disable=raw-checker-failed,
         too-few-public-methods,
         no-name-in-module,
         too-many-arguments,
+        too-many-instance-attributes,
         no-else-break,
         no-else-return,
 

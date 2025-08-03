@@ -43,8 +43,9 @@ class StatusDisplay:
 	'''
 	Handles status display for WiFi/Serial/Punchbag.
 	'''
-	def __init__(self, ui, battery_monitor):  #pylint:disable=invalid-name
+	def __init__(self, ui, settings, battery_monitor):  #pylint:disable=invalid-name
 		self._ui = ui
+		self._settings = settings
 		self._battery_monitor = battery_monitor
 		self._mode = ""
 		self._desc = None
@@ -66,10 +67,16 @@ class StatusDisplay:
 		Set status and redraw trying digirom then string.
 		'''
 		try:
-			guide = "wait for start" if status.turn == 1 else "push vpet button"
+			if status.turn == 1:
+				if self._settings.turn_1_button:
+					guide = "push com button"
+				else:
+					guide = "wait for start"
+			else:
+				guide = "push vpet button"
 			status = f"{status.signal_type}{status.turn}: {guide}"
 		except AttributeError:
-			pass
+			pass  # Not a digirom, treat as string
 		self._status = status
 		self.redraw()
 	def redraw(self):

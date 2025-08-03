@@ -114,6 +114,38 @@ def execute_digirom(rom, do_led=True, do_beep=True):
 		ui.led_dim()
 	return result
 
+def execute_digirom_loop(rom, is_wifi):
+	'''
+	Handle digirom execution timing etc.
+	'''
+	time_start = time.monotonic()
+	loop_time = 5
+	was_c_pressed = False
+	button_timed_out = False
+	if rom.turn == 1 and settings.turn_1_button:
+		while True:
+			if ui.is_a_pressed() or ui.is_b_pressed(True):
+				break
+			if ui.is_c_pressed():
+				was_c_pressed = True
+				break
+			if time.monotonic() - time_start > loop_time:
+				button_timed_out = True
+				break
+	result = None
+	if not button_timed_out and not was_c_pressed:
+		result = execute_digirom(rom)
+	if is_wifi and not was_c_pressed:
+		mqtt.send_digirom_output(result)
+		ui.led_off()
+		mqtt.loop()
+		ui.led_dim()
+		if mqtt.get_subscribed_output(False) is not None:
+			return
+	seconds_passed = time.monotonic() - time_start
+	if seconds_passed < loop_time:
+		time.sleep(loop_time - seconds_passed)
+
 def process_new_digirom(command):
 	'''
 	Parse the command and show success/failure.
@@ -225,7 +257,7 @@ def run_wifi():
 	'''
 	Do the normal WiFiCom things.
 	'''
-	# pylint: disable=too-many-branches,too-many-statements,too-many-locals
+	# pylint: disable=too-many-branches,too-many-statements
 
 	print("Running WiFi")
 	gc.collect()
@@ -274,6 +306,7 @@ def run_wifi():
 			if command_type == COMMAND_DIGIROM:
 				digirom = output
 				status_display.do(digirom)
+				time.sleep(settings.initial_delay(digirom.turn, False))
 			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
 				print(output)
 				mqtt.send_digirom_output(output)
@@ -309,22 +342,17 @@ def run_wifi():
 			if rtb_was_active:
 				ui.led_dim()
 			rtb_was_active = False
-			last_output = None
 			if digirom is not None:
-				result = execute_digirom(digirom)
-				if len(result) >= 1:
-					last_output = result
-
-			# Send to MQTT topic (acts as a ping also)
-			mqtt.send_digirom_output(last_output)
-
-			while True:
-				mqtt.loop()
-				if mqtt.get_subscribed_output(False) is not None:
-					break
-				if time.monotonic() - time_start >= 5:
-					break
-				time.sleep(0.1)
+				execute_digirom_loop(digirom, True)
+			else:
+				mqtt.send_digirom_output(None)  # Ping
+				while True:
+					mqtt.loop()
+					if mqtt.get_subscribed_output(False) is not None:
+						break
+					if time.monotonic() - time_start >= 5:
+						break
+					time.sleep(0.1)
 		status_display.redraw()
 	mqtt.quit_rtb()
 
@@ -339,7 +367,6 @@ def run_serial():
 	digirom = None
 	status_display.change("Serial", None, "Hold C to exit", "Paused", show_battery=False)
 	while not ui.is_c_pressed():
-		time_start = time.monotonic()
 		serial_str = serial_readline()
 		if serial_str is not None:
 			digirom = None
@@ -350,15 +377,12 @@ def run_serial():
 				digirom = output
 				print(f"{digirom.signal_type}{digirom.turn}-[{len(digirom)} packets]")
 				status_display.do(digirom)
-				time.sleep(1)
+				time.sleep(settings.initial_delay(digirom.turn, True))
 			elif command_type in [COMMAND_ERROR, COMMAND_P, COMMAND_I]:
 				print(output)
 				status_display.do("Paused")
 		if digirom is not None:
-			execute_digirom(digirom)
-			seconds_passed = time.monotonic() - time_start
-			if seconds_passed < 5:
-				time.sleep(5 - seconds_passed)
+			execute_digirom_loop(digirom, False)
 		else:
 			time.sleep(0.1)  # Just waiting for serial
 
@@ -396,11 +420,7 @@ def run_punchbag():
 					continue
 				status_display.change("Punchbag", node.text, "Hold C to change", rom)
 				while not ui.is_c_pressed():
-					time_start = time.monotonic()
-					execute_digirom(rom)
-					seconds_passed = time.monotonic() - time_start
-					if seconds_passed < 5:
-						time.sleep(5 - seconds_passed)
+					execute_digirom_loop(rom, False)
 					status_display.redraw()
 				ui.beep_cancel()
 				ui.display_text("Exiting\n(Release button)")
@@ -421,6 +441,7 @@ def run_settings():
 	settings_menu_configs = [
 		("Version Info", display_info),
 		("TOGGLE_SOUND", toggle_sound),
+		("Turn 1 Delay", pick_delay),
 	]
 	if startup_mode == modes.MODE_DEV:
 		settings_menu_configs.append(("(Dev Mode no drive)", None))
@@ -460,6 +481,19 @@ def toggle_sound():
 		settings.sound_on = True
 		ui.sound_on = True
 		ui.beep_ready()
+
+def pick_delay():
+	'''
+	Pick turn 1 delay from the menu.
+	'''
+	values = settings.turn_1_delay_options()
+	names = []
+	for value in values:
+		if value < 0:
+			names.append("Button Press")
+		else:
+			names.append(f"{value} seconds")
+	settings.turn_1_delay = ui.menu(names, values, values[0])
 
 def save_settings():
 	'''
@@ -649,8 +683,9 @@ def main(led_pwm):
 	displayio.release_displays()
 	ui = wificom.ui.UserInterface(**board_config.ui_pins, led_pwm=led_pwm)
 	ui.sound_on = settings.sound_on
-	status_display = wificom.status.StatusDisplay(ui, setup_battery_monitor())
+	status_display = wificom.status.StatusDisplay(ui, settings, setup_battery_monitor())
 	version.set_display(ui.has_display)
+	version.set_settings(settings)
 
 	run_column = 0 if mode_was_requested else 1
 	branches = {

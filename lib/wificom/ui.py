@@ -23,7 +23,6 @@ class UserInterface:
 	'''
 	Handles the screen, buttons, menus, speaker and LED.
 	'''
-	#pylint:disable=too-many-instance-attributes
 	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm):
 		self._display = None
 		self.display_error = None
