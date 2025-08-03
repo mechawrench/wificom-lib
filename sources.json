@@ -3,9 +3,9 @@
   },
   "builds": {
     "default": {
-      "circuitpython": "10.0.0-beta.0",
+      "circuitpython": "10.0.0-beta.2",
       "dmcomm_python": "https://github.com/dmcomm/dmcomm-python/archive/refs/tags/v0.9.0.zip",
-      "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20250729/adafruit-circuitpython-bundle-10.x-mpy-20250729.zip"
+      "adafruit_bundle": "https://github.com/adafruit/Adafruit_CircuitPython_Bundle/releases/download/20250801/adafruit-circuitpython-bundle-10.x-mpy-20250801.zip"
     }
   }
 }
