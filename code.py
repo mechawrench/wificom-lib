@@ -12,9 +12,10 @@ led_pwm = pwmio.PWMOut(board_config.led_pin,
 	duty_cycle=0x1000, frequency=1000, variable_frequency=True)
 
 try:
-	led_neo = neopixel.NeoPixel(**board_config.neopixel)
+	led_neo = neopixel.NeoPixel(**board_config.neopixel, auto_write=False)
 	led_neo.brightness = 0.1
 	led_neo.fill(0xFF2000)
+	led_neo.show()
 except AttributeError:
 	led_neo = None
 

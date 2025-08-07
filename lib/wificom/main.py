@@ -90,28 +90,19 @@ def execute_digirom(rom, do_led=True, do_beep=True):
 		if len(result) > 0:
 			result += " "
 		result += repr(e)
-	if do_led:
-		ui.led_bright()
-	if serial == usb_cdc.data:
-		print(result)
-	else:
-		mqtt.handle_result(result)
-	if do_beep:
-		if "Error" in result:
-			ui.beep_error()
-		elif "r:" in result:
-			if len(rom.result) < 2 * len(rom):
-				ui.beep_error()
-			elif rom.turn == 1 and " t" in result:
-				ui.beep_error()
-			else:
-				ui.beep_ready()
-	if do_led:
-		if "r:" in result or "Error" in result:
-			time.sleep(0.2)
-		else:
-			time.sleep(0.05)
-		ui.led_dim()
+	interesting = False
+	success = False
+	if "Error" in result:
+		interesting = True
+	elif "r:" in result:
+		interesting = True
+		success = True
+		if len(rom.result) < 2 * len(rom):
+			success = False
+		elif rom.turn == 1 and " t" in result:
+			success = False
+	mqtt.handle_result(result)
+	ui.digirom_result(do_led, do_beep, interesting, success)
 	return result
 
 def execute_digirom_loop(rom, is_wifi):

@@ -196,6 +196,7 @@ class UserInterface:
 	def neopixel_color(self, color):
 		if self._neopixel is not None:
 			self._neopixel.fill(color)
+			self._neopixel.show()
 	def new_digirom(self, rom=None, alert=True):
 		'''
 		Handle speaker/LED/neopixel for new DigiROM.
@@ -219,6 +220,20 @@ class UserInterface:
 				time.sleep(0.05)
 				self.led_dim()
 				time.sleep(0.05)
+	def digirom_result(self, do_led, do_beep, interesting, success):
+		if do_led:
+			self.led_bright()
+		if do_beep and interesting:
+			if success:
+				self.beep_ready()
+			else:
+				self.beep_error()
+		if do_led:
+			if interesting:
+				time.sleep(0.2)
+			else:
+				time.sleep(0.05)
+			self.led_dim()
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
