@@ -166,27 +166,17 @@ def process_new_digirom(command):
 		# It's an OtherCommand
 		if digirom.op == "P":
 			# silent
+			ui.new_digirom(alert=False)
 			return (COMMAND_P, "[pause]")
 		elif digirom.op == "I":
-			new_digirom_alert()
+			ui.new_digirom()
 			return (COMMAND_I, version.toml())
 		else:
 			ui.beep_error()
 			return (COMMAND_ERROR, "NotImplementedError:op=" + digirom.op)
 	# It's a DigiROM
-	new_digirom_alert()
+	ui.new_digirom(digirom)
 	return (COMMAND_DIGIROM, digirom)
-
-def new_digirom_alert():
-	'''
-	Beep once and blink LED 3 times for new DigiROM.
-	'''
-	ui.beep_activate()
-	for _ in range(3):
-		ui.led_bright()
-		time.sleep(0.05)
-		ui.led_dim()
-		time.sleep(0.05)
 
 rtb_types = {
 	("legendz", "host"): rt.RealTimeHostTalis,
@@ -314,7 +304,7 @@ def run_wifi():
 		if rtb.active:
 			rtb_type_id_new = (rtb.battle_type, rtb.user_type)
 			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
-				new_digirom_alert()
+				ui.new_digirom()
 				rtb_type_id = rtb_type_id_new
 				if rtb_type_id in rtb_types:
 					rtb_runner = rtb_types[rtb_type_id](
@@ -639,7 +629,7 @@ def report_crash(crash_exception, connection_lost=False):
 		hard_reset = False
 	failure_alert(message, hard_reset, connection_lost)
 
-def main(led_pwm):
+def main(led_pwm, led_neo):
 	'''
 	WiFiCom main program.
 	'''
@@ -681,7 +671,7 @@ def main(led_pwm):
 	if board_config.WifiCls is None:
 		board_config.ui_pins["display_scl"] = None  # no display without wifi
 	displayio.release_displays()
-	ui = wificom.ui.UserInterface(**board_config.ui_pins, led_pwm=led_pwm)
+	ui = wificom.ui.UserInterface(**board_config.ui_pins, led_pwm=led_pwm, led_neo=led_neo, settings=settings)
 	ui.sound_on = settings.sound_on
 	status_display = wificom.status.StatusDisplay(ui, settings, setup_battery_monitor())
 	version.set_display(ui.has_display)

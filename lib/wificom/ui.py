@@ -14,16 +14,23 @@ import adafruit_displayio_ssd1306
 from adafruit_display_text.bitmap_label import Label
 from wificom.sound import PIOSound
 
-SCREEN_WIDTH=128
-SCREEN_HEIGHT=64
-SCREEN_ADDRESS=0x3c
+SCREEN_WIDTH = 128
+SCREEN_HEIGHT = 64
+SCREEN_ADDRESS = 0x3c
 TEXT_ROW_Y_STEP = 15
+
+COLOR_PAUSED = 0xFF2000  # orange
+COLOR_WAIT = 0x0080FF  # greenish blue
+COLOR_COM_BUTTON = 0x8000FF  # purple
+COLOR_VPET_BUTTON = 0xFFFF00  # yellow
+COLOR_OK = 0x00FF00  # green
+COLOR_ERROR = 0xFF0000  # red
 
 class UserInterface:
 	'''
 	Handles the screen, buttons, menus, speaker and LED.
 	'''
-	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm):
+	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm, led_neo, settings):
 		self._display = None
 		self.display_error = None
 		if None in (display_scl, display_sda, button_a, button_b):
@@ -54,6 +61,8 @@ class UserInterface:
 		self.sound_on = True
 		self.audio_base_freq = 1000
 		self._led = led_pwm
+		self._neopixel = led_neo
+		self._settings = settings
 		self._text_y_start = random.randint(4, 13)
 	@property
 	def sound_on(self):
@@ -184,6 +193,32 @@ class UserInterface:
 		if self._led is not None:
 			self._led.frequency = 1
 			self._led.duty_cycle = 0x8000
+	def neopixel_color(self, color):
+		if self._neopixel is not None:
+			self._neopixel.fill(color)
+	def new_digirom(self, rom=None, alert=True):
+		'''
+		Handle speaker/LED/neopixel for new DigiROM.
+		'''
+		if rom is None:
+			color = COLOR_PAUSED
+		elif rom.turn == 1:
+			if self._settings.turn_1_button:
+				color = COLOR_COM_BUTTON
+			else:
+				color = COLOR_WAIT
+		else:
+			color = COLOR_VPET_BUTTON
+		print(hex(color))
+		self.neopixel_color(color)
+		if alert:
+			# Beep once and blink LED 3 times
+			self.beep_activate()
+			for _ in range(3):
+				self.led_bright()
+				time.sleep(0.05)
+				self.led_dim()
+				time.sleep(0.05)
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.

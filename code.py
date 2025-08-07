@@ -3,6 +3,7 @@ code.py
 WiFiCom on supported boards (see board_config.py).
 '''
 
+import neopixel
 import pwmio
 import board_config
 
@@ -10,6 +11,13 @@ import board_config
 led_pwm = pwmio.PWMOut(board_config.led_pin,
 	duty_cycle=0x1000, frequency=1000, variable_frequency=True)
 
+try:
+	led_neo = neopixel.NeoPixel(**board_config.neopixel)
+	led_neo.brightness = 0.1
+	led_neo.fill(0xFF2000)
+except AttributeError:
+	led_neo = None
+
 from wificom import main  # pylint: disable=wrong-import-order,wrong-import-position
 
-main.main(led_pwm)
+main.main(led_pwm, led_neo)

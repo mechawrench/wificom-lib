@@ -66,6 +66,11 @@ if board.board_id in ["raspberry_pi_pico", "raspberry_pi_pico_w"]:
 		"button_c": board.GP3,
 		"speaker": board.GP2,
 	}
+	neopixel = {
+		"pin": board.GP11,
+		"n": 1,
+		"pixel_order": "RGB",
+	}
 elif board.board_id == "arduino_nano_rp2040_connect":
 	wifi_type = "nina"
 	led_pin = board.LED
