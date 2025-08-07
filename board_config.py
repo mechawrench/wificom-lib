@@ -107,8 +107,8 @@ elif board.board_id == "arduino_nano_rp2040_connect":
 	}
 elif board.board_id == "seeeduino_xiao_rp2040":
 	wifi_type = None
-	# The on-board LED is inverted, so pretty useless. And want external for cased units.
-	led_pin = board.A3
+	# The on-board LED is inverted, so pretty useless.
+	led_pin = board.LED_GREEN  # Was board.A3, using neopixel instead but not currently optional.
 	controller_pins = [
 		hw.ProngOutput(board.D10, board.D7),  # D10 is GP3, D9 is GP4
 		hw.ProngInput(board.D8),
@@ -126,6 +126,11 @@ elif board.board_id == "seeeduino_xiao_rp2040":
 		"button_c": board.D6,
 		# Speaker is not currently optional. Avoid wasting a pin we might need in future.
 		"speaker": board.LED_RED,
+	}
+	neopixel = {
+		"pin": board.NEOPIXEL,
+		"n": 1,
+		"pixel_order": "GRB",
 	}
 else:
 	raise ValueError("Please configure pins in board_config.py")
