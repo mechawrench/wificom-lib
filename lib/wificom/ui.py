@@ -23,7 +23,7 @@ COLOR_PAUSED = 0xFF2000  # orange
 COLOR_WAIT = 0x0080FF  # greenish blue
 COLOR_COM_BUTTON = 0x8000FF  # purple
 COLOR_VPET_BUTTON = 0xFFFF00  # yellow
-COLOR_OK = 0x00FF00  # green
+COLOR_SUCCESS = 0x00FF00  # green
 COLOR_ERROR = 0xFF0000  # red
 
 class UserInterface:
@@ -193,9 +193,12 @@ class UserInterface:
 		if self._led is not None:
 			self._led.frequency = 1
 			self._led.duty_cycle = 0x8000
-	def neopixel_color(self, color):
+	def neopixel_color(self, color=None, brightness=None):
 		if self._neopixel is not None:
-			self._neopixel.fill(color)
+			if color is not None:
+				self._neopixel.fill(color)
+			if brightness is not None:
+				self._neopixel.brightness = brightness
 			self._neopixel.show()
 	def new_digirom(self, rom=None, alert=True):
 		'''
@@ -210,7 +213,6 @@ class UserInterface:
 				color = COLOR_WAIT
 		else:
 			color = COLOR_VPET_BUTTON
-		print(hex(color))
 		self.neopixel_color(color)
 		if alert:
 			# Beep once and blink LED 3 times
@@ -221,8 +223,18 @@ class UserInterface:
 				self.led_dim()
 				time.sleep(0.05)
 	def digirom_result(self, do_led, do_beep, interesting, success):
+		prev_color = None
+		if self._neopixel is not None:
+			prev_color = self._neopixel[0]
 		if do_led:
 			self.led_bright()
+			if interesting:
+				if success:
+					self.neopixel_color(COLOR_SUCCESS, 0.2)
+				else:
+					self.neopixel_color(COLOR_ERROR, 0.2)
+			else:
+				self.neopixel_color(brightness=0.2)
 		if do_beep and interesting:
 			if success:
 				self.beep_ready()
@@ -234,6 +246,7 @@ class UserInterface:
 			else:
 				time.sleep(0.05)
 			self.led_dim()
+			self.neopixel_color(prev_color, 0.1)
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
