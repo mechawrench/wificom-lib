@@ -9,21 +9,30 @@ import busio
 import digitalio
 import displayio
 import i2cdisplaybus
+import rainbowio
 import terminalio
 import adafruit_displayio_ssd1306
 from adafruit_display_text.bitmap_label import Label
 from wificom.sound import PIOSound
 
-SCREEN_WIDTH=128
-SCREEN_HEIGHT=64
-SCREEN_ADDRESS=0x3c
+SCREEN_WIDTH = 128
+SCREEN_HEIGHT = 64
+SCREEN_ADDRESS = 0x3c
 TEXT_ROW_Y_STEP = 15
+
+COLOR_AT_WORK = 0xFFFFFF  # white
+COLOR_PAUSED = 0xFF2000  # orange
+COLOR_WAIT = 0x0080FF  # greenish blue
+COLOR_COM_BUTTON = 0x8000FF  # purple
+COLOR_VPET_BUTTON = 0xFFFF00  # yellow
+COLOR_SUCCESS = 0x00FF00  # green
+COLOR_ERROR = 0xFF0000  # red
 
 class UserInterface:
 	'''
 	Handles the screen, buttons, menus, speaker and LED.
 	'''
-	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm):
+	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm, led_neo, settings):
 		self._display = None
 		self.display_error = None
 		if None in (display_scl, display_sda, button_a, button_b):
@@ -54,6 +63,8 @@ class UserInterface:
 		self.sound_on = True
 		self.audio_base_freq = 1000
 		self._led = led_pwm
+		self._neopixel = led_neo
+		self._settings = settings
 		self._text_y_start = random.randint(4, 13)
 	@property
 	def sound_on(self):
@@ -119,6 +130,13 @@ class UserInterface:
 		Check if button C is pressed.
 		'''
 		return self._is_button_pressed("C", do_no_display)
+	def is_any_pressed(self, do_no_display=False):
+		if self._display is None and not do_no_display:
+			return False
+		for button in self._buttons.values():
+			if not button.value:
+				return True
+		return False
 	def beep_normal(self):
 		'''
 		A normal beep.
@@ -184,6 +202,71 @@ class UserInterface:
 		if self._led is not None:
 			self._led.frequency = 1
 			self._led.duty_cycle = 0x8000
+	def neopixel_color(self, color=None, brightness=None):
+		if self._neopixel is not None:
+			if color is not None:
+				self._neopixel.fill(color)
+			if brightness is not None:
+				self._neopixel.brightness = brightness
+			self._neopixel.show()
+	def new_digirom(self, rom=None, alert=True):
+		'''
+		Handle speaker/LED/neopixel for new DigiROM.
+		'''
+		if rom is None:
+			color = COLOR_PAUSED
+		elif rom.turn == 1:
+			if self._settings.turn_1_button:
+				color = COLOR_COM_BUTTON
+			else:
+				color = COLOR_WAIT
+		else:
+			color = COLOR_VPET_BUTTON
+		self.neopixel_color(color)
+		if alert:
+			# Beep once and blink LED 3 times
+			self.beep_activate()
+			for _ in range(3):
+				self.led_bright()
+				self.neopixel_color(brightness=0.2)
+				time.sleep(0.05)
+				self.led_dim()
+				self.neopixel_color(brightness=0.1)
+				time.sleep(0.05)
+	def digirom_result(self, do_led, do_beep, interesting, success):
+		prev_color = None
+		if self._neopixel is not None:
+			prev_color = self._neopixel[0]
+		if do_led:
+			self.led_bright()
+			if interesting:
+				if success:
+					self.neopixel_color(COLOR_SUCCESS, 0.2)
+				else:
+					self.neopixel_color(COLOR_ERROR, 0.2)
+			else:
+				self.neopixel_color(brightness=0.2)
+		if do_beep and interesting:
+			if success:
+				self.beep_ready()
+			else:
+				self.beep_error()
+		if do_led:
+			if interesting:
+				time.sleep(0.2)
+			else:
+				time.sleep(0.05)
+			self.led_dim()
+			self.neopixel_color(prev_color, 0.1)
+	def rainbow(self, extra_exit = lambda: False):
+		angle = 0
+		while not self.is_any_pressed(True) and not extra_exit():
+			color = rainbowio.colorwheel(angle)
+			self.neopixel_color(color)
+			angle += 0.5
+		self.beep_activate()
+		while self.is_any_pressed(True):
+			pass
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
@@ -191,6 +274,7 @@ class UserInterface:
 		If a result is None, that option cannot be activated.
 		Should only be called if there is a screen.
 		'''
+		self.neopixel_color(COLOR_PAUSED)
 		selection = 0
 		while True:
 			text_rows = make_menu_text(options, selection)
