@@ -9,6 +9,7 @@ import busio
 import digitalio
 import displayio
 import i2cdisplaybus
+import rainbowio
 import terminalio
 import adafruit_displayio_ssd1306
 from adafruit_display_text.bitmap_label import Label
@@ -19,6 +20,7 @@ SCREEN_HEIGHT = 64
 SCREEN_ADDRESS = 0x3c
 TEXT_ROW_Y_STEP = 15
 
+COLOR_AT_WORK = 0xFFFFFF  # white
 COLOR_PAUSED = 0xFF2000  # orange
 COLOR_WAIT = 0x0080FF  # greenish blue
 COLOR_COM_BUTTON = 0x8000FF  # purple
@@ -219,8 +221,10 @@ class UserInterface:
 			self.beep_activate()
 			for _ in range(3):
 				self.led_bright()
+				self.neopixel_color(brightness=0.2)
 				time.sleep(0.05)
 				self.led_dim()
+				self.neopixel_color(brightness=0.1)
 				time.sleep(0.05)
 	def digirom_result(self, do_led, do_beep, interesting, success):
 		prev_color = None
@@ -247,6 +251,10 @@ class UserInterface:
 				time.sleep(0.05)
 			self.led_dim()
 			self.neopixel_color(prev_color, 0.1)
+	def rainbow(self):
+		for angle in range(512):
+			color = rainbowio.colorwheel(angle)
+			self.neopixel_color(color)
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
@@ -254,6 +262,7 @@ class UserInterface:
 		If a result is None, that option cannot be activated.
 		Should only be called if there is a screen.
 		'''
+		self.neopixel_color(COLOR_PAUSED)
 		selection = 0
 		while True:
 			text_rows = make_menu_text(options, selection)

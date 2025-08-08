@@ -81,7 +81,6 @@ def execute_digirom(rom, do_led=True, do_beep=True):
 	'''
 	Execute the digirom and report results.
 	'''
-	#pylint: disable=too-many-branches
 	try:
 		controller.execute(rom)
 		result = str(rom.result)
@@ -129,8 +128,10 @@ def execute_digirom_loop(rom, is_wifi):
 	if is_wifi and not was_c_pressed:
 		mqtt.send_digirom_output(result)
 		ui.led_off()
+		ui.neopixel_color(brightness=0)
 		mqtt.loop()
 		ui.led_dim()
+		ui.neopixel_color(brightness=0.1)
 		if mqtt.get_subscribed_output(False) is not None:
 			return
 	seconds_passed = time.monotonic() - time_start
@@ -266,6 +267,7 @@ def run_wifi():
 
 	# Connect to WiFi and MQTT
 	ui.led_fast_blink()
+	ui.neopixel_color(wificom.ui.COLOR_AT_WORK)
 	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls()
 	mqtt_client = wifi.connect()
@@ -276,6 +278,7 @@ def run_wifi():
 	if mqtt_connect is False:
 		failure_alert("MQTT failed", reconnect=True)
 	ui.led_dim()
+	ui.neopixel_color(wificom.ui.COLOR_PAUSED)
 	ui.beep_ready()
 	status_display.change("WiFi", None, "Hold C to exit", "Paused")
 	while not ui.is_c_pressed():
@@ -399,6 +402,7 @@ def run_punchbag():
 						pass
 					ui.beep_cancel()
 					continue
+				ui.new_digirom(rom, alert=False)
 				status_display.change("Punchbag", node.text, "Hold C to change", rom)
 				while not ui.is_c_pressed():
 					execute_digirom_loop(rom, False)
@@ -568,9 +572,12 @@ def failure_alert(message, hard_reset=False, reconnect=False):
 		# Short blink every 2s
 		if int(time.monotonic() * 10) % 20 == 0:
 			ui.led_bright()
+			ui.neopixel_color(color=wificom.ui.COLOR_ERROR, brightness=0.2)
 		else:
 			ui.led_off()
+			ui.neopixel_color(brightness=0)
 	ui.led_off()
+	ui.neopixel_color(brightness=0)
 	ui.beep_activate()
 	if hard_reset:
 		ui.display_text("Rebooting...")
@@ -667,6 +674,7 @@ def main(led_pwm, led_neo):
 	status_display = wificom.status.StatusDisplay(ui, settings, setup_battery_monitor())
 	version.set_display(ui.has_display)
 	version.set_settings(settings)
+	#ui.rainbow()  # not good here
 
 	run_column = 0 if mode_was_requested else 1
 	branches = {

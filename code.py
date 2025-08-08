@@ -14,7 +14,7 @@ led_pwm = pwmio.PWMOut(board_config.led_pin,
 try:
 	led_neo = neopixel.NeoPixel(**board_config.neopixel, auto_write=False)
 	led_neo.brightness = 0.1
-	led_neo.fill(0xFF2000)
+	led_neo.fill(0xFFFFFF)
 	led_neo.show()
 except AttributeError:
 	led_neo = None
