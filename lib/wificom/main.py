@@ -202,13 +202,25 @@ def rtb_status_callback(status, changed):
 	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
 		ui.led_dim()
 
-def main_menu(play_startup_sound=True):
+def main_menu():
+	'''
+	Prepare the main menu.
+	'''
+	ui.beep_ready()
+	ui.display_rows([
+		"       Welcome",
+		"         to",
+		"       WiFiCom",
+		"  (press any button)"
+	])
+	ui.rainbow()
+	main_menu_2()
+
+def main_menu_2():
 	'''
 	Show the main menu.
 	'''
 	print("Main menu")
-	if play_startup_sound:
-		ui.beep_ready()
 	options = []
 	results = []
 	if startup_mode == modes.MODE_DEV:
@@ -340,14 +352,15 @@ def run_wifi():
 		status_display.redraw()
 	mqtt.quit_rtb()
 
-def run_serial():
+def run_serial(discard_backlog=True):
 	'''
 	Run in serial mode.
 	'''
 	print("Running serial")
-	# Discard backlog
-	while serial.in_waiting > 0:
-		serial.read(1)
+	ui.neopixel_color(wificom.ui.COLOR_PAUSED)
+	if discard_backlog:
+		while serial.in_waiting > 0:
+			serial.read(1)
 	digirom = None
 	status_display.change("Serial", None, "Hold C to exit", "Paused", show_battery=False)
 	while not ui.is_c_pressed():
@@ -692,11 +705,12 @@ def main(led_pwm, led_neo):
 		if ui.has_display:
 			print("Run column: " + str(run_column))
 			branches[startup_mode][run_column]()
-			main_menu(False)
+			main_menu_2()
 		else:
 			print("Display not found: " + str(ui.display_error))
 			ui.beep_ready()
-			run_serial()
+			ui.rainbow(extra_exit = lambda: serial.in_waiting != 0)
+			run_serial(False)
 	except (ConnectionError, MMQTTException) as e:
 		report_crash(e, True)
 	except OSError as e:

@@ -130,6 +130,13 @@ class UserInterface:
 		Check if button C is pressed.
 		'''
 		return self._is_button_pressed("C", do_no_display)
+	def is_any_pressed(self, do_no_display=False):
+		if self._display is None and not do_no_display:
+			return False
+		for button in self._buttons.values():
+			if not button.value:
+				return True
+		return False
 	def beep_normal(self):
 		'''
 		A normal beep.
@@ -251,10 +258,15 @@ class UserInterface:
 				time.sleep(0.05)
 			self.led_dim()
 			self.neopixel_color(prev_color, 0.1)
-	def rainbow(self):
-		for angle in range(512):
+	def rainbow(self, extra_exit = lambda: False):
+		angle = 0
+		while not self.is_any_pressed(True) and not extra_exit():
 			color = rainbowio.colorwheel(angle)
 			self.neopixel_color(color)
+			angle += 0.5
+		self.beep_activate()
+		while self.is_any_pressed(True):
+			pass
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
