@@ -573,6 +573,7 @@ def failure_alert(message, hard_reset=False, reconnect=False):
 		reconnect = False
 	instructions = "A:Menu  B:Reconnect" if reconnect else "Press A to reboot"
 	ui.led_off()
+	ui.neopixel_color(brightness=0)
 	ui.display_text(f"{message}\n{instructions}")
 	ui.beep_failure()
 	while True:
@@ -687,7 +688,6 @@ def main(led_pwm, led_neo):
 	status_display = wificom.status.StatusDisplay(ui, settings, setup_battery_monitor())
 	version.set_display(ui.has_display)
 	version.set_settings(settings)
-	#ui.rainbow()  # not good here
 
 	run_column = 0 if mode_was_requested else 1
 	branches = {
