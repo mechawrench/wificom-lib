@@ -108,7 +108,8 @@ elif board.board_id == "arduino_nano_rp2040_connect":
 elif board.board_id == "seeeduino_xiao_rp2040":
 	wifi_type = None
 	# The on-board LED is inverted, so pretty useless.
-	led_pin = board.LED_GREEN  # Was board.A3, using neopixel instead but not currently optional.
+	# Was board.A3, now using neopixel instead.
+	led_pin = None
 	controller_pins = [
 		hw.ProngOutput(board.D10, board.D7),  # D10 is GP3, D9 is GP4
 		hw.ProngInput(board.D8),

@@ -127,11 +127,9 @@ def execute_digirom_loop(rom, is_wifi):
 		result = execute_digirom(rom)
 	if is_wifi and not was_c_pressed:
 		mqtt.send_digirom_output(result)
-		ui.led_off()
-		ui.neopixel_color(brightness=0)
+		ui.leds.off()
 		mqtt.loop()
-		ui.led_dim()
-		ui.neopixel_color(brightness=0.1)
+		ui.leds.dim()
 		if mqtt.get_subscribed_output(False) is not None:
 			return
 	seconds_passed = time.monotonic() - time_start
@@ -196,11 +194,11 @@ def rtb_status_callback(status, changed):
 	Called when a RTB object updates the status display.
 	'''
 	if status == rt.STATUS_PUSH:
-		ui.led_bright()
+		ui.leds.bright()
 		if changed:
 			ui.beep_activate()
 	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
-		ui.led_dim()
+		ui.leds.dim()
 
 def main_menu():
 	'''
@@ -278,8 +276,8 @@ def run_wifi():
 	done_wifi_before = True
 
 	# Connect to WiFi and MQTT
-	ui.led_fast_blink()
-	ui.neopixel_color(wificom.ui.COLOR_AT_WORK)
+	ui.leds.dim(wificom.ui.COLOR_AT_WORK)
+	ui.leds.fast_blink()
 	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls()
 	mqtt_client = wifi.connect()
@@ -289,8 +287,7 @@ def run_wifi():
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
 		failure_alert("MQTT failed", reconnect=True)
-	ui.led_dim()
-	ui.neopixel_color(wificom.ui.COLOR_PAUSED)
+	ui.leds.dim(wificom.ui.COLOR_PAUSED)
 	ui.beep_ready()
 	status_display.change("WiFi", None, "Hold C to exit", "Paused")
 	while not ui.is_c_pressed():
@@ -336,7 +333,7 @@ def run_wifi():
 				print(repr(e))
 		else:
 			if rtb_was_active:
-				ui.led_dim()
+				ui.leds.dim()
 			rtb_was_active = False
 			if digirom is not None:
 				execute_digirom_loop(digirom, True)
@@ -357,7 +354,7 @@ def run_serial(discard_backlog=True):
 	Run in serial mode.
 	'''
 	print("Running serial")
-	ui.neopixel_color(wificom.ui.COLOR_PAUSED)
+	ui.leds.dim(wificom.ui.COLOR_PAUSED)
 	if discard_backlog:
 		while serial.in_waiting > 0:
 			serial.read(1)
@@ -572,8 +569,7 @@ def failure_alert(message, hard_reset=False, reconnect=False):
 	if startup_mode == modes.MODE_DEV:
 		reconnect = False
 	instructions = "A:Menu  B:Reconnect" if reconnect else "Press A to reboot"
-	ui.led_off()
-	ui.neopixel_color(brightness=0)
+	ui.leds.off()
 	ui.display_text(f"{message}\n{instructions}")
 	ui.beep_failure()
 	while True:
@@ -585,13 +581,10 @@ def failure_alert(message, hard_reset=False, reconnect=False):
 			break
 		# Short blink every 2s
 		if int(time.monotonic() * 10) % 20 == 0:
-			ui.led_bright()
-			ui.neopixel_color(color=wificom.ui.COLOR_ERROR, brightness=0.2)
+			ui.leds.bright(wificom.ui.COLOR_ERROR)
 		else:
-			ui.led_off()
-			ui.neopixel_color(brightness=0)
-	ui.led_off()
-	ui.neopixel_color(brightness=0)
+			ui.leds.off()
+	ui.leds.off()
 	ui.beep_activate()
 	if hard_reset:
 		ui.display_text("Rebooting...")
@@ -641,7 +634,7 @@ def report_crash(crash_exception, connection_lost=False):
 		hard_reset = False
 	failure_alert(message, hard_reset, connection_lost)
 
-def main(led_pwm, led_neo):
+def main(leds):
 	'''
 	WiFiCom main program.
 	'''
@@ -683,7 +676,7 @@ def main(led_pwm, led_neo):
 	if board_config.WifiCls is None:
 		board_config.ui_pins["display_scl"] = None  # no display without wifi
 	displayio.release_displays()
-	ui = wificom.ui.UserInterface(**board_config.ui_pins, led_pwm=led_pwm, led_neo=led_neo, settings=settings)
+	ui = wificom.ui.UserInterface(**board_config.ui_pins, leds=leds, settings=settings)
 	ui.sound_on = settings.sound_on
 	status_display = wificom.status.StatusDisplay(ui, settings, setup_battery_monitor())
 	version.set_display(ui.has_display)

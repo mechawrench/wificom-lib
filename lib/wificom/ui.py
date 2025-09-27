@@ -30,9 +30,10 @@ COLOR_ERROR = 0xFF0000  # red
 
 class UserInterface:
 	'''
-	Handles the screen, buttons, menus, speaker and LED.
+	Handles the screen, buttons, menus, speaker and LEDs.
 	'''
-	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm, led_neo, settings):
+	def __init__(self, display_scl, display_sda, button_a, button_b, button_c,
+			speaker, leds, settings):
 		self._display = None
 		self.display_error = None
 		if None in (display_scl, display_sda, button_a, button_b):
@@ -62,8 +63,7 @@ class UserInterface:
 		self._speaker = PIOSound(speaker)
 		self.sound_on = True
 		self.audio_base_freq = 1000
-		self._led = led_pwm
-		self._neopixel = led_neo
+		self.leds = leds
 		self._settings = settings
 		self._text_y_start = random.randint(4, 13)
 	@property
@@ -131,6 +131,9 @@ class UserInterface:
 		'''
 		return self._is_button_pressed("C", do_no_display)
 	def is_any_pressed(self, do_no_display=False):
+		'''
+		Check if any button is pressed.
+		'''
 		if self._display is None and not do_no_display:
 			return False
 		for button in self._buttons.values():
@@ -174,41 +177,6 @@ class UserInterface:
 		for _ in range(3):
 			self.beep_error()
 			time.sleep(0.8)
-	def led_bright(self):
-		'''
-		Make LED bright.
-		'''
-		if self._led is not None:
-			self._led.frequency = 1000
-			self._led.duty_cycle = 0xFFFF
-	def led_dim(self):
-		'''
-		Make LED dim.
-		'''
-		if self._led is not None:
-			self._led.frequency = 1000
-			self._led.duty_cycle = 0x1000
-	def led_off(self):
-		'''
-		Turn LED off.
-		'''
-		if self._led is not None:
-			self._led.frequency = 1000
-			self._led.duty_cycle = 0
-	def led_fast_blink(self):
-		'''
-		Make LED blink quickly.
-		'''
-		if self._led is not None:
-			self._led.frequency = 1
-			self._led.duty_cycle = 0x8000
-	def neopixel_color(self, color=None, brightness=None):
-		if self._neopixel is not None:
-			if color is not None:
-				self._neopixel.fill(color)
-			if brightness is not None:
-				self._neopixel.brightness = brightness
-			self._neopixel.show()
 	def new_digirom(self, rom=None, alert=True):
 		'''
 		Handle speaker/LED/neopixel for new DigiROM.
@@ -222,30 +190,28 @@ class UserInterface:
 				color = COLOR_WAIT
 		else:
 			color = COLOR_VPET_BUTTON
-		self.neopixel_color(color)
+		self.leds.dim(color)
 		if alert:
 			# Beep once and blink LED 3 times
 			self.beep_activate()
 			for _ in range(3):
-				self.led_bright()
-				self.neopixel_color(brightness=0.2)
+				self.leds.bright()
 				time.sleep(0.05)
-				self.led_dim()
-				self.neopixel_color(brightness=0.1)
+				self.leds.dim()
 				time.sleep(0.05)
 	def digirom_result(self, do_led, do_beep, interesting, success):
-		prev_color = None
-		if self._neopixel is not None:
-			prev_color = self._neopixel[0]
+		'''
+		Do beeps and LED blinks depending on DigiROM result.
+		'''
+		prev_color = self.leds.color
 		if do_led:
-			self.led_bright()
 			if interesting:
 				if success:
-					self.neopixel_color(COLOR_SUCCESS, 0.2)
+					self.leds.bright(COLOR_SUCCESS)
 				else:
-					self.neopixel_color(COLOR_ERROR, 0.2)
+					self.leds.bright(COLOR_ERROR)
 			else:
-				self.neopixel_color(brightness=0.2)
+				self.leds.bright()
 		if do_beep and interesting:
 			if success:
 				self.beep_ready()
@@ -256,13 +222,15 @@ class UserInterface:
 				time.sleep(0.2)
 			else:
 				time.sleep(0.05)
-			self.led_dim()
-			self.neopixel_color(prev_color, 0.1)
+			self.leds.dim(prev_color)
 	def rainbow(self, extra_exit = lambda: False):
+		'''
+		Do neopixel rainbow until button pressed or `extra_exit` returns true.
+		'''
 		angle = 0
 		while not self.is_any_pressed(True) and not extra_exit():
 			color = rainbowio.colorwheel(angle)
-			self.neopixel_color(color)
+			self.leds.dim(color)
 			angle += 0.5
 		self.beep_activate()
 		while self.is_any_pressed(True):
@@ -274,7 +242,7 @@ class UserInterface:
 		If a result is None, that option cannot be activated.
 		Should only be called if there is a screen.
 		'''
-		self.neopixel_color(COLOR_PAUSED)
+		self.leds.dim(COLOR_PAUSED)
 		selection = 0
 		while True:
 			text_rows = make_menu_text(options, selection)

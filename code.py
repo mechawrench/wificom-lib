@@ -2,23 +2,15 @@
 code.py
 WiFiCom on supported boards (see board_config.py).
 '''
+# pylint: disable=wrong-import-order,wrong-import-position
 
-import neopixel
-import pwmio
+from wificom import led_hardware
 import board_config
 
-# Light LED dimly here so it comes on as soon as possible.
-led_pwm = pwmio.PWMOut(board_config.led_pin,
-	duty_cycle=0x1000, frequency=1000, variable_frequency=True)
+# Light LEDs dimly here so they come on as soon as possible.
+leds = led_hardware.LedHardware(board_config)
+leds.dim(0xFFFFFF)
 
-try:
-	led_neo = neopixel.NeoPixel(**board_config.neopixel, auto_write=False)
-	led_neo.brightness = 0.1
-	led_neo.fill(0xFFFFFF)
-	led_neo.show()
-except AttributeError:
-	led_neo = None
+from wificom import main  #pylint:disable=ungrouped-imports
 
-from wificom import main  # pylint: disable=wrong-import-order,wrong-import-position
-
-main.main(led_pwm, led_neo)
+main.main(leds)
