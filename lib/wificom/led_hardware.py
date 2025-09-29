@@ -8,6 +8,9 @@ import pwmio
 import neopixel
 
 class LedHardware:
+	'''
+	Handles the PWM LED and the neopixel.
+	'''
 	def __init__(self, board_config):
 		self._led = None
 		if board_config.led_pin is not None:
@@ -49,13 +52,6 @@ class LedHardware:
 			self._led.frequency = 1000
 			self._led.duty_cycle = 0
 		self.change_color(color, 0)
-	def fast_blink(self):
-		'''
-		Make LED blink quickly.
-		'''
-		if self._led is not None:
-			self._led.frequency = 1
-			self._led.duty_cycle = 0x8000
 	def change_color(self, color=None, brightness=None):
 		'''
 		Change neopixel color and/or brightness.
@@ -66,3 +62,10 @@ class LedHardware:
 			if brightness is not None:
 				self._neopixel.brightness = brightness
 			self._neopixel.show()
+	def fast_blink(self):
+		'''
+		Make LED blink quickly.
+		'''
+		if self._led is not None:
+			self._led.frequency = 1
+			self._led.duty_cycle = 0x8000
