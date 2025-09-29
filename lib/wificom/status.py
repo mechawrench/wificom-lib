@@ -51,6 +51,7 @@ class StatusDisplay:
 		self._desc = None
 		self._instruction = ""
 		self._status = ""
+		self._rtb_help = None
 		self._show_battery = True
 	def change(self, mode, desc, instruction, status, show_battery=True):
 		'''
@@ -64,7 +65,8 @@ class StatusDisplay:
 		self.do(status)
 	def do(self, status):  #pylint:disable=invalid-name
 		'''
-		Set status and redraw trying digirom then string.
+		Set status and redraw, trying digirom then string.
+		Resets RTB help.
 		'''
 		try:
 			if status.turn == 1:
@@ -78,7 +80,15 @@ class StatusDisplay:
 		except AttributeError:
 			pass  # Not a digirom, treat as string
 		self._status = status
+		self._rtb_help = None
 		self.redraw()
+	def rtb_help(self, message):
+		'''
+		Set RTB help and redraw.
+		'''
+		self._rtb_help = message
+		self.redraw()
+		#TODO should only update if it changed?
 	def redraw(self):
 		'''
 		Redraw screen.
@@ -88,6 +98,8 @@ class StatusDisplay:
 			rows.append(self._desc)
 		rows.append(self._instruction)
 		rows.append(self._status)
+		if self._rtb_help is not None:
+			rows.append(self._rtb_help)
 		if self._show_battery and self._battery_monitor is not None:
 			rows[0] += " " + self._battery_monitor.meter()
 		self._ui.display_rows(rows)

@@ -37,6 +37,7 @@ class RTB_data:  #pylint:disable=invalid-name
 		self.active = False
 		self.host = None
 		self.battle_type = None
+		self.invite_code = None
 		self.topic = None
 		self.digirom = None
 
@@ -147,6 +148,7 @@ def quit_rtb():
 	rtb.active = False
 	rtb.host = None
 	rtb.battle_type = None
+	rtb.invite_code = None
 	rtb.topic = None
 	rtb.digirom = None
 
@@ -207,6 +209,7 @@ def on_app_feed_callback(client, topic, message):
 		rtb.user_type = message_json['user_type']
 		rtb.host = message_json['host']
 		rtb.battle_type = message_json['battle_type']
+		rtb.invite_code = message_json['invite_code']
 		_data.mqtt_client.subscribe(rtb.host + "/f/" + message_json['topic'])
 		_data.mqtt_client.add_topic_callback(
 			rtb.host + "/f/" + message_json['topic'],

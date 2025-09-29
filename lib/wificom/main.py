@@ -189,16 +189,20 @@ def rtb_receive_callback():
 		rtb.digirom = None
 		return msg
 	return None
-def rtb_status_callback(status, changed):
+def rtb_status_callback(status, changed, help_text=None):
 	'''
 	Called when a RTB object updates the status display.
 	'''
 	if status == rt.STATUS_PUSH:
-		ui.leds.bright()
+		ui.leds.dim(wificom.ui.COLOR_VPET_BUTTON)
 		if changed:
 			ui.beep_activate()
-	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
-		ui.leds.dim()
+	elif status == rt.STATUS_WAIT:
+		ui.leds.dim(wificom.ui.COLOR_WAIT)
+	else:
+		# rt.STATUS_IDLE
+		ui.leds.dim(wificom.ui.COLOR_PAUSED)
+	status_display.rtb_help(help_text)
 
 def main_menu():
 	'''
@@ -257,7 +261,7 @@ def run_wifi():
 
 	digirom = None
 	rtb_was_active = False
-	rtb_type_id = None
+	rtb_invite_code_prev = None
 	rtb_last_ping = 0
 
 	if not secrets_imported:
@@ -305,10 +309,11 @@ def run_wifi():
 				mqtt.send_digirom_output(output)
 				status_display.do("Paused")
 		if rtb.active:
-			rtb_type_id_new = (rtb.battle_type, rtb.user_type)
-			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
+			if not rtb_was_active or rtb.invite_code != rtb_invite_code_prev:
+				rtb_invite_code_prev = rtb.invite_code
+				status_display.do("RTB #" + str(rtb.invite_code))
 				ui.new_digirom()
-				rtb_type_id = rtb_type_id_new
+				rtb_type_id = (rtb.battle_type, rtb.user_type)
 				if rtb_type_id in rtb_types:
 					rtb_runner = rtb_types[rtb_type_id](
 						execute_digirom,
@@ -316,8 +321,7 @@ def run_wifi():
 						rtb_receive_callback,
 						rtb_status_callback,
 					)
-					rtb_status_callback(rtb_runner.status, True)
-					status_display.do("RTB: follow LED")
+					#rtb_status_callback(rtb_runner.status, True)
 				else:
 					print(rtb.battle_type + " not implemented")
 					status_display.do("Paused")
@@ -326,7 +330,10 @@ def run_wifi():
 			if time_start - rtb_last_ping > 10:
 				mqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
+			if rtb_runner.status == rt.STATUS_PUSH:
+				ui.leds.off()
 			mqtt.loop()
+			ui.leds.dim()
 			try:
 				rtb_runner.loop()
 			except CommandError as e:
