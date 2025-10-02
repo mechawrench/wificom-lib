@@ -200,30 +200,28 @@ class UserInterface:
 				time.sleep(0.05)
 				self.leds.dim()
 				time.sleep(0.05)
-	def digirom_result(self, do_led, do_beep, interesting, success):
+	def digirom_result(self, do_beep, interesting, success):
 		'''
 		Do beeps and LED blinks depending on DigiROM result.
 		'''
 		prev_color = self.leds.color
-		if do_led:
-			if interesting:
-				if success:
-					self.leds.bright(COLOR_SUCCESS)
-				else:
-					self.leds.bright(COLOR_ERROR)
+		if interesting:
+			if success:
+				self.leds.bright(COLOR_SUCCESS)
 			else:
-				self.leds.bright()
+				self.leds.bright(COLOR_ERROR)
+		else:
+			self.leds.bright()
 		if do_beep and interesting:
 			if success:
 				self.beep_ready()
 			else:
 				self.beep_error()
-		if do_led:
-			if interesting:
-				time.sleep(0.2)
-			else:
-				time.sleep(0.05)
-			self.leds.dim(prev_color)
+		if interesting:
+			time.sleep(0.2)
+		else:
+			time.sleep(0.05)
+		self.leds.dim(prev_color)
 	def rainbow(self, extra_exit = lambda: False):
 		'''
 		Do neopixel rainbow until button pressed or `extra_exit` returns true.

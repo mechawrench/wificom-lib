@@ -77,7 +77,7 @@ def serial_readline():
 		return None
 	return serial_str
 
-def execute_digirom(rom, do_led=True, do_beep=True):
+def execute_digirom(rom, do_beep=True):
 	'''
 	Execute the digirom and report results.
 	'''
@@ -101,7 +101,7 @@ def execute_digirom(rom, do_led=True, do_beep=True):
 		elif rom.turn == 1 and " t" in result:
 			success = False
 	mqtt.handle_result(result)
-	ui.digirom_result(do_led, do_beep, interesting, success)
+	ui.digirom_result(do_beep, interesting, success)
 	return result
 
 def execute_digirom_loop(rom, is_wifi):
