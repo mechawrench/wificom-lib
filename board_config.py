@@ -125,8 +125,7 @@ elif board.board_id == "seeeduino_xiao_rp2040":
 		"button_a": None,
 		"button_b": None,
 		"button_c": board.D6,
-		# Speaker is not currently optional. Avoid wasting a pin we might need in future.
-		"speaker": board.LED_RED,
+		"speaker": board.A3,
 	}
 	neopixel = {
 		"pin": board.NEOPIXEL,
