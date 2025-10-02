@@ -86,9 +86,9 @@ class StatusDisplay:
 		'''
 		Set RTB help and redraw.
 		'''
-		self._rtb_help = message
-		self.redraw()
-		#TODO should only update if it changed?
+		if self._rtb_help != message:
+			self._rtb_help = message
+			self.redraw()
 	def redraw(self):
 		'''
 		Redraw screen.
