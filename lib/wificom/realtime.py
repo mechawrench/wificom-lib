@@ -263,9 +263,9 @@ class RealTimeGuestPenXBattle(RealTimeGuest):
 	def message(self):
 		'''RealTime interface'''
 		# pylint: disable=consider-using-f-string
-		return "X1-{0}-{1}-{2}-{3}".format(
+		return "X1-{0}-{1}-{2}-@4{3:03X}".format(
 			str(self.result[0])[2:],
 			str(self.result[2])[2:],
 			str(self.result[4])[2:],
-			str(self.result[6])[2:],
+			self.result[6].data & 0x1FF,  # clear Accel bit
 		)
