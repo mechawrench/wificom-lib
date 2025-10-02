@@ -18,10 +18,13 @@ class Settings:
 	`error` property becomes string or None.
 	'''
 	def __init__(self, filepath):
+		#pylint:disable=too-many-branches,too-many-statements
 		self._filepath = filepath
 		self._sound_on = True
 		self._turn_1_delay = 3
 		self._turn_1_delay_options = [0, 3, 5, -1]
+		self._neopixel_bright = 20
+		self._neopixel_dim = 5
 		self._try_write = True
 		self._changed = False
 		self.error = None
@@ -44,6 +47,21 @@ class Settings:
 				for opt in opts:
 					_ = opt + 1  # Type check
 				self._turn_1_delay_options = opts
+			else:
+				self._changed = True
+			if "neopixel_bright" in data:
+				bright = data["neopixel_bright"]
+				_ = bright + 1  # Type check
+				self._neopixel_bright = bright
+			else:
+				self._changed = True
+			if "neopixel_dim" in data:
+				dim = data["neopixel_dim"]
+				_ = dim + 1  # Type check
+				if dim > bright // 2:
+					dim = bright // 2
+					self._changed = True
+				self._neopixel_dim = dim
 			else:
 				self._changed = True
 			self.save()  # Save if new keys were added
@@ -73,6 +91,8 @@ class Settings:
 			"sound_on": self._sound_on,
 			"turn_1_delay": self._turn_1_delay,
 			"turn_1_delay_options": self._turn_1_delay_options,
+			"neopixel_bright": self._neopixel_bright,
+			"neopixel_dim": self._neopixel_dim,
 		}
 		try:
 			with open(self._filepath, "w", encoding="utf-8") as json_file:
@@ -137,3 +157,12 @@ class Settings:
 		if delay < 1 and on_serial:
 			delay = 1
 		return delay
+	def neopixel_brightness(self, bright):
+		'''
+		Brightness of neopixel, bright 0-100, dim 0-50 <= half of bright.
+
+		:param bright: True for bright, False for dim.
+		'''
+		if bright:
+			return self._neopixel_bright
+		return self._neopixel_dim

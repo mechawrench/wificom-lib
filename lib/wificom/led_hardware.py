@@ -20,6 +20,12 @@ class LedHardware:
 			self._neopixel = neopixel.NeoPixel(**board_config.neopixel, auto_write=False)
 		except AttributeError:
 			self._neopixel = None
+		self._settings = None
+	def add_settings(self, settings):
+		'''
+		Register the settings object (not ready yet at init).
+		'''
+		self._settings = settings
 	@property
 	def color(self):
 		'''
@@ -31,19 +37,21 @@ class LedHardware:
 	def bright(self, color=None):
 		'''
 		Make LEDs bright, and optionally change neopixel color.
+		Don't call before settings are added.
 		'''
 		if self._led is not None:
 			self._led.frequency = 1000
 			self._led.duty_cycle = 0xFFFF
-		self.change_color(color, 0.2)
+		self.change_color(color, self._settings.neopixel_brightness(True) / 100)
 	def dim(self, color=None):
 		'''
 		Make LEDs dim, and optionally change neopixel color.
+		Don't call before settings are added.
 		'''
 		if self._led is not None:
 			self._led.frequency = 1000
 			self._led.duty_cycle = 0x1000
-		self.change_color(color, 0.1)
+		self.change_color(color, self._settings.neopixel_brightness(False) / 100)
 	def off(self, color=None):
 		'''
 		Turn LEDs off, and optionally change neopixel color.

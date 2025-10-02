@@ -65,6 +65,7 @@ class UserInterface:
 		self.audio_base_freq = 1000
 		self.leds = leds
 		self._settings = settings
+		self.leds.add_settings(settings)
 		self._text_y_start = random.randint(4, 13)
 	@property
 	def sound_on(self):

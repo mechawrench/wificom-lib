@@ -9,7 +9,7 @@ import board_config
 
 # Light LEDs dimly here so they come on as soon as possible.
 leds = led_hardware.LedHardware(board_config)
-leds.dim(0xFFFFFF)
+leds.change_color(0xFFFFFF, 0.1)
 
 from wificom import main  #pylint:disable=ungrouped-imports
 
