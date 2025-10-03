@@ -231,6 +231,7 @@ class UserInterface:
 			color = rainbowio.colorwheel(angle)
 			self.leds.dim(color)
 			angle += 0.5
+		self.leds.bright(COLOR_SUCCESS)
 		self.beep_activate()
 		while self.is_any_pressed(True):
 			pass
