@@ -204,25 +204,13 @@ def rtb_status_callback(status, changed, help_text=None):
 		ui.leds.dim(wificom.ui.COLOR_PAUSED)
 	status_display.rtb_help(help_text)
 
-def main_menu():
-	'''
-	Prepare the main menu.
-	'''
-	ui.beep_ready()
-	ui.display_rows([
-		"       Welcome",
-		"         to",
-		"       WiFiCom",
-		"  (press any button)"
-	])
-	ui.rainbow()
-	main_menu_2()
-
-def main_menu_2():
+def main_menu(play_startup_sound=True):
 	'''
 	Show the main menu.
 	'''
 	print("Main menu")
+	if play_startup_sound:
+		ui.beep_ready()
 	options = []
 	results = []
 	if startup_mode == modes.MODE_DEV:
@@ -706,7 +694,7 @@ def main(leds):
 		if ui.has_display:
 			print("Run column: " + str(run_column))
 			branches[startup_mode][run_column]()
-			main_menu_2()
+			main_menu(False)
 		else:
 			print("Display not found: " + str(ui.display_error))
 			ui.beep_ready()
