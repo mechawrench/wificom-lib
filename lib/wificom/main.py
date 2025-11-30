@@ -235,6 +235,7 @@ def mode_change_reboot(mode):
 	modes.set_mode(mode)
 	ui.display_text("Rebooting...")
 	time.sleep(0.5)
+	ui.leds.off()
 	microcontroller.reset()
 
 def run_wifi():
@@ -264,6 +265,7 @@ def run_wifi():
 		print("*** Soft reboot to reinitialize WiFi ***")
 		ui.display_text("Soft reboot...")
 		time.sleep(0.8)
+		ui.leds.off()
 		supervisor.reload()
 	done_wifi_before = True
 
@@ -508,6 +510,7 @@ def reboot_uf2():
 	Reboot into UF2 mode.
 	'''
 	save_settings()
+	ui.leds.dim(wificom.ui.COLOR_AT_WORK)
 	ui.display_text("* UF2 Mode *\nCopy UF2 to RPI-RP2\nEject+reset to cancel")
 	time.sleep(0.3)
 	microcontroller.on_next_reset(microcontroller.RunMode.UF2)
@@ -518,9 +521,7 @@ def run_drive():
 	Run in drive mode.
 	'''
 	save_settings()
-	ui.leds.dim(wificom.ui.COLOR_PAUSED)
 	ui.display_text("* Drive Mode *\nEject when done\nThen hold C to exit")
-	ui.beep_ready()
 	hold_c_to_reboot()
 
 def run_unknown():
@@ -532,8 +533,12 @@ def run_unknown():
 
 def hold_c_to_reboot():
 	'''
-	Hold C to reboot.
+	Hold C to reboot. Part 2 of run_drive and run_unknown.
 	'''
+	ui.leds.bright(wificom.ui.COLOR_SUCCESS)
+	ui.beep_ready()
+	time.sleep(0.2)
+	ui.leds.dim(wificom.ui.COLOR_AT_WORK)
 	while True:
 		while not ui.is_c_pressed():
 			pass
