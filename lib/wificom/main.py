@@ -346,15 +346,16 @@ def run_wifi():
 		status_display.redraw()
 	mqtt.quit_rtb()
 
-def run_serial(discard_backlog=True):
+def run_serial(do_rainbow=False):
 	'''
 	Run in serial mode.
 	'''
 	print("Running serial")
+	while serial.in_waiting > 0:
+		serial.read(1)
+	if do_rainbow:
+		ui.rainbow(extra_exit = lambda: serial.in_waiting != 0)
 	ui.leds.dim(wificom.ui.COLOR_PAUSED)
-	if discard_backlog:
-		while serial.in_waiting > 0:
-			serial.read(1)
 	digirom = None
 	status_display.change("Serial", None, "Hold C to exit", "Paused", show_battery=False)
 	while not ui.is_c_pressed():
@@ -703,8 +704,7 @@ def main(leds):
 		else:
 			print("Display not found: " + str(ui.display_error))
 			ui.beep_ready()
-			ui.rainbow(extra_exit = lambda: serial.in_waiting != 0)
-			run_serial(False)
+			run_serial(True)
 	except (ConnectionError, MMQTTException) as e:
 		report_crash(e, True)
 	except OSError as e:

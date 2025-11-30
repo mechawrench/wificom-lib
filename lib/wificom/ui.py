@@ -227,12 +227,16 @@ class UserInterface:
 		Do neopixel rainbow until button pressed or `extra_exit` returns true.
 		'''
 		angle = 0
-		while not self.is_any_pressed(True) and not extra_exit():
+		while True:
 			color = rainbowio.colorwheel(angle)
 			self.leds.dim(color)
 			angle += 0.5
-		self.leds.bright(COLOR_SUCCESS)
-		self.beep_activate()
+			if self.is_any_pressed(True):
+				self.leds.bright(COLOR_SUCCESS)
+				self.beep_activate()
+				break
+			if extra_exit():
+				break  # silently
 		while self.is_any_pressed(True):
 			pass
 	def menu(self, options, results, cancel_result):
