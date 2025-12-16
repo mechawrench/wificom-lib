@@ -174,10 +174,6 @@ rtb_types = {
 	("digimon-penx-battle", "host"): rt.RealTimeHostPenXBattle,
 	("digimon-penx-battle", "guest"): rt.RealTimeGuestPenXBattle,
 }
-rtb_display_names = {
-	"legendz": "Lgnz",
-	"digimon-penx-battle": "PenX",
-}
 def rtb_send_callback(message):
 	'''
 	Called when a RTB object sends a message.
@@ -305,7 +301,7 @@ def run_wifi():
 		if rtb.active:
 			if not rtb_was_active or rtb.invite_code != rtb_invite_code_prev:
 				rtb_invite_code_prev = rtb.invite_code
-				rtb_display_name = rtb_display_names.get(rtb.battle_type, "?")
+				rtb_display_name = "Lgnz" if rtb.battle_type == "legendz" else "PenX"
 				status_display.do(f"RTB #{rtb.invite_code} {rtb.user_type} {rtb_display_name}")
 				ui.new_digirom()
 				rtb_type_id = (rtb.battle_type, rtb.user_type)
