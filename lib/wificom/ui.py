@@ -9,21 +9,31 @@ import busio
 import digitalio
 import displayio
 import i2cdisplaybus
+import rainbowio
 import terminalio
 import adafruit_displayio_ssd1306
 from adafruit_display_text.bitmap_label import Label
 from wificom.sound import PIOSound
 
-SCREEN_WIDTH=128
-SCREEN_HEIGHT=64
-SCREEN_ADDRESS=0x3c
+SCREEN_WIDTH = 128
+SCREEN_HEIGHT = 64
+SCREEN_ADDRESS = 0x3c
 TEXT_ROW_Y_STEP = 15
+
+COLOR_AT_WORK = 0xFFFFFF  # white
+COLOR_PAUSED = 0xFF2000  # orange
+COLOR_WAIT = 0x0080FF  # greenish blue
+COLOR_COM_BUTTON = 0x8000FF  # purple
+COLOR_VPET_BUTTON = 0xFFFF00  # yellow
+COLOR_SUCCESS = 0x00FF00  # green
+COLOR_ERROR = 0xFF0000  # red
 
 class UserInterface:
 	'''
-	Handles the screen, buttons, menus, speaker and LED.
+	Handles the screen, buttons, menus, speaker and LEDs.
 	'''
-	def __init__(self, display_scl, display_sda, button_a, button_b, button_c, speaker, led_pwm):
+	def __init__(self, display_scl, display_sda, button_a, button_b, button_c,
+			speaker, leds, settings):
 		self._display = None
 		self.display_error = None
 		if None in (display_scl, display_sda, button_a, button_b):
@@ -53,7 +63,9 @@ class UserInterface:
 		self._speaker = PIOSound(speaker)
 		self.sound_on = True
 		self.audio_base_freq = 1000
-		self._led = led_pwm
+		self.leds = leds
+		self._settings = settings
+		self.leds.add_settings(settings)
 		self._text_y_start = random.randint(4, 13)
 	@property
 	def sound_on(self):
@@ -119,6 +131,16 @@ class UserInterface:
 		Check if button C is pressed.
 		'''
 		return self._is_button_pressed("C", do_no_display)
+	def is_any_pressed(self, do_no_display=False):
+		'''
+		Check if any button is pressed.
+		'''
+		if self._display is None and not do_no_display:
+			return False
+		for button in self._buttons.values():
+			if not button.value:
+				return True
+		return False
 	def beep_normal(self):
 		'''
 		A normal beep.
@@ -156,34 +178,67 @@ class UserInterface:
 		for _ in range(3):
 			self.beep_error()
 			time.sleep(0.8)
-	def led_bright(self):
+	def new_digirom(self, rom=None, alert=True):
 		'''
-		Make LED bright.
+		Handle speaker/LED/neopixel for new DigiROM.
 		'''
-		if self._led is not None:
-			self._led.frequency = 1000
-			self._led.duty_cycle = 0xFFFF
-	def led_dim(self):
+		if rom is None:
+			color = COLOR_PAUSED
+		elif rom.turn == 1:
+			if self._settings.turn_1_button:
+				color = COLOR_COM_BUTTON
+			else:
+				color = COLOR_WAIT
+		else:
+			color = COLOR_VPET_BUTTON
+		self.leds.dim(color)
+		if alert:
+			# Beep once and blink LED 3 times
+			self.beep_activate()
+			for _ in range(3):
+				self.leds.bright()
+				time.sleep(0.05)
+				self.leds.dim()
+				time.sleep(0.05)
+	def digirom_result(self, do_beep, interesting, success):
 		'''
-		Make LED dim.
+		Do beeps and LED blinks depending on DigiROM result.
 		'''
-		if self._led is not None:
-			self._led.frequency = 1000
-			self._led.duty_cycle = 0x1000
-	def led_off(self):
+		prev_color = self.leds.color
+		if interesting:
+			if success:
+				self.leds.bright(COLOR_SUCCESS)
+			else:
+				self.leds.bright(COLOR_ERROR)
+		else:
+			self.leds.bright()
+		if do_beep and interesting:
+			if success:
+				self.beep_ready()
+			else:
+				self.beep_error()
+		if interesting:
+			time.sleep(0.2)
+		else:
+			time.sleep(0.05)
+		self.leds.dim(prev_color)
+	def rainbow(self, extra_exit = lambda: False):
 		'''
-		Turn LED off.
+		Do neopixel rainbow until button pressed or `extra_exit` returns true.
 		'''
-		if self._led is not None:
-			self._led.frequency = 1000
-			self._led.duty_cycle = 0
-	def led_fast_blink(self):
-		'''
-		Make LED blink quickly.
-		'''
-		if self._led is not None:
-			self._led.frequency = 1
-			self._led.duty_cycle = 0x8000
+		angle = 0
+		while True:
+			color = rainbowio.colorwheel(angle)
+			self.leds.dim(color)
+			angle += 0.5
+			if self.is_any_pressed(True):
+				self.leds.bright(COLOR_SUCCESS)
+				self.beep_activate()
+				break
+			if extra_exit():
+				break  # silently
+		while self.is_any_pressed(True):
+			pass
 	def menu(self, options, results, cancel_result):
 		'''
 		Display a menu with the specified options and return the corresponding result.
@@ -191,6 +246,7 @@ class UserInterface:
 		If a result is None, that option cannot be activated.
 		Should only be called if there is a screen.
 		'''
+		self.leds.dim(COLOR_PAUSED)
 		selection = 0
 		while True:
 			text_rows = make_menu_text(options, selection)

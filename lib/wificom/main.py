@@ -77,11 +77,10 @@ def serial_readline():
 		return None
 	return serial_str
 
-def execute_digirom(rom, do_led=True, do_beep=True):
+def execute_digirom(rom, do_beep=True):
 	'''
 	Execute the digirom and report results.
 	'''
-	#pylint: disable=too-many-branches
 	try:
 		controller.execute(rom)
 		result = str(rom.result)
@@ -90,28 +89,19 @@ def execute_digirom(rom, do_led=True, do_beep=True):
 		if len(result) > 0:
 			result += " "
 		result += repr(e)
-	if do_led:
-		ui.led_bright()
-	if serial == usb_cdc.data:
-		print(result)
-	else:
-		mqtt.handle_result(result)
-	if do_beep:
-		if "Error" in result:
-			ui.beep_error()
-		elif "r:" in result:
-			if len(rom.result) < 2 * len(rom):
-				ui.beep_error()
-			elif rom.turn == 1 and " t" in result:
-				ui.beep_error()
-			else:
-				ui.beep_ready()
-	if do_led:
-		if "r:" in result or "Error" in result:
-			time.sleep(0.2)
-		else:
-			time.sleep(0.05)
-		ui.led_dim()
+	interesting = False
+	success = False
+	if "Error" in result:
+		interesting = True
+	elif "r:" in result:
+		interesting = True
+		success = True
+		if len(rom.result) < 2 * len(rom):
+			success = False
+		elif rom.turn == 1 and " t" in result:
+			success = False
+	mqtt.handle_result(result)
+	ui.digirom_result(do_beep, interesting, success)
 	return result
 
 def execute_digirom_loop(rom, is_wifi):
@@ -137,9 +127,9 @@ def execute_digirom_loop(rom, is_wifi):
 		result = execute_digirom(rom)
 	if is_wifi and not was_c_pressed:
 		mqtt.send_digirom_output(result)
-		ui.led_off()
+		ui.leds.off()
 		mqtt.loop()
-		ui.led_dim()
+		ui.leds.dim()
 		if mqtt.get_subscribed_output(False) is not None:
 			return
 	seconds_passed = time.monotonic() - time_start
@@ -166,27 +156,17 @@ def process_new_digirom(command):
 		# It's an OtherCommand
 		if digirom.op == "P":
 			# silent
+			ui.new_digirom(alert=False)
 			return (COMMAND_P, "[pause]")
 		elif digirom.op == "I":
-			new_digirom_alert()
+			ui.new_digirom()
 			return (COMMAND_I, version.toml())
 		else:
 			ui.beep_error()
 			return (COMMAND_ERROR, "NotImplementedError:op=" + digirom.op)
 	# It's a DigiROM
-	new_digirom_alert()
+	ui.new_digirom(digirom)
 	return (COMMAND_DIGIROM, digirom)
-
-def new_digirom_alert():
-	'''
-	Beep once and blink LED 3 times for new DigiROM.
-	'''
-	ui.beep_activate()
-	for _ in range(3):
-		ui.led_bright()
-		time.sleep(0.05)
-		ui.led_dim()
-		time.sleep(0.05)
 
 rtb_types = {
 	("legendz", "host"): rt.RealTimeHostTalis,
@@ -209,16 +189,20 @@ def rtb_receive_callback():
 		rtb.digirom = None
 		return msg
 	return None
-def rtb_status_callback(status, changed):
+def rtb_status_callback(status, changed, help_text=None):
 	'''
 	Called when a RTB object updates the status display.
 	'''
 	if status == rt.STATUS_PUSH:
-		ui.led_bright()
+		ui.leds.dim(wificom.ui.COLOR_VPET_BUTTON)
 		if changed:
 			ui.beep_activate()
-	if status in (rt.STATUS_IDLE, rt.STATUS_WAIT):
-		ui.led_dim()
+	elif status == rt.STATUS_WAIT:
+		ui.leds.dim(wificom.ui.COLOR_WAIT)
+	else:
+		# rt.STATUS_IDLE
+		ui.leds.dim(wificom.ui.COLOR_PAUSED)
+	status_display.rtb_help(help_text)
 
 def main_menu(play_startup_sound=True):
 	'''
@@ -251,6 +235,7 @@ def mode_change_reboot(mode):
 	modes.set_mode(mode)
 	ui.display_text("Rebooting...")
 	time.sleep(0.5)
+	ui.leds.off()
 	microcontroller.reset()
 
 def run_wifi():
@@ -265,7 +250,7 @@ def run_wifi():
 
 	digirom = None
 	rtb_was_active = False
-	rtb_type_id = None
+	rtb_invite_code_prev = None
 	rtb_last_ping = 0
 
 	if not secrets_imported:
@@ -280,11 +265,13 @@ def run_wifi():
 		print("*** Soft reboot to reinitialize WiFi ***")
 		ui.display_text("Soft reboot...")
 		time.sleep(0.8)
+		ui.leds.off()
 		supervisor.reload()
 	done_wifi_before = True
 
 	# Connect to WiFi and MQTT
-	ui.led_fast_blink()
+	ui.leds.dim(wificom.ui.COLOR_AT_WORK)
+	ui.leds.fast_blink()
 	ui.display_text("Connecting to WiFi")
 	wifi = board_config.WifiCls()
 	mqtt_client = wifi.connect()
@@ -294,7 +281,7 @@ def run_wifi():
 	mqtt_connect = mqtt.connect_to_mqtt(mqtt_client)
 	if mqtt_connect is False:
 		failure_alert("MQTT failed", reconnect=True)
-	ui.led_dim()
+	ui.leds.dim(wificom.ui.COLOR_PAUSED)
 	ui.beep_ready()
 	status_display.change("WiFi", None, "Hold C to exit", "Paused")
 	while not ui.is_c_pressed():
@@ -312,10 +299,12 @@ def run_wifi():
 				mqtt.send_digirom_output(output)
 				status_display.do("Paused")
 		if rtb.active:
-			rtb_type_id_new = (rtb.battle_type, rtb.user_type)
-			if not rtb_was_active or rtb_type_id_new != rtb_type_id:
-				new_digirom_alert()
-				rtb_type_id = rtb_type_id_new
+			if not rtb_was_active or rtb.invite_code != rtb_invite_code_prev:
+				rtb_invite_code_prev = rtb.invite_code
+				rtb_display_name = "Lgnz" if rtb.battle_type == "legendz" else "PenX"
+				status_display.do(f"RTB #{rtb.invite_code} {rtb.user_type} {rtb_display_name}")
+				ui.new_digirom()
+				rtb_type_id = (rtb.battle_type, rtb.user_type)
 				if rtb_type_id in rtb_types:
 					rtb_runner = rtb_types[rtb_type_id](
 						execute_digirom,
@@ -323,8 +312,7 @@ def run_wifi():
 						rtb_receive_callback,
 						rtb_status_callback,
 					)
-					rtb_status_callback(rtb_runner.status, True)
-					status_display.do("RTB: follow LED")
+					#rtb_status_callback(rtb_runner.status, True)
 				else:
 					print(rtb.battle_type + " not implemented")
 					status_display.do("Paused")
@@ -333,14 +321,17 @@ def run_wifi():
 			if time_start - rtb_last_ping > 10:
 				mqtt.send_digirom_output("RTB")
 				rtb_last_ping = time_start
+			if rtb_runner.status == rt.STATUS_PUSH:
+				ui.leds.off()
 			mqtt.loop()
+			ui.leds.dim()
 			try:
 				rtb_runner.loop()
 			except CommandError as e:
 				print(repr(e))
 		else:
 			if rtb_was_active:
-				ui.led_dim()
+				ui.leds.dim()
 			rtb_was_active = False
 			if digirom is not None:
 				execute_digirom_loop(digirom, True)
@@ -356,14 +347,16 @@ def run_wifi():
 		status_display.redraw()
 	mqtt.quit_rtb()
 
-def run_serial():
+def run_serial(do_rainbow=False):
 	'''
 	Run in serial mode.
 	'''
 	print("Running serial")
-	# Discard backlog
 	while serial.in_waiting > 0:
 		serial.read(1)
+	if do_rainbow:
+		ui.rainbow(extra_exit = lambda: serial.in_waiting != 0)
+	ui.leds.dim(wificom.ui.COLOR_PAUSED)
 	digirom = None
 	status_display.change("Serial", None, "Hold C to exit", "Paused", show_battery=False)
 	while not ui.is_c_pressed():
@@ -418,6 +411,7 @@ def run_punchbag():
 						pass
 					ui.beep_cancel()
 					continue
+				ui.new_digirom(rom, alert=False)
 				status_display.change("Punchbag", node.text, "Hold C to change", rom)
 				while not ui.is_c_pressed():
 					execute_digirom_loop(rom, False)
@@ -518,6 +512,7 @@ def reboot_uf2():
 	Reboot into UF2 mode.
 	'''
 	save_settings()
+	ui.leds.dim(wificom.ui.COLOR_AT_WORK)
 	ui.display_text("* UF2 Mode *\nCopy UF2 to RPI-RP2\nEject+reset to cancel")
 	time.sleep(0.3)
 	microcontroller.on_next_reset(microcontroller.RunMode.UF2)
@@ -529,7 +524,6 @@ def run_drive():
 	'''
 	save_settings()
 	ui.display_text("* Drive Mode *\nEject when done\nThen hold C to exit")
-	ui.beep_ready()
 	hold_c_to_reboot()
 
 def run_unknown():
@@ -541,8 +535,12 @@ def run_unknown():
 
 def hold_c_to_reboot():
 	'''
-	Hold C to reboot.
+	Hold C to reboot. Part 2 of run_drive and run_unknown.
 	'''
+	ui.leds.bright(wificom.ui.COLOR_SUCCESS)
+	ui.beep_ready()
+	time.sleep(0.2)
+	ui.leds.dim(wificom.ui.COLOR_AT_WORK)
 	while True:
 		while not ui.is_c_pressed():
 			pass
@@ -574,7 +572,7 @@ def failure_alert(message, hard_reset=False, reconnect=False):
 	if startup_mode == modes.MODE_DEV:
 		reconnect = False
 	instructions = "A:Menu  B:Reconnect" if reconnect else "Press A to reboot"
-	ui.led_off()
+	ui.leds.off()
 	ui.display_text(f"{message}\n{instructions}")
 	ui.beep_failure()
 	while True:
@@ -586,10 +584,10 @@ def failure_alert(message, hard_reset=False, reconnect=False):
 			break
 		# Short blink every 2s
 		if int(time.monotonic() * 10) % 20 == 0:
-			ui.led_bright()
+			ui.leds.bright(wificom.ui.COLOR_ERROR)
 		else:
-			ui.led_off()
-	ui.led_off()
+			ui.leds.off()
+	ui.leds.off()
 	ui.beep_activate()
 	if hard_reset:
 		ui.display_text("Rebooting...")
@@ -639,7 +637,7 @@ def report_crash(crash_exception, connection_lost=False):
 		hard_reset = False
 	failure_alert(message, hard_reset, connection_lost)
 
-def main(led_pwm):
+def main(leds):
 	'''
 	WiFiCom main program.
 	'''
@@ -681,7 +679,7 @@ def main(led_pwm):
 	if board_config.WifiCls is None:
 		board_config.ui_pins["display_scl"] = None  # no display without wifi
 	displayio.release_displays()
-	ui = wificom.ui.UserInterface(**board_config.ui_pins, led_pwm=led_pwm)
+	ui = wificom.ui.UserInterface(**board_config.ui_pins, leds=leds, settings=settings)
 	ui.sound_on = settings.sound_on
 	status_display = wificom.status.StatusDisplay(ui, settings, setup_battery_monitor())
 	version.set_display(ui.has_display)
@@ -707,7 +705,7 @@ def main(led_pwm):
 		else:
 			print("Display not found: " + str(ui.display_error))
 			ui.beep_ready()
-			run_serial()
+			run_serial(True)
 	except (ConnectionError, MMQTTException) as e:
 		report_crash(e, True)
 	except OSError as e:

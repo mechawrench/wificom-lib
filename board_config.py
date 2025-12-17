@@ -66,6 +66,11 @@ if board.board_id in ["raspberry_pi_pico", "raspberry_pi_pico_w"]:
 		"button_c": board.GP3,
 		"speaker": board.GP2,
 	}
+	neopixel = {
+		"pin": board.GP11,
+		"n": 1,
+		"pixel_order": "RGB",
+	}
 elif board.board_id == "arduino_nano_rp2040_connect":
 	wifi_type = "nina"
 	led_pin = board.LED
@@ -102,8 +107,9 @@ elif board.board_id == "arduino_nano_rp2040_connect":
 	}
 elif board.board_id == "seeeduino_xiao_rp2040":
 	wifi_type = None
-	# The on-board LED is inverted, so pretty useless. And want external for cased units.
-	led_pin = board.A3
+	# The on-board LED is inverted, so pretty useless.
+	# Was board.A3, now using neopixel instead.
+	led_pin = None
 	controller_pins = [
 		hw.ProngOutput(board.D10, board.D7),  # D10 is GP3, D9 is GP4
 		hw.ProngInput(board.D8),
@@ -119,8 +125,12 @@ elif board.board_id == "seeeduino_xiao_rp2040":
 		"button_a": None,
 		"button_b": None,
 		"button_c": board.D6,
-		# Speaker is not currently optional. Avoid wasting a pin we might need in future.
-		"speaker": board.LED_RED,
+		"speaker": board.A3,
+	}
+	neopixel = {
+		"pin": board.NEOPIXEL,
+		"n": 1,
+		"pixel_order": "GRB",
 	}
 else:
 	raise ValueError("Please configure pins in board_config.py")

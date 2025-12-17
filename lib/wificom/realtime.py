@@ -22,6 +22,9 @@ class RealTime:
 	* `def matched(self, rom_str)` - True if the incoming digirom string
 		fits the expected pattern, False otherwise.
 	'''
+	help_idle = "Wait for partner"
+	help_wait = "Wait for start"
+	help_push = "Push vpet button"
 	def __init__(self, execute_callback, send_callback, receive_callback, status_callback):
 		self._execute_callback = execute_callback
 		self._send_callback = send_callback
@@ -33,11 +36,11 @@ class RealTime:
 		self.received_message = None
 		self.received_digirom = None
 		self.comm_attempts = 0  # for host only
-	def execute(self, digirom, do_led, do_beep):
+	def execute(self, digirom, do_beep):
 		'''
 		Execute digirom using the execute callback, and store result.
 		'''
-		self._execute_callback(digirom, do_led, do_beep)
+		self._execute_callback(digirom, do_beep)
 		self.result = digirom.result
 	def modify_received_digirom(self):
 		'''
@@ -89,7 +92,13 @@ class RealTime:
 		'''
 		Report current status to the status callback and save it here.
 		'''
-		self._status_callback(status, status != self.status)
+		if status == STATUS_IDLE:
+			help_text = self.help_idle
+		elif status == STATUS_WAIT:
+			help_text = self.help_wait
+		else:
+			help_text = self.help_push
+		self._status_callback(status, status != self.status, help_text=help_text)
 		self.status = status
 
 class RealTimeHost(RealTime):
@@ -122,7 +131,7 @@ class RealTimeHost(RealTime):
 		elif self.time_start is None:
 			self.update_status(STATUS_PUSH)
 			digirom = dmcomm.protocol.parse_command(self.scan_str)
-			self.execute(digirom, do_led=False, do_beep=False)
+			self.execute(digirom, do_beep=False)
 			if self.scan_successful():
 				self.send_message()
 				self.time_start = time.monotonic()
@@ -138,7 +147,7 @@ class RealTimeHost(RealTime):
 				self.comm_attempts = 0
 				self._attempt_second_comm()
 	def _attempt_second_comm(self):
-		self.execute(self.received_digirom, do_led=True, do_beep=True)
+		self.execute(self.received_digirom, do_beep=True)
 		if self.comm_successful():
 			self.received_digirom = None
 			self.time_start = None
@@ -164,10 +173,12 @@ class RealTimeGuest(RealTime):
 		'''
 		self.receive_message()
 		self.receive_digirom()
-		if self.received_digirom is not None:
+		if self.received_digirom is None:
+			self.update_status(STATUS_IDLE)
+		else:
 			self.update_status(STATUS_PUSH)
-			self.execute(self.received_digirom, do_led=False, do_beep=True)
-			self.update_status(STATUS_WAIT)
+			self.execute(self.received_digirom, do_beep=True)
+			self.update_status(STATUS_IDLE)
 			if self.comm_successful():
 				self.send_message()
 
@@ -181,6 +192,7 @@ class RealTimeGuestTalis(RealTimeHost):
 	wait_max = 25     #: RealTimeHost interface
 	max_attempts = 4  #: RealTimeHost interface
 	retry_delay = 5   #: RealTimeHost interface
+	help_push = "Push button together"  #: RealTime interface
 	def scan_successful(self):
 		'''RealTimeHost interface'''
 		return len(self.result) == 1 and len(self.result[0].data) >= 20
@@ -241,6 +253,7 @@ class RealTimeHostPenXBattle(RealTimeHost):
 
 class RealTimeGuestPenXBattle(RealTimeGuest):
 	'''Real-time guest for PenX battle.'''
+	help_push = "Push vpet button now"  #: RealTime interface
 	def matched(self, rom_str):
 		'''RealTime interface'''
 		return rom_str.startswith("X2-")
@@ -250,9 +263,9 @@ class RealTimeGuestPenXBattle(RealTimeGuest):
 	def message(self):
 		'''RealTime interface'''
 		# pylint: disable=consider-using-f-string
-		return "X1-{0}-{1}-{2}-{3}".format(
+		return "X1-{0}-{1}-{2}-@4{3:03X}".format(
 			str(self.result[0])[2:],
 			str(self.result[2])[2:],
 			str(self.result[4])[2:],
-			str(self.result[6])[2:],
+			self.result[6].data & 0x1FF,  # clear Accel bit
 		)
