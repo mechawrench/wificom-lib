@@ -6,6 +6,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [unreleased] commits. Notes are in the pull request descriptions.
 
+## [2.1.0] - 2025-12-17
+### Added
+* NeoPixel support, with various indicator colors:
+  * Blue for turn-1 DigiROM with auto start.
+  * Purple for turn-1 DigiROM with the button press feature.
+  * Yellow for turn-2 DigiROM.
+  * Green flash for success.
+  * Red flash for error.
+  * Orange for paused.
+  * White for busy.
+* New config setting for the delay after receiving a new turn-1 DigiROM, with option for button press:
+  * WiFiCom:
+    * Can be edited from the Settings menu.
+    * Button press option waits for button A or B on the WiFiCom.
+    * `turn_1_delay_options` in `config.json` sets the available menu options.
+  * P-Com:
+    * `turn_1_delay` in `config.json`.
+    * A positive number is the delay in seconds.
+    * A negative number means wait for button press (button C on P-Com).
+  * Note: serial mode keeps a minimum delay of 1 second.
+### Changed
+* When on WiFi, LED turns off while checking MQTT to indicate WiFiCom unresponsive.
+* Shows DigiROM name in punchbag.
+* Real-time battles:
+  * Shows invite code on screen.
+  * Shows more useful instructions on screen.
+  * Regular LED becomes more consistent with other features.
+### Fixed
+* Accel vs Accel in real-time battles (uses PenX/Mini battle style).
+### Tested with
+* CircuitPython 9.2.8
+
 ## [2.0.0] - 2025-06-12
 ### Added
 * New punchbag system, in `digiroms.txt`. Supports large menu trees.
@@ -266,7 +298,8 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v2.0.0...main
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v2.1.0...main
+[2.1.0]: https://github.com/mechawrench/wificom-lib/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/mechawrench/wificom-lib/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/mechawrench/wificom-lib/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/mechawrench/wificom-lib/compare/v1.0.0...v1.1.0
