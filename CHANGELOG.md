@@ -10,7 +10,7 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 ### Added
 * NeoPixel support, with various indicator colors:
   * Blue for turn-1 DigiROM with auto start.
-  * Purple for turn-1 DigiROM with the button press feature.
+  * Purple for turn-1 DigiROM with the new button press feature.
   * Yellow for turn-2 DigiROM.
   * Green flash for success.
   * Red flash for error.
@@ -28,7 +28,7 @@ See [unreleased] commits. Notes are in the pull request descriptions.
   * Note: serial mode keeps a minimum delay of 1 second.
 ### Changed
 * When on WiFi, LED turns off while checking MQTT to indicate WiFiCom unresponsive.
-* Shows DigiROM name in punchbag.
+* Punchbag shows DigiROM name.
 * Real-time battles:
   * Shows invite code on screen.
   * Shows more useful instructions on screen.
