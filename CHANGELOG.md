@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 See [unreleased] commits. Notes are in the pull request descriptions.
 
+## [2.1.1] - 2026-11-20
+### Fixed
+* Updated `dmcomm-python` to v0.9.1 to support DM20 New Wave 2 and Digivice Revival.
+
 ## [2.1.0] - 2025-12-17
 ### Added
 * NeoPixel support, with various indicator colors:
@@ -298,7 +302,8 @@ See [unreleased] commits. Notes are in the pull request descriptions.
 - License using MIT, based on BladeSabre base license
 - Added application_uuid to MQTT messages on device to enable parsing of which application should get output back
 
-[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v2.1.0...main
+[Unreleased]: https://github.com/mechawrench/wificom-lib/compare/v2.1.1...main
+[2.1.1]: https://github.com/mechawrench/wificom-lib/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/mechawrench/wificom-lib/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/mechawrench/wificom-lib/compare/v1.2.0...v2.0.0
 [1.2.0]: https://github.com/mechawrench/wificom-lib/compare/v1.1.0...v1.2.0
